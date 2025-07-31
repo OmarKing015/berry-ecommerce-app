@@ -14,7 +14,8 @@ export const getProductBySlug = async (slug: string) => {
             query: PRODUCT_BY_ID_QUERY,
             params: {
                 slug: `${slug}`,
-            }
+            },
+            revalidate: 3600,
         })
         return product.data || []
     } catch (error) {

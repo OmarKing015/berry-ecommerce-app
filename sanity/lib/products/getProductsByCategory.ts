@@ -11,6 +11,7 @@ export const getProductsByCategory = async (categorySlug: string) => {
     const products = await sanityFetch({
       query: PRODUCTS_BY_CATEGORY_QUERY,
       params: { categorySlug },
+      revalidate: 3600,
     });
 
     return products.data || [];

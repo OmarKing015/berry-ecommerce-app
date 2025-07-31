@@ -5,7 +5,6 @@ import { ClerkProvider } from "@clerk/nextjs";
 import Header from "@/components/Header";
 import { SanityLive } from "@/sanity/lib/live";
 import { ContextProvider } from "@/context/context";
-import { ThemeProvider } from "@/components/ThemeProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -113,22 +112,15 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <ContextProvider>
-        <html lang="en" suppressHydrationWarning>
+        <html lang="en">
           <body
             className={`${geistSans.variable} ${geistMono.variable} ${notoSansArabic.variable} ${amiri.variable} ${cairo.variable} ${almarai.variable} ${lalezar.variable} ${markaziText.variable} ${mada.variable} ${tajawal.variable} ${elMessiri.variable} ${lemonada.variable} ${changa.variable} ${reemKufi.variable} antialiased`}
           >
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-            >
-              <main>
-                <Header />
-                {children}
-              </main>
-              <SanityLive />
-            </ThemeProvider>
+            <main>
+              <Header />
+              {children}
+            </main>
+            <SanityLive />
           </body>
         </html>
       </ContextProvider>

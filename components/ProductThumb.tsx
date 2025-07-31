@@ -10,11 +10,11 @@ function ProductThumb({ product }: { product: Product }) {
   return (
     <Link
       href={`/product/${product?.slug?.current}`}
-      className={`group flex flex-col bg-card rounded-lg border border-border shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden w-full ${
+      className={`group flex flex-col bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden w-full ${
         isOutOfStock ? "opacity-60" : ""
       }`}
     >
-      <div className="relative aspect-square w-full overflow-hidden bg-muted">
+      <div className="relative aspect-square w-full overflow-hidden bg-gray-50">
         {product.image && (
           <Image
             className="object-contain transition-transform duration-300 group-hover:scale-105"
@@ -25,7 +25,7 @@ function ProductThumb({ product }: { product: Product }) {
           />
         )}
         {isOutOfStock && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
             <span className="text-white font-bold text-lg">Out Of Stock</span>
           </div>
         )}
@@ -33,7 +33,7 @@ function ProductThumb({ product }: { product: Product }) {
         {/* Quick Add to Cart Button - appears on hover */}
         {!isOutOfStock && (
           <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <button className="bg-primary hover:bg-primary/90 text-primary-foreground p-2 rounded-full shadow-lg transition-colors duration-200">
+            <button className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full shadow-lg transition-colors duration-200">
               <ShoppingCart className="h-4 w-4" />
             </button>
           </div>
@@ -42,7 +42,7 @@ function ProductThumb({ product }: { product: Product }) {
 
       <div className="p-4 flex-1 flex flex-col justify-between">
         <div className="space-y-2">
-          <h2 className="text-lg font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors duration-200">
+          <h2 className="text-lg font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors duration-200">
             {product.name}
           </h2>
 
@@ -51,20 +51,20 @@ function ProductThumb({ product }: { product: Product }) {
             {[...Array(5)].map((_, i) => (
               <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
             ))}
-            <span className="text-xs text-muted-foreground ml-1">(4.8)</span>
+            <span className="text-xs text-gray-500 ml-1">(4.8)</span>
           </div>
         </div>
 
         <div className="mt-3 flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-xl font-bold text-foreground">{product.price?.toFixed(2)} EGP</p>
+            <p className="text-xl font-bold text-gray-900">{product.price?.toFixed(2)} EGP</p>
             {product.stock != null && !isOutOfStock && (
-              <p className="text-xs text-green-500">{product.stock} in stock</p>
+              <p className="text-xs text-green-600">{product.stock} in stock</p>
             )}
           </div>
 
           {!isOutOfStock && (
-            <div className="bg-green-500/10 text-green-500 text-xs font-medium px-2 py-1 rounded-full">Available</div>
+            <div className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">Available</div>
           )}
         </div>
       </div>

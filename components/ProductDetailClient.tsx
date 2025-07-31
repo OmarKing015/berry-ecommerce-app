@@ -30,16 +30,16 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   }
 
   return (
-    <div className="min-h-screen bg-background py-8 md:py-12">
-      <div className="container mx-auto px-4 max-w-7xl">
-        <div className="bg-card rounded-lg shadow-sm border overflow-hidden">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-4 md:p-8">
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="container mx-auto px-4 max-w-6xl">
+        <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6 lg:p-8">
             {/* Product Image */}
             <div className="space-y-4">
               <div
                 className={`${
                   isOutOfStock ? "opacity-50" : ""
-                } relative aspect-square overflow-hidden rounded-lg shadow-lg bg-muted`}
+                } relative aspect-square overflow-hidden rounded-lg shadow-lg bg-gray-100`}
               >
                 {product.image && (
                   <Image
@@ -51,7 +51,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                   />
                 )}
                 {isOutOfStock && (
-                  <Badge className="absolute top-4 left-4 text-sm px-3 py-1 bg-destructive text-destructive-foreground">Out of Stock</Badge>
+                  <Badge className="absolute top-4 left-4 text-sm px-3 py-1 bg-red-500 text-white">Out of Stock</Badge>
                 )}
               </div>
             </div>
@@ -59,21 +59,21 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
             {/* Product Details */}
             <div className="flex flex-col justify-between space-y-6">
               <div>
-                <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-2">{product.name}</h1>
-                <p className="text-muted-foreground text-base md:text-lg mb-4">{product.description}</p>
+                <h1 className="text-4xl font-extrabold text-gray-900 mb-2">{product.name}</h1>
+                <p className="text-gray-600 text-lg mb-4">{product.description}</p>
                 <div className="flex items-baseline gap-2 mb-6">
-                  <span className="text-4xl md:text-5xl font-bold text-primary">{(product.price ?? 0).toFixed(2)} EGP</span>
+                  <span className="text-5xl font-bold text-gray-900">{(product.price ?? 0).toFixed(2)} EGP</span>
                 </div>
 
                 {/* Size Selection */}
                 <div className="mb-6">
-                  <h2 className="text-lg font-semibold text-foreground mb-3">Select Size</h2>
+                  <h2 className="text-lg font-semibold text-gray-800 mb-3">Select Size</h2>
                   {product.size && (
                   <RadioGroup value={selectedSize} onValueChange={setSelectedSize} className="flex flex-wrap gap-3">
                     {product.size?.map((size) => (
                       <div key={size} className="flex items-center space-x-2">
                         <RadioGroupItem value={size} id={`size-${size}`} disabled={isOutOfStock} />
-                        <Label htmlFor={`size-${size}`} className="cursor-pointer">{size}</Label>
+                        <Label htmlFor={`size-${size}`}>{size}</Label>
                       </div>
                     ))}
                   </RadioGroup>)}

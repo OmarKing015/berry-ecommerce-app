@@ -13,7 +13,8 @@ export const searchProductbyName = async (searchParams: string) => {
             query: PRODUCT_SEARCH_QUERY,
             params: {
                 searchParams: `${searchParams}*`,
-            }
+            },
+            revalidate: 3600,
         })
         return products.data || []
     } catch (error) {

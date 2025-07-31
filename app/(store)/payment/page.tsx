@@ -140,16 +140,16 @@ export default function PaymentPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background py-8 md:py-12">
-      <div className="container mx-auto px-4 max-w-7xl">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl md:text-4xl font-bold text-foreground">Checkout</h1>
-          <p className="text-muted-foreground mt-2">Complete your purchase securely</p>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="container mx-auto px-4 max-w-6xl">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
+          <p className="text-gray-600 mt-2">Complete your purchase securely</p>
         </div>
 
-        <div className="grid lg:grid-cols-5 gap-8">
+        <div className="grid lg:grid-cols-2 gap-8">
           {/* Payment Form */}
-          <div className="lg:col-span-3 space-y-6">
+          <div className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -159,23 +159,45 @@ export default function PaymentPage() {
                 <CardDescription>Please provide your details for order processing</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">First Name</Label>
-                    <Input id="firstName" value={formData.firstName} onChange={(e) => handleInputChange("firstName", e.target.value)} required />
+                    <Input
+                      id="firstName"
+                      value={formData.firstName}
+                      onChange={(e) => handleInputChange("firstName", e.target.value)}
+                      required
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="lastName">Last Name</Label>
-                    <Input id="lastName" value={formData.lastName} onChange={(e) => handleInputChange("lastName", e.target.value)} required />
+                    <Input
+                      id="lastName"
+                      value={formData.lastName}
+                      onChange={(e) => handleInputChange("lastName", e.target.value)}
+                      required
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" value={formData.email} onChange={(e) => handleInputChange("email", e.target.value)} required />
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange("email", e.target.value)}
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone Number</Label>
-                  <Input id="phone" type="tel" value={formData.phone} onChange={(e) => handleInputChange("phone", e.target.value)} required />
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => handleInputChange("phone", e.target.value)}
+                    required
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -190,16 +212,31 @@ export default function PaymentPage() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="address">Street Address</Label>
-                  <Input id="address" value={formData.address} onChange={(e) => handleInputChange("address", e.target.value)} required />
+                  <Input
+                    id="address"
+                    value={formData.address}
+                    onChange={(e) => handleInputChange("address", e.target.value)}
+                    required
+                  />
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="city">City</Label>
-                    <Input id="city" value={formData.city} onChange={(e) => handleInputChange("city", e.target.value)} required />
+                    <Input
+                      id="city"
+                      value={formData.city}
+                      onChange={(e) => handleInputChange("city", e.target.value)}
+                      required
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="postalCode">Postal Code</Label>
-                    <Input id="postalCode" value={formData.postalCode} onChange={(e) => handleInputChange("postalCode", e.target.value)} required />
+                    <Input
+                      id="postalCode"
+                      value={formData.postalCode}
+                      onChange={(e) => handleInputChange("postalCode", e.target.value)}
+                      required
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -227,40 +264,40 @@ export default function PaymentPage() {
               </CardHeader>
               <CardContent>
                 <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="space-y-4">
-                  <Label htmlFor="card" className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-muted transition-colors cursor-pointer">
+                  <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                     <RadioGroupItem value="card" id="card" />
-                    <div className="flex-1">
+                    <Label htmlFor="card" className="flex-1 cursor-pointer">
                       <div className="flex items-center space-x-3">
-                        <CreditCard className="h-5 w-5 text-primary" />
+                        <CreditCard className="h-5 w-5 text-blue-600" />
                         <div>
-                          <p className="font-medium text-foreground">Credit/Debit Card</p>
-                          <p className="text-sm text-muted-foreground">Secure payment powered by Paymob</p>
+                          <p className="font-medium text-gray-900">Credit/Debit Card</p>
+                          <p className="text-sm text-gray-600">Secure payment powered by Paymob</p>
                         </div>
                       </div>
-                    </div>
-                  </Label>
+                    </Label>
+                  </div>
 
-                  <Label htmlFor="cod" className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-muted transition-colors cursor-pointer">
+                  <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                     <RadioGroupItem value="cod" id="cod" />
-                    <div className="flex-1">
+                    <Label htmlFor="cod" className="flex-1 cursor-pointer">
                       <div className="flex items-center space-x-3">
-                        <Banknote className="h-5 w-5 text-green-500" />
+                        <Banknote className="h-5 w-5 text-green-600" />
                         <div>
-                          <p className="font-medium text-foreground">Cash on Delivery</p>
-                          <p className="text-sm text-muted-foreground">Pay when your order arrives</p>
+                          <p className="font-medium text-gray-900">Cash on Delivery</p>
+                          <p className="text-sm text-gray-600">Pay when your order arrives</p>
                         </div>
                       </div>
-                    </div>
-                  </Label>
+                    </Label>
+                  </div>
                 </RadioGroup>
 
                 {paymentMethod === "cod" && (
-                  <div className="mt-4 p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                  <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
                     <div className="flex items-center gap-2 mb-2">
-                      <Truck className="h-4 w-4 text-amber-500" />
-                      <p className="font-medium text-amber-500">Cash on Delivery Information</p>
+                      <Truck className="h-4 w-4 text-amber-600" />
+                      <p className="font-medium text-amber-800">Cash on Delivery Information</p>
                     </div>
-                    <ul className="text-sm text-amber-500/80 space-y-1">
+                    <ul className="text-sm text-amber-700 space-y-1">
                       <li>• Additional COD processing fee: 10 EGP</li>
                       <li>• Higher shipping fee applies</li>
                       <li>• Payment due upon delivery</li>
@@ -273,8 +310,8 @@ export default function PaymentPage() {
           </div>
 
           {/* Order Summary */}
-          <div className="lg:col-span-2 space-y-6">
-            <Card className="sticky top-24">
+          <div className="space-y-6">
+            <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <ShoppingCart className="h-5 w-5" />
@@ -290,18 +327,18 @@ export default function PaymentPage() {
                       className="w-16 h-16 object-cover rounded-lg"
                     />
                     <div className="flex-1">
-                      <h3 className="font-medium text-foreground">{item.name}</h3>
-                      <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
+                      <h3 className="font-medium">{item.name}</h3>
+                      <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium text-foreground">{item.price.toFixed(2)} EGP</p>
+                      <p className="font-medium">{item.price.toFixed(2)} EGP</p>
                     </div>
                   </div>
                 ))}
 
                 <Separator />
 
-                <div className="space-y-2 text-muted-foreground">
+                <div className="space-y-2">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
                     <span>{subtotal.toFixed(2)} EGP</span>
@@ -310,6 +347,10 @@ export default function PaymentPage() {
                     <span>Shipping</span>
                     <span>{shipping.toFixed(2)} EGP</span>
                   </div>
+                  {/* <div className="flex justify-between">
+                    <span>Tax (14%)</span>
+                    <span>{tax.toFixed(2)} EGP</span>
+                  </div> */}
                   {paymentMethod === "cod" && (
                     <div className="flex justify-between">
                       <span>COD Fee</span>
@@ -317,7 +358,7 @@ export default function PaymentPage() {
                     </div>
                   )}
                   <Separator />
-                  <div className="flex justify-between font-bold text-lg text-foreground">
+                  <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
                     <span>{total.toFixed(2)} EGP</span>
                   </div>
@@ -344,8 +385,8 @@ export default function PaymentPage() {
 
             <Card>
               <CardContent className="pt-6">
-                <div className="flex items-center justify-center space-x-4 text-sm text-muted-foreground">
-                  <Badge variant="outline" className="flex items-center gap-1">
+                <div className="flex items-center justify-center space-x-4 text-sm text-gray-600">
+                  <Badge variant="secondary" className="flex items-center gap-1">
                     {paymentMethod === "cod" ? (
                       <>
                         <Banknote className="h-3 w-3" />
@@ -358,8 +399,8 @@ export default function PaymentPage() {
                       </>
                     )}
                   </Badge>
-                  <Badge variant="outline">SSL Encrypted</Badge>
-                  <Badge variant="outline">Safe & Secure</Badge>
+                  <Badge variant="secondary">SSL Encrypted</Badge>
+                  <Badge variant="secondary">Safe & Secure</Badge>
                 </div>
               </CardContent>
             </Card>

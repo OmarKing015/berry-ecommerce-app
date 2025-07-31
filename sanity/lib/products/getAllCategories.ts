@@ -7,7 +7,7 @@ export const getAllCategories = async () => {
         `);
 
   try {
-    const categories = await sanityFetch({ query: ALL_CATEGORIES_QUERY });
+    const categories = await sanityFetch({ query: ALL_CATEGORIES_QUERY, revalidate: 3600 });
     return categories.data || [];
   } catch (error) {
     console.error("Error fetching categories:", error);

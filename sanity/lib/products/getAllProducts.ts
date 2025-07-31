@@ -8,7 +8,7 @@ export const getAllProducts = async () => {
         `);
 
   try {
-    const products = await sanityFetch({ query: All_PRODUCTS_QUERY });
+    const products = await sanityFetch({ query: All_PRODUCTS_QUERY, revalidate: 3600 });
     return products.data || [];
   } catch (error) {
     console.error("Error fetching products:", error);
