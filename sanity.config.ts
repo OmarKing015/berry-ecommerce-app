@@ -8,7 +8,7 @@ import { structure } from "./sanity/structure";
 import { presentationTool } from "sanity/presentation";
 
 export default defineConfig({
-  basePath: "/admin/studio",
+  basePath: "/studio",
   projectId,
   dataset,
   schema,
@@ -18,9 +18,7 @@ export default defineConfig({
     presentationTool({
       previewUrl: {
         preview: "/",
-        previewMode: {
-          enable: "/draft-mode/enable",
-        },
+        
       },
     }),
   ],
