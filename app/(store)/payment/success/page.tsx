@@ -1,24 +1,48 @@
+export const dynamic = "force-dynamic";
+
 "use client"
 
 import { useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { CheckCircle, Package, ArrowRight } from "lucide-react"
+import  {CheckCircle, Package, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import useBasketStore from "@/store/store"
+import { useAppContext } from "@/context/context"
 
 export default function PaymentSuccessPage() {
   const searchParams = useSearchParams()
   const clearBasket = useBasketStore((state) => state.clearBasket)
   const [orderDetails, setOrderDetails] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const { zipedFile } = useAppContext();
 
   useEffect(() => {
     const orderId = searchParams.get("order_id")
     const transactionId = searchParams.get("id")
+ async function uploadZipFile(file: Blob, orderId: string) {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("orderId", orderId);
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
 
+      console.log("Here are the results", response.json);
+
+      if (!response.ok) {
+        throw new Error("File upload failed");
+      }
+
+      const result = await response.json();
+      return result;
+    }
     if (orderId) {
+       if (zipedFile) {
+        uploadZipFile(zipedFile, orderId);
+      }
       // Clear the basket since payment was successful
       clearBasket()
 
