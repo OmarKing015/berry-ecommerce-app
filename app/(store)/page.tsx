@@ -14,7 +14,7 @@ export default async function Home() {
     <div>
       <BlackFirdayBanner/>
       <div className="flex flex-col item-center justify-top min-h-screen bg-gray-100 p-4">
-        <ProductsView products={products.filter((product) => product?.slug?.current != "custom-tshirt")} categories={categories} />
+        <ProductsView products={products} categories={categories} />
       </div>
     </div>
   );
