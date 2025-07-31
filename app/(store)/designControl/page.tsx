@@ -231,35 +231,35 @@ export default function AdminPanel() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-blue-500">Loading...</div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-primary">Loading...</div>
       </div>
     );
   }
 
   return (
-    <Protect role="admin">
-      <div className="min-h-screen bg-white">
-        <div className="bg-blue-500 text-white p-6">
+    <Protect condition={({ user }) => user.publicMetadata.role === 'admin'}>
+      <div className="min-h-screen bg-background">
+        <div className="bg-primary text-primary-foreground p-6">
           <h1 className="text-3xl font-bold">Admin Panel</h1>
-          <p className="text-blue-100 mt-2">
+          <p className="text-primary-foreground/80 mt-2">
             Manage files, logos, and color swatches
           </p>
         </div>
 
         <div className="container mx-auto p-6">
           <Tabs defaultValue="files" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 bg-blue-50">
+            <TabsList className="grid w-full grid-cols-2 bg-muted">
               <TabsTrigger
                 value="files"
-                className="data-[state=active]:bg-blue-500 data-[state=active]:text-white"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
                 <FileText className="w-4 h-4 mr-2" />
                 Zipped Files
               </TabsTrigger>
               <TabsTrigger
                 value="templates"
-                className="data-[state=active]:bg-blue-500 data-[state=active]:text-white"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
                 <Palette className="w-4 h-4 mr-2" />
                 Templates
@@ -269,7 +269,7 @@ export default function AdminPanel() {
             <TabsContent value="files" className="mt-6">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-blue-500">
+                  <CardTitle className="text-primary">
                     Zipped Material Files
                   </CardTitle>
                   <CardDescription>
@@ -280,14 +280,14 @@ export default function AdminPanel() {
                   <div className="rounded-md border">
                     <Table>
                       <TableHeader>
-                        <TableRow className="bg-blue-50">
-                          <TableHead className="text-blue-700">
+                        <TableRow className="bg-muted">
+                          <TableHead className="text-foreground">
                             Order Number
                           </TableHead>
-                          <TableHead className="text-blue-700">
+                          <TableHead className="text-foreground">
                             User Name
                           </TableHead>
-                          <TableHead className="text-blue-700">
+                          <TableHead className="text-foreground">
                             Upload Date
                           </TableHead>
                         </TableRow>
@@ -308,7 +308,6 @@ export default function AdminPanel() {
                                 onClick={() =>
                                   downloadFile(file._id, file.fileName)
                                 }
-                                className="bg-blue-500 hover:bg-blue-600"
                               >
                                 <Download className="w-4 h-4 mr-1" />
                                 Download
@@ -328,7 +327,7 @@ export default function AdminPanel() {
                 {/* Logo Upload Section */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-blue-500">Upload Logo</CardTitle>
+                    <CardTitle className="text-primary">Upload Logo</CardTitle>
                     <CardDescription>
                       Add new template logos for t-shirts
                     </CardDescription>
@@ -344,7 +343,6 @@ export default function AdminPanel() {
                             setLogoForm({ ...logoForm, name: e.target.value })
                           }
                           placeholder="Enter logo name"
-                          className="border-blue-200 focus:border-blue-500"
                         />
                       </div>
                      
@@ -360,13 +358,12 @@ export default function AdminPanel() {
                               file: e.target.files?.[0] || null,
                             })
                           }
-                          className="border-blue-200 focus:border-blue-500"
                         />
                       </div>
                       <Button
                         type="submit"
                         disabled={uploadingLogo}
-                        className="w-full bg-blue-500 hover:bg-blue-600"
+                        className="w-full"
                       >
                         <Upload className="w-4 h-4 mr-2" />
                         {uploadingLogo ? "Uploading..." : "Upload Logo"}
@@ -378,7 +375,7 @@ export default function AdminPanel() {
                 {/* Color Swatch Upload Section */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-blue-500">
+                    <CardTitle className="text-primary">
                       Upload Color Swatch
                     </CardTitle>
                     <CardDescription>
@@ -399,24 +396,8 @@ export default function AdminPanel() {
                             })
                           }
                           placeholder="Enter color name"
-                          className="border-blue-200 focus:border-blue-500"
                         />
                       </div>
-                      {/* <div>
-                        <Label htmlFor="swatch-hex">Hex Code</Label>
-                        <Input
-                          id="swatch-hex"
-                          value={swatchForm.hexCode}
-                          onChange={(e) =>
-                            setSwatchForm({
-                              ...swatchForm,
-                              hexCode: e.target.value,
-                            })
-                          }
-                          placeholder="#000000"
-                          className="border-blue-200 focus:border-blue-500"
-                        />
-                      </div> */}
                       <div>
                         <Label htmlFor="swatch-file">Color Image</Label>
                         <Input
@@ -429,13 +410,12 @@ export default function AdminPanel() {
                               file: e.target.files?.[0] || null,
                             })
                           }
-                          className="border-blue-200 focus:border-blue-500"
                         />
                       </div>
                       <Button
                         type="submit"
                         disabled={uploadingSwatch}
-                        className="w-full bg-blue-500 hover:bg-blue-600"
+                        className="w-full"
                       >
                         <Upload className="w-4 h-4 mr-2" />
                         {uploadingSwatch
@@ -452,16 +432,16 @@ export default function AdminPanel() {
                 {/* Logos Display */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-blue-500">
+                    <CardTitle className="text-primary">
                       Uploaded Logos
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                       {logos.map((logo) => (
                         <div
                           key={logo._id}
-                          className="border border-blue-200 rounded-lg p-3"
+                          className="border rounded-lg p-3"
                         >
                           <div className="aspect-square relative mb-2">
                             <Image
@@ -471,7 +451,7 @@ export default function AdminPanel() {
                               className="object-contain rounded"
                             />
                           </div>
-                          <h4 className="font-medium text-sm">{logo.name}</h4>
+                          <h4 className="font-medium text-sm truncate">{logo.name}</h4>
                           <Button
                             size="sm"
                             variant="destructive"
@@ -490,16 +470,16 @@ export default function AdminPanel() {
                 {/* Color Swatches Display */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-blue-500">
+                    <CardTitle className="text-primary">
                       Color Swatches
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                       {colorSwatches.map((swatch) => (
                         <div
                           key={swatch._id}
-                          className="border border-blue-200 rounded-lg p-3"
+                          className="border rounded-lg p-3"
                         >
                           <div className="aspect-square relative mb-2">
                             <Image
@@ -509,10 +489,7 @@ export default function AdminPanel() {
                               className="object-contain rounded"
                             />
                           </div>
-                          <h4 className="font-medium text-sm">{swatch.name}</h4>
-                          {/* <p className="text-xs text-gray-500">
-                            {swatch.hexCode}
-                          </p> */}
+                          <h4 className="font-medium text-sm truncate">{swatch.name}</h4>
                           <Button
                             size="sm"
                             variant="destructive"

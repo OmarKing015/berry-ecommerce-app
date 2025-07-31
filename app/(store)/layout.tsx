@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Noto_Sans_Arabic, Amiri, Cairo, Almarai, Lalezar, Markazi_Text, Mada, Tajawal, El_Messiri, Lemonada, Changa, Reem_Kufi } from "next/font/google";
 import "../globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
+import { dark } from "@clerk/themes";
 import Header from "@/components/Header";
 import { SanityLive } from "@/sanity/lib/live";
 import { ContextProvider } from "@/context/context";
@@ -110,7 +111,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider
+      appearance={{
+        baseTheme: dark,
+        variables: {
+          colorPrimary: "hsl(var(--primary))",
+          colorBackground: "hsl(var(--background))",
+          colorInputBackground: "hsl(var(--input))",
+          colorInputText: "hsl(var(--foreground))",
+        },
+      }}
+    >
       <ContextProvider>
         <html lang="en">
           <body
