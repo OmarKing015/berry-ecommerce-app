@@ -7,8 +7,12 @@ import { getAllProducts } from "@/sanity/lib/products/getAllProducts";
 import Image from "next/image";
 
 export default async function Home() {
-  const products : Product[] = await getAllProducts();
+  const products: Product[] = await getAllProducts();
   const updatedProducts = products.filter(product => product.slug?.current !== "custom-tshirt");
+  updatedProducts.sort((a, b) => {
+    if (a.name && b.name) return a.name.localeCompare(b.name);
+    return 0;
+  });
   const categories = await getAllCategories();
   return (
     <div>
