@@ -1,7 +1,7 @@
 "use client";
 
 import { useAppContext } from "@/context/context";
-import { useEditorStore } from "../../store/store";
+import { useEditorStore } from "../../store/editorStore";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { useEffect } from "react";
 

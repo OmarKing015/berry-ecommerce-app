@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useEditorStore } from "../../store/store";
+import { useEditorStore } from "../../store/editorStore";
 
 const CanvasWrapper = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);

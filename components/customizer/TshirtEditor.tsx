@@ -6,7 +6,7 @@ import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { fabric } from "fabric";
 
-import { useEditorStore } from "../../store/store";
+import { useEditorStore } from "../../store/editorStore";
 
 import CanvasWrapper from "./CanvasWraper";
 import Toolbar from "./Toolbar";
