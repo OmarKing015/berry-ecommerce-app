@@ -1,96 +1,361 @@
+"use client";
+import {
+  ClerkLoaded,
+  OrganizationSwitcher,
+  Protect,
+  SignedIn,
+  SignInButton,
+  UserButton,
+  useUser,
+} from "@clerk/nextjs";
 import Link from "next/link";
-import React from "react";
 import Form from "next/form";
-import { ClerkLoaded, UserButton } from "@clerk/nextjs";
-import { auth, currentUser } from "@clerk/nextjs/server";
-import Container from "./Container";
-import Image from "next/image";
-import logo from "@/public/logo.png";
-import CartIcon from "./CartIcon";
-import { BsBasket } from "react-icons/bs";
-import { FiUser } from "react-icons/fi";
-import { getMyOrders } from "@/sanity/helpers";
-
-const Header = async () => {
-  const user = await currentUser();
-  const { userId } = await auth();
-  let orders = null;
-  if (userId) {
-    orders = await getMyOrders(userId);
-  }
-
+import {
+  PackageIcon,
+  ShoppingBasketIcon,
+  Search,
+  Menu,
+  X,
+  PenToolIcon,
+  SlidersHorizontal,
+  WandSparklesIcon,
+  TowerControlIcon,
+} from "lucide-react";
+import useBasketStore from "@/store/store";
+import { useState } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+function Header() {
+  const { user } = useUser();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const itemCount = useBasketStore((state) =>
+    state.items.reduce((total, item) => total + item.quantity, 0)
+  );
   return (
-    <div className="bg-white sticky top-0 z-50 border-b border-b-gray-200 py-1">
-      <Container>
-        <header className="flex gap-2 flex-wrap justify-between items-center py-2">
-          <Link href={"/"}>
-            <Image
-              src={logo}
-              alt="logo"
-              className="w-24"
-              width={100}
-              height={100}
-            />
-          </Link>
-          <Form
-            action="/search"
-            className="w-full sm:w-auto sm:flex-1 sm:mx-4 sm:mt-0"
+    <header className="bg-white shadow-sm border-b sticky top-0 z-50">
+      {" "}
+      <div className="container mx-auto px-4">
+        {" "}
+        {/* Desktop Header */}{" "}
+        <div className="hidden lg:flex items-center justify-between py-4">
+          {" "}
+          {/* Logo */}{" "}
+          <Link
+            href="/"
+            className="text-2xl font-bold text-blue-600 hover:text-blue-700 transition-colors duration-200"
           >
-            <input
-              type="text"
-              name="query"
-              placeholder="Search for products"
-              className="bg-gray-50 text-gray-800 px-4 py-2.5 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 border border-gray-200 w-full max-w-4xl rounded-md hoverEffect"
-            />
-          </Form>
-          <div className="flex items-center space-x-4 sm:mt-0 flex-1 sm:flex-none">
-            <CartIcon />
-            {/* User icons */}
+            {" "}
+            Tafreed{" "}
+          </Link>{" "}
+          {/* Search Bar */}{" "}
+          <div className="flex-1 max-w-2xl mx-8">
+            {" "}
+            <Form action="/search" className="relative">
+              {" "}
+              <div className="relative">
+                {" "}
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />{" "}
+                <input
+                  type="text"
+                  placeholder="Search for products..."
+                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  name="query"
+                />{" "}
+              </div>{" "}
+            </Form>{" "}
+          </div>{" "}
+          {/* Navigation Links */}{" "}
+          <div className="flex items-center space-x-4">
+            {" "}
+            {/* Basket */}{" "}
+            <Link
+              href="/basket"
+              className="relative flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+            >
+              {" "}
+              {itemCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
+                  {" "}
+                  {itemCount}{" "}
+                </span>
+              )}{" "}
+              <ShoppingBasketIcon className="w-4 h-4" />{" "}
+              <span>Basket</span>{" "}
+            </Link>{" "}
+            {/* Customize */}{" "}
+            <Link
+              href="/customize"
+              className="relative flex items-center space-x-2 bg-red-500 hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+            >
+              {" "}
+              <WandSparklesIcon/>
+              <span>Customize</span>{" "}
+            </Link>{" "}
+            
+            {/* Design Control */}{" "}
+            <Protect role="admin">
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                <p className="relative flex items-center space-x-2 bg-black hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200">
+                  {" "}
+                  Admin
+                </p>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem>
+                  {" "}
+                  <Link
+                    href="/studio"
+                    className="relative flex items-center space-x-2 bg-blue-900 hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+                  >
+                    {" "}
+                    <SlidersHorizontal className="w-4 h-4" />{" "}
+                    <span>Store Control</span>{" "}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  {" "}
+                  <Link
+                    href="/designControl"
+                    className="relative flex items-center space-x-2 bg-blue-900 hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+                  >
+                    {" "}
+                    <SlidersHorizontal className="w-4 h-4" />{" "}
+                    <span>Design Control</span>{" "}
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            </Protect>
+            {/* Orders & Auth */}{" "}
             <ClerkLoaded>
-              {user && (
+              {" "}
+              <SignedIn>
+                {" "}
                 <Link
-                  href={"/orders"}
-                  className="flex items-center text-sm gap-2 border border-gray-200 px-2 py-1 rounded-md shadow-md hover:shadow-none hoverEffect"
+                  href="/orders"
+                  className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 font-medium py-2 px-3 rounded-lg hover:bg-gray-50 transition-all duration-200"
                 >
-                  <BsBasket className="text-2xl text-darkBlue" />
-                  <span className="flex flex-col">
-                    <p className="text-xs">
-                      <span className="font-semibold">
-                        {orders && orders?.length > 0 ? orders?.length : 0}
-                      </span>{" "}
-                      items
-                    </p>
-                    <p className="font-semibold">Orders</p>
-                  </span>
-                </Link>
-              )}
-
+                  {" "}
+                  <PackageIcon className="w-4 h-4" /> <span>Orders</span>{" "}
+                </Link>{" "}
+              </SignedIn>{" "}
+              <OrganizationSwitcher/>
               {user ? (
-                <div className="flex items-center text-sm gap-2 border border-gray-200 px-2 py-1 rounded-md shadow-md hover:shadow-none hoverEffect">
-                  <UserButton />
-                  <div className="text-xs">
-                    <p className="text-gray-400">Welcome Back</p>
-                    <p className="font-bold">{user?.fullName}</p>
-                  </div>
+                <div className="flex items-center space-x-3 pl-4 border-l border-gray-200">
+                  {" "}
+                  <div className="text-right">
+                    {" "}
+                    <p className="text-xs text-gray-500">Welcome back</p>{" "}
+                    <p className="font-semibold text-gray-900">
+                      {" "}
+                      {user.fullName}!{" "}
+                    </p>{" "}
+                  </div>{" "}
+                  <UserButton />{" "}
                 </div>
               ) : (
-                <Link
-                  href={"/sign-in"}
-                  className="flex items-center text-sm gap-2 border border-gray-200 px-2 py-1 rounded-md shadow-md cursor-pointer hover:shadow-none hoverEffect"
-                >
-                  <FiUser className="text-2xl text-darkBlue" />
-                  <span className="flex flex-col">
-                    <p className="text-xs">Account</p>
-                    <p className="font-semibold">Login</p>
-                  </span>
-                </Link>
-              )}
-            </ClerkLoaded>
+                <SignInButton/>
+              )}{" "}
+            </ClerkLoaded>{" "}
+          </div>{" "}
+        </div>{" "}
+        {/* Mobile Header */}{" "}
+        <div className="lg:hidden flex items-center justify-between py-4">
+          {" "}
+          <Link
+            href="/"
+            className="text-xl font-bold text-blue-600 hover:text-blue-700 transition-colors duration-200"
+          >
+            {" "}
+            Tafreed{" "}
+          </Link>{" "}
+          <div className="flex items-center space-x-3">
+            {" "}
+            {/* Basket */}{" "}
+            <Link
+              href="/basket"
+              className="relative p-2 text-gray-700 hover:text-blue-600 transition-colors duration-200"
+            >
+              {" "}
+              {itemCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs font-bold">
+                  {" "}
+                  {itemCount}{" "}
+                </span>
+              )}{" "}
+              <ShoppingBasketIcon className="w-5 h-5" />{" "}
+            </Link>{" "}
+            {/* Customize */}{" "}
+            <Link
+              href="/customize"
+              className="p-2 text-gray-700 hover:text-blue-600 transition-colors duration-200"
+            >
+              {" "}
+              <PenToolIcon className="w-5 h-5" />{" "}
+            </Link>{" "}
+            
+            {/* Design Control */}{" "}
+            <Protect fallback={<OrganizationSwitcher/>} role="admin">
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                <p className="relative flex items-center space-x-2 bg-black hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200">
+                  {" "}
+                  <TowerControlIcon/>
+                </p>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem>
+                  {" "}
+                  <Link
+                    href="/studio"
+                    className="relative flex items-center space-x-2 bg-blue-900 hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+                  >
+                    {" "}
+                    <SlidersHorizontal className="w-4 h-4" />{" "}
+                    <span>Store Control</span>{" "}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  {" "}
+                  <Link
+                    href="/designControl"
+                    className="relative flex items-center space-x-2 bg-blue-900 hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+                  >
+                    {" "}
+                    <SlidersHorizontal className="w-4 h-4" />{" "}
+                    <span>Design Control</span>{" "}
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            </Protect>{" "}
+            <ClerkLoaded>
+              {" "}
+              {user ? (
+                // <UserButton />
+                <OrganizationSwitcher/>
+              ) : (
+                <SignInButton />
+              )}{" "}
+            </ClerkLoaded>{" "}
+            {/* Mobile Menu Toggle */}{" "}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2 text-gray-700 hover:text-blue-600 transition-colors duration-200"
+            >
+              {" "}
+              {isMobileMenuOpen ? (
+                <X className="w-5 h-5" />
+              ) : (
+                <Menu className="w-5 h-5" />
+              )}{" "}
+            </button>{" "}
+          </div>{" "}
+        </div>{" "}
+        {/* Mobile Search Bar */}{" "}
+        <div className="lg:hidden pb-4">
+          {" "}
+          <Form action="/search" className="relative">
+            {" "}
+            <div className="relative">
+              {" "}
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />{" "}
+              <input
+                type="text"
+                placeholder="Search for products..."
+                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                name="query"
+              />{" "}
+            </div>{" "}
+          </Form>{" "}
+        </div>{" "}
+        {/* Mobile Menu Panel */}{" "}
+        {isMobileMenuOpen && (
+          <div className="lg:hidden border-t border-gray-200 py-4">
+            {" "}
+            <div className="space-y-2">
+              {" "}
+              <Link
+                href="/customize"
+                className="flex items-center space-x-3 py-3 px-4 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-all duration-200"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                {" "}
+                <PenToolIcon className="w-5 h-5" />{" "}
+                <span className="font-medium">
+                  {" "}
+                  Customize Your<strong> Own T-Shirt </strong>{" "}
+                </span>{" "}
+              </Link>{" "}
+              {" "}
+              <ClerkLoaded>
+                {" "}
+                <SignedIn>
+                <Protect role="admin">
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                <p className="relative flex items-center space-x-2 bg-black hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200">
+                  {" "}
+                  Admin
+                </p>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem>
+                  {" "}
+                  <Link
+                    href="/studio"
+                    className="relative flex items-center space-x-2 bg-blue-900 hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+                  >
+                    {" "}
+                    <SlidersHorizontal className="w-4 h-4" />{" "}
+                    <span>Store Control</span>{" "}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  {" "}
+                  <Link
+                    href="/designControl"
+                    className="relative flex items-center space-x-2 bg-blue-900 hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+                  >
+                    {" "}
+                    <SlidersHorizontal className="w-4 h-4" />{" "}
+                    <span>Design Control</span>{" "}
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            </Protect>
+                  {" "}
+                  <Link
+                    href="/orders"
+                    className="flex items-center space-x-3 py-3 px-4 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-all duration-200"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {" "}
+                    <PackageIcon className="w-5 h-5" />{" "}
+                    <span className="font-medium">My Orders</span>{" "}
+                  </Link>{" "}
+                </SignedIn>{" "}
+              </ClerkLoaded>{" "}
+              {user && (
+                <div className="py-3 px-4 border-t border-gray-200">
+                  {" "}
+                  <p className="text-xs text-gray-500">Signed in as</p>{" "}
+                  <p className="font-semibold text-gray-900">
+                    {user.fullName}
+                  </p>{" "}
+                </div>
+              )}{" "}
+            </div>{" "}
           </div>
-        </header>
-      </Container>
-    </div>
+        )}{" "}
+      </div>{" "}
+    </header>
   );
-};
-
+}
 export default Header;

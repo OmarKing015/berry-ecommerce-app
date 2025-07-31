@@ -1,40 +1,33 @@
-import { TrolleyIcon } from "@sanity/icons";
+import { TagIcon, ShoppingBasketIcon, ShoppingCartIcon } from "lucide-react";
 import { defineField, defineType } from "sanity";
 
 export const productType = defineType({
   name: "product",
   title: "Products",
   type: "document",
-  icon: TrolleyIcon,
+  icon: ShoppingCartIcon,
   fields: [
     defineField({
       name: "name",
       title: "Product Name",
       type: "string",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "slug",
       title: "Slug",
       type: "slug",
-      options: {
-        source: "name",
-        maxLength: 96,
-      },
-      validation: (Rule) => Rule.required(),
-    }),
-    defineField({
-      name: "image",
-      title: "Product Image",
-      type: "image",
-      options: {
-        hotspot: true,
-      },
+      options: { source: "name" },
     }),
     defineField({
       name: "description",
       title: "Description",
-      type: "string",
+      type: "text",
+    }),
+
+    defineField({
+      name: "image",
+      title: "Image",
+      type: "image",
     }),
     defineField({
       name: "price",
@@ -43,8 +36,15 @@ export const productType = defineType({
       validation: (Rule) => Rule.required().min(0),
     }),
     defineField({
-      name: "discount",
-      title: "Discount",
+      name: "size",
+      title: "Size",
+      type: "array",
+      validation: (Rule) => Rule.required().min(0),
+      of: [{ type: "string" }],
+    }),
+    defineField({
+      name: "stock",
+      title: "Stock",
       type: "number",
       validation: (Rule) => Rule.required().min(0),
     }),
@@ -54,30 +54,6 @@ export const productType = defineType({
       type: "array",
       of: [{ type: "reference", to: { type: "category" } }],
     }),
-    defineField({
-      name: "stock",
-      title: "Stock",
-      type: "number",
-      validation: (Rule) => Rule.min(0),
-    }),
-    defineField({
-      name: "label",
-      title: "Label",
-      type: "string",
-      validation: (Rule) => Rule.min(0),
-    }),
-    defineField({
-      name: "status",
-      title: "Product Status",
-      type: "string",
-      options: {
-        list: [
-          { title: "New", value: "new" },
-          { title: "Hot", value: "hot" },
-          { title: "Sale", value: "sale" },
-        ],
-      },
-    }),
   ],
   preview: {
     select: {
@@ -85,11 +61,11 @@ export const productType = defineType({
       media: "image",
       subtitle: "price",
     },
-    prepare(selection) {
+    prepare(_select) {
       return {
-        title: selection.title,
-        subtitle: `$${selection.subtitle}`,
-        media: selection.media,
+        title: _select.title,
+        media: _select.media,
+        subtitle: "Price: " + _select.subtitle,
       };
     },
   },
