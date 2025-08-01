@@ -1,0 +1,46 @@
+import Link from "next/link";
+
+const Footer = () => {
+  return (
+    <footer className="bg-gray-800 text-white py-8">
+      <div className="container mx-auto px-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div>
+            <h3 className="font-bold text-lg mb-4">Mazagk</h3>
+            <p className="text-gray-400">Wear Your Mood</p>
+          </div>
+          <div>
+            <h3 className="font-bold text-lg mb-4">Quick Links</h3>
+            <ul>
+              <li>
+                <Link href="/about-us" className="text-gray-400 hover:text-white">
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link href="/shipping-policy" className="text-gray-400 hover:text-white">
+                  Shipping Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/refund-policy" className="text-gray-400 hover:text-white">
+                  Refund Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/terms-and-conditions" className="text-gray-400 hover:text-white">
+                  Terms & Conditions
+                </Link>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div className="text-center text-gray-500 mt-8 pt-8 border-t border-gray-700">
+          <p>&copy; {new Date().getFullYear()} Mazagk. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+  );
+};
+
+export default Footer;
