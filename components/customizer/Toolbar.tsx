@@ -60,7 +60,22 @@ const FONT_COLORS = [
 const SHIRT_SIZES = ["XS", "S", "M", "L", "XL", "XXL", "3XL"]
 
 const FONTS = {
-  english: ["Inter", "Arial", "Helvetica", "Times New Roman", "Courier New", "Georgia"],
+  english: [
+    "Inter",
+    "Arial",
+    "Helvetica",
+    "Times New Roman",
+    "Courier New",
+    "Georgia",
+    "Verdana",
+    "Tahoma",
+    "Garamond",
+    "Impact",
+    "Comic Sans MS",
+    "Trebuchet MS",
+    "Arial Black",
+    "Palatino",
+  ],
   arabic: [
     "Noto Sans Arabic",
     "Amiri",
