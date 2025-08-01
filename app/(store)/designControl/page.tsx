@@ -27,6 +27,7 @@ import { toast } from "@/components/customizer/use-toast";
 import Image from "next/image";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Protect } from "@clerk/nextjs";
+import { SketchPicker } from "react-color";
 
 interface ZippedFile {
   _id: string;
@@ -424,18 +425,12 @@ export default function AdminPanel() {
                         />
                       </div> */}
                       <div>
-                        <Label htmlFor="swatch-hex">Hex Code</Label>
-                        <Input
-                          id="swatch-hex"
-                          value={swatchForm.hexCode}
-                          onChange={(e) =>
-                            setSwatchForm({
-                              ...swatchForm,
-                              hexCode: e.target.value,
-                            })
+                        <Label>Color</Label>
+                        <SketchPicker
+                          color={swatchForm.hexCode}
+                          onChangeComplete={(color) =>
+                            setSwatchForm({ ...swatchForm, hexCode: color.hex })
                           }
-                          placeholder="#000000"
-                          className="border-blue-200 focus:border-blue-500"
                         />
                       </div>
                       <div>
@@ -507,7 +502,8 @@ export default function AdminPanel() {
                             <Image
                               src={logo.imageUrl || "/placeholder.svg"}
                               alt={logo.name}
-                              fill
+                              width={100}
+                              height={100}
                               className="object-contain rounded"
                             />
                           </div>
@@ -545,7 +541,8 @@ export default function AdminPanel() {
                             <Image
                               src={swatch.imageUrl || "/placeholder.svg"}
                               alt={swatch.name}
-                              fill
+                              width={100}
+                              height={100}
                               className="object-contain rounded"
                             />
                           </div>
