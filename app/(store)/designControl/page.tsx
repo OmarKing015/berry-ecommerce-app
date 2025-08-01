@@ -25,6 +25,7 @@ import {
 import { Download, Upload, FileText, Palette, Trash2 } from "lucide-react";
 import { toast } from "@/components/customizer/use-toast";
 import Image from "next/image";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Protect } from "@clerk/nextjs";
 
 interface ZippedFile {
@@ -40,9 +41,10 @@ interface ZippedFile {
 interface ColorSwatch {
   _id: string;
   name: string;
-  // hexCode: string;
+  hexCode: string;
   imageUrl: string;
   createdAt: string;
+  style: "slim" | "oversized";
 }
 
 interface Logo {
@@ -68,6 +70,8 @@ export default function AdminPanel() {
   const [swatchForm, setSwatchForm] = useState({
     name: "",
     file: null as File | null,
+    style: "slim" as "slim" | "oversized",
+    hexCode: "",
   });
 
   useEffect(() => {
@@ -170,12 +174,14 @@ export default function AdminPanel() {
 
   const uploadColorSwatch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!swatchForm.file || !swatchForm.name ) return;
+    if (!swatchForm.file || !swatchForm.name || !swatchForm.hexCode || !swatchForm.style) return;
 
     setUploadingSwatch(true);
     const formData = new FormData();
     formData.append("file", swatchForm.file);
     formData.append("name", swatchForm.name);
+    formData.append("hexCode", swatchForm.hexCode);
+    formData.append("style", swatchForm.style);
 
     try {
       const response = await fetch("/api/admin/color-swatches", {
@@ -190,7 +196,7 @@ export default function AdminPanel() {
         description: "Color swatch uploaded successfully",
       });
 
-      setSwatchForm({ name: "", file: null });
+      setSwatchForm({ name: "", file: null, style: "slim", hexCode: "" });
       fetchData();
     } catch (error) {
       toast({
@@ -417,6 +423,40 @@ export default function AdminPanel() {
                           className="border-blue-200 focus:border-blue-500"
                         />
                       </div> */}
+                      <div>
+                        <Label htmlFor="swatch-hex">Hex Code</Label>
+                        <Input
+                          id="swatch-hex"
+                          value={swatchForm.hexCode}
+                          onChange={(e) =>
+                            setSwatchForm({
+                              ...swatchForm,
+                              hexCode: e.target.value,
+                            })
+                          }
+                          placeholder="#000000"
+                          className="border-blue-200 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <Label>Style</Label>
+                        <RadioGroup
+                          value={swatchForm.style}
+                          onValueChange={(value: "slim" | "oversized") =>
+                            setSwatchForm({ ...swatchForm, style: value })
+                          }
+                          className="flex gap-4"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="slim" id="slim" />
+                            <Label htmlFor="slim">Slim</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="oversized" id="oversized" />
+                            <Label htmlFor="oversized">Oversized</Label>
+                          </div>
+                        </RadioGroup>
+                      </div>
                       <div>
                         <Label htmlFor="swatch-file">Color Image</Label>
                         <Input
