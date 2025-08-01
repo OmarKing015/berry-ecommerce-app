@@ -30,15 +30,27 @@ export interface EditorState {
   redo: () => void;
   canUndo: boolean;
   canRedo: boolean;
+  reset: () => void;
 }
 
-export const useEditorStore = create<EditorState>((set, get) => ({
+const initialState = {
   canvas: null,
+  shirtStyle: "slim" as "slim" | "oversized",
+  selectedColorSwatch: null,
+  totalCost: 6.00,
+  history: [],
+  historyIndex: -1,
+  canUndo: false,
+  canRedo: false,
+};
+
+export const useEditorStore = create<EditorState>((set, get) => ({
+  ...initialState,
   setCanvas: (canvas) => {
     set({ canvas });
     // Initialize history with the initial canvas state
-    const initialState = JSON.stringify(canvas.toJSON(['cost', 'type']));
-    set({ history: [initialState], historyIndex: 0, canUndo: false, canRedo: false });
+    const initialStateJson = JSON.stringify(canvas.toJSON(['cost', 'type']));
+    set({ history: [initialStateJson], historyIndex: 0, canUndo: false, canRedo: false });
     // Set initial cost
     const { totalCost } = costEngine.calculate(canvas.getObjects());
     set({ totalCost: totalCost });
@@ -56,18 +68,13 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       },
     });
   },
-  shirtStyle: "slim",
   toggleShirtStyle: () =>
     set((state) => ({
       shirtStyle: state.shirtStyle === "slim" ? "oversized" : "slim",
     })),
-  selectedColorSwatch: null,
   setSelectedColorSwatch: (colorSwatch: ColorSwatch) => set({ selectedColorSwatch: colorSwatch }),
-  totalCost: 6.00, // Initial base cost
   setTotalCost: (cost) => set({ totalCost: cost }),
-  history: [],
   setHistory: (history) => set({ history, canUndo: get().historyIndex > 0, canRedo: get().historyIndex < history.length - 1 }),
-  historyIndex: -1,
   setHistoryIndex: (index) => set({ historyIndex: index, canUndo: index > 0, canRedo: index < get().history.length - 1 }),
   saveCanvasState: () => {
     const { canvas, history, historyIndex, setHistory, setHistoryIndex } = get();
@@ -107,4 +114,5 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   },
   canUndo: false,
   canRedo: false,
+  reset: () => set(initialState),
 }));

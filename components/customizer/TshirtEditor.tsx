@@ -26,6 +26,7 @@ export default function TshirtEditor() {
     shirtStyle,
     setCanvas,
     setTotalCost,
+    reset,
   } = useEditorStore();
   const isUpdating = useRef(false);
 
@@ -40,6 +41,7 @@ export default function TshirtEditor() {
 
     return () => {
       initCanvas.dispose();
+      reset();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setCanvas, setTotalCost]);
