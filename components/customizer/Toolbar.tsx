@@ -22,8 +22,10 @@ import { redirect } from "next/navigation"
 import { costEngine } from "@/lib/costEngine"
 
 interface TEMPLATE_LOGOS_TYPE{
-  name: string,
-  url: string,
+  _id: string;
+  name: string;
+  imageUrl: string;
+  createdAt: string;
 }
 
 const TEMPLATE_LOGOS = [
@@ -95,7 +97,7 @@ export default function Toolbar() {
   const [selectedColor, setSelectedColor] = useState("#FFFFFF")
   const [isArabic, setIsArabic] = useState(false)
   const [text, setText] = useState("English")
-  const [logos, setLogos] = useState([])
+  const [logos, setLogos] = useState<TEMPLATE_LOGOS_TYPE[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
   const uploadInputRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
@@ -183,7 +185,7 @@ export default function Toolbar() {
       canvas.add(img)
       canvas.setActiveObject(img)
       canvas.renderAll()
-    })
+    }, { crossOrigin: "anonymous" })
   }
 
   const addTemplateLogo = (logoUrl: string) => {
@@ -704,13 +706,13 @@ Design ID: ${designId}`
                 />
                 <Label className="mt-4">Template Logos</Label>
                 <div className="grid grid-cols-3 gap-2 mt-2">
-                  {logos?.map((logo : TEMPLATE_LOGOS_TYPE, index) => (
+                  {logos?.map((logo) => (
                     <button
-                      key={index}
+                      key={logo._id}
                       className="border rounded p-2 hover:bg-accent"
-                      onClick={() => addTemplateLogo(logo.url)}
+                      onClick={() => addTemplateLogo(logo.imageUrl)}
                     >
-                      <img src={logo.url || "/placeholder.svg"} alt={logo.name} className="w-full h-auto" />
+                      <img src={logo.imageUrl || "/placeholder.svg"} alt={logo.name} className="w-full h-auto" />
                     </button>
                   ))}
                 </div>
