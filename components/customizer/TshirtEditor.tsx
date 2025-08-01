@@ -6,9 +6,9 @@ import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { fabric } from "fabric";
 
+import { shallow } from "zustand/shallow";
 import { useEditorStore } from "../../store/editorStore";
 
-import CanvasWrapper from "./CanvasWraper";
 import Toolbar from "./Toolbar";
 import CostSummary from "./CostSummay";
 import { Card } from "../ui/card";
@@ -22,14 +22,20 @@ const TSHIRT_IMAGES = {
 
 
 export default function TshirtEditor() {
-  const {
-    shirtStyle,
-    setCanvas,
-    setTotalCost,
-    reset,
-    shirtImageUrl,
-  } = useEditorStore();
-  const isUpdating = useRef(false);
+  const { setCanvas, reset } = useEditorStore(
+    (state) => ({
+      setCanvas: state.setCanvas,
+      reset: state.reset,
+    }),
+    shallow
+  );
+  const { shirtStyle, shirtImageUrl } = useEditorStore(
+    (state) => ({
+      shirtStyle: state.shirtStyle,
+      shirtImageUrl: state.shirtImageUrl,
+    }),
+    shallow
+  );
 
   useEffect(() => {
     const initCanvas = new fabric.Canvas("canvas", {
@@ -45,7 +51,7 @@ export default function TshirtEditor() {
       reset();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [setCanvas, setTotalCost]);
+  }, [setCanvas, reset]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] min-h-screen">
@@ -73,7 +79,7 @@ export default function TshirtEditor() {
             </motion.div>
           </AnimatePresence>
           <div className="absolute inset-0">
-            <CanvasWrapper />
+            <canvas id="canvas" />
           </div>
         </Card>
         <CostSummary />
