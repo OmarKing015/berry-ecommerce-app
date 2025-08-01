@@ -102,7 +102,7 @@ export default function PaymentPage() {
 
         if (data.success) {
           // Redirect to COD success page
-          router.push(`/payment/cod-success?order_id=${data.orderId}`)
+          router.push(`/payment/success?order_id=${data.orderId}&payment_method=cod`)
         } else {
           throw new Error(data.error || "COD order creation failed")
         }
