@@ -32,4 +32,5 @@ export interface ColorSwatch {
   fileData: Buffer
   contentType: string
   createdAt: Date
+  style: "slim" | "oversized"
 }

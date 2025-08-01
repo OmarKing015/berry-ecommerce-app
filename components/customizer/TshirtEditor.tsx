@@ -27,6 +27,7 @@ export default function TshirtEditor() {
     setCanvas,
     setTotalCost,
     reset,
+    shirtImageUrl,
   } = useEditorStore();
   const isUpdating = useRef(false);
 
@@ -61,10 +62,12 @@ export default function TshirtEditor() {
               className="absolute inset-0"
             >
               <Image
-                src={TSHIRT_IMAGES[shirtStyle]}
+                src={shirtImageUrl || TSHIRT_IMAGES[shirtStyle]}
                 data-ai-hint={`${shirtStyle} t-shirt`}
                 alt={`${shirtStyle} t-shirt`}
                 fill
+                priority
+                key={shirtImageUrl}
                 className="object-contain"
               />
             </motion.div>

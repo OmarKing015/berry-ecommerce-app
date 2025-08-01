@@ -17,6 +17,8 @@ export async function GET() {
             name: swatch.name,
             imageUrl: `/api/admin/color-swatches/${swatch._id}/image`,
             createdAt: swatch.createdAt.toISOString(),
+            style: swatch.style,
+            hexCode: swatch.hexCode,
         }));
 
         return NextResponse.json(formattedSwatches);
@@ -34,16 +36,17 @@ export async function POST(request: NextRequest) {
         const db = client.db('ZSHIRT');
         const collection = db.collection<ColorSwatch>('colorSwatches');
 
-        let name: string, hexCode: string, buffer: Buffer, imageContentType: string, fileName: string;
+        let name: string, hexCode: string, buffer: Buffer, imageContentType: string, fileName: string, style: "slim" | "oversized";
 
         if (contentType.includes("application/json")) {
             const body = await request.json();
             name = body.name;
             hexCode = body.hexCode;
             const imageUrl = body.imageUrl;
+            style = body.style;
 
-            if (!name || !hexCode || !imageUrl) {
-                return NextResponse.json({ error: "Missing required fields: name, hexCode, and imageUrl" }, { status: 400 });
+            if (!name || !hexCode || !imageUrl || !style) {
+                return NextResponse.json({ error: "Missing required fields: name, hexCode, imageUrl, and style" }, { status: 400 });
             }
 
             const response = await fetch(imageUrl);
@@ -60,9 +63,10 @@ export async function POST(request: NextRequest) {
             const file = formData.get("file") as File;
             name = formData.get("name") as string;
             hexCode = formData.get("hexCode") as string;
+            style = formData.get("style") as "slim" | "oversized";
 
-            if (!file || !name || !hexCode) {
-                return NextResponse.json({ error: "Missing required fields: file, name, and hexCode" }, { status: 400 });
+            if (!file || !name || !hexCode || !style) {
+                return NextResponse.json({ error: "Missing required fields: file, name, hexCode, and style" }, { status: 400 });
             }
 
             const arrayBuffer = await file.arrayBuffer();
@@ -81,6 +85,7 @@ export async function POST(request: NextRequest) {
             contentType: imageContentType,
             fileName,
             createdAt: new Date(),
+            style,
         } as any);
         await client.close();
 

@@ -78,15 +78,16 @@ const FONTS = {
 interface ColorSwatch {
   _id: string;
   name: string;
-  // hexCode: string;
+  hexCode: string;
   imageUrl: string;
   createdAt: string;
+  style: "slim" | "oversized";
 }
 
 export default function Toolbar() {
   const { user } = useUser()
   const { addItem } = useBasketStore()
-  const { canvas, shirtStyle, toggleShirtStyle, undo, redo, canUndo, canRedo, totalCost } = useEditorStore()
+  const { canvas, shirtStyle, toggleShirtStyle, undo, redo, canUndo, canRedo, totalCost, setShirtImageUrl } = useEditorStore()
   const { setAssetId, setExtraCost, extraCost,setZipedFile } = useAppContext()
   const [selectedFont, setSelectedFont] = useState("Inter")
   const [selectedFontColor, setSelectedFontColor] = useState("#000000")
@@ -99,27 +100,35 @@ export default function Toolbar() {
   const uploadInputRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
   const [colorSwatches, setColorSwatches] = useState<ColorSwatch[]>([]);
+  const [selectedStyle, setSelectedStyle] = useState<"slim" | "oversized">("slim");
 
-  useEffect(() => {const fetchData = async () => {
-    try {
-      const [ swatchesRes,logosRes] = await Promise.all([
-        fetch("/api/admin/color-swatches"),
-        fetch("/api/admin/logos")
-      ])
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [swatchesRes, logosRes] = await Promise.all([
+          fetch("/api/admin/color-swatches"),
+          fetch("/api/admin/logos"),
+        ]);
 
-      const logoData = await logosRes.json()
+        const swatchesData = await swatchesRes.json();
+        const logoData = await logosRes.json();
 
-      setLogos(logoData)
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to fetch data",
-        variant: "destructive",
-      })
-    }
-  }
-fetchData()
-  },[])
+        setColorSwatches(swatchesData);
+        setLogos(logoData);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to fetch data",
+          variant: "destructive",
+        });
+      }
+    };
+    fetchData();
+  }, [toast]);
+
+  const filteredColorSwatches = colorSwatches.filter(
+    (swatch) => swatch.style === selectedStyle
+  );
   
   useEffect(() => {
     if (canvas) {
@@ -559,18 +568,35 @@ Design ID: ${designId}`
         {/* Color Selection */}
         <div className="flex flex-col gap-4">
           <h2 className="font-semibold text-sm text-muted-foreground">Color</h2>
+          <div className="flex gap-2">
+            <Button
+              variant={selectedStyle === "slim" ? "default" : "outline"}
+              onClick={() => setSelectedStyle("slim")}
+            >
+              Slim
+            </Button>
+            <Button
+              variant={selectedStyle === "oversized" ? "default" : "outline"}
+              onClick={() => setSelectedStyle("oversized")}
+            >
+              Oversized
+            </Button>
+          </div>
           <div className="flex flex-wrap gap-2">
-            {SHIRT_COLORS.map((color) => (
-              <Tooltip key={color.value}>
+            {filteredColorSwatches.map((swatch) => (
+              <Tooltip key={swatch._id}>
                 <TooltipTrigger asChild>
                   <button
                     className={`w-8 h-8 rounded-full border ${
-                      selectedColor === color.value ? "ring-2 ring-primary" : ""
+                      selectedColor === swatch.hexCode ? "ring-2 ring-primary" : ""
                     }`}
-                    style={{ backgroundColor: color.value }}
-                    onClick={() => updateShirtColor(color.value)}
+                    style={{ backgroundColor: swatch.hexCode }}
+                    onClick={() => {
+                      updateShirtColor(swatch.hexCode);
+                      setShirtImageUrl(swatch.imageUrl);
+                    }}
                   >
-                    {selectedColor === color.value && (
+                    {selectedColor === swatch.hexCode && (
                       <div className="w-full h-full rounded-full flex items-center justify-center">
                         <div className="w-2 h-2 bg-white rounded-full" />
                       </div>
@@ -578,7 +604,7 @@ Design ID: ${designId}`
                   </button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{color.name}</p>
+                  <p>{swatch.name}</p>
                 </TooltipContent>
               </Tooltip>
             ))}
@@ -678,13 +704,13 @@ Design ID: ${designId}`
                 />
                 <Label className="mt-4">Template Logos</Label>
                 <div className="grid grid-cols-3 gap-2 mt-2">
-                  {logos?.map((logo : any, index) => (
+                  {logos?.map((logo : TEMPLATE_LOGOS_TYPE, index) => (
                     <button
                       key={index}
                       className="border rounded p-2 hover:bg-accent"
-                      onClick={() => addTemplateLogo(logo.imageUrl)}
+                      onClick={() => addTemplateLogo(logo.url)}
                     >
-                      <img src={logo.imageUrl || "/placeholder.svg"} alt={logo.name} className="w-full h-auto" />
+                      <img src={logo.url || "/placeholder.svg"} alt={logo.name} className="w-full h-auto" />
                     </button>
                   ))}
                 </div>

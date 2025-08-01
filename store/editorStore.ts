@@ -15,6 +15,8 @@ export interface EditorState {
   setCanvas: (canvas: fabric.Canvas) => void;
   shirtStyle: "slim" | "oversized";
   toggleShirtStyle: () => void;
+  shirtImageUrl: string | null;
+  setShirtImageUrl: (url: string) => void;
   selectedColorSwatch: ColorSwatch | null;
   setSelectedColorSwatch: (colorSwatch: ColorSwatch) => void;
   totalCost: number;
@@ -36,6 +38,7 @@ export interface EditorState {
 const initialState = {
   canvas: null,
   shirtStyle: "slim" as "slim" | "oversized",
+  shirtImageUrl: null,
   selectedColorSwatch: null,
   totalCost: 6.00,
   history: [],
@@ -72,6 +75,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     set((state) => ({
       shirtStyle: state.shirtStyle === "slim" ? "oversized" : "slim",
     })),
+  setShirtImageUrl: (url: string) => set({ shirtImageUrl: url }),
   setSelectedColorSwatch: (colorSwatch: ColorSwatch) => set({ selectedColorSwatch: colorSwatch }),
   setTotalCost: (cost) => set({ totalCost: cost }),
   setHistory: (history) => set({ history, canUndo: get().historyIndex > 0, canRedo: get().historyIndex < history.length - 1 }),
