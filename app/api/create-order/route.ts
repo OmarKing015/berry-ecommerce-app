@@ -143,6 +143,7 @@ export async function POST(request: NextRequest) {
           state: "NA",
         },
         currency: currency,
+        customer_redirect_url: "https://mazagk.vercel.app/payment/success",
         integration_id: PAYMOB_INTEGRATION_ID,
       }),
     })
