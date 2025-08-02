@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
     const paymentToken = paymentKeyData.token
 
     // Step 5: Generate payment URL
-    const paymentUrl = `https://accept.paymob.com/api/acceptance/acceptance/prefill?payment_token=${paymentToken}`
+    const paymentUrl = `https://accept.paymob.com/acceptance/iframes/${PAYMOB_IFRAME_ID}?payment_token=${paymentToken}`
 
     return NextResponse.json({
       success: true,
