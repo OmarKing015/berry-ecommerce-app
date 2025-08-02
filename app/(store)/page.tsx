@@ -1,4 +1,4 @@
-import BlackFirdayBanner from "@/components/BlackFirdayBanner";
+import CustomizationBanner from "@/components/BlackFirdayBanner";
 import ProductsView from "@/components/ProductsView";
 import { Button } from "@/components/ui/button";
 import { Product } from "@/sanity.types";
@@ -24,7 +24,7 @@ export default async function Home() {
   }) => category.slug?.current !== "custom-design");
   return (
     <div>
-      <BlackFirdayBanner/>
+      <CustomizationBanner/>
       <div className="flex flex-col item-center justify-top min-h-screen bg-gray-100 p-4">
         <ProductsView products={updatedProducts} categories={categories} />
       </div>

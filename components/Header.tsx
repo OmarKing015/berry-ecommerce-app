@@ -29,6 +29,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+import { Button } from "./ui/button";
 function Header() {
   const { user } = useUser();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -144,7 +145,6 @@ function Header() {
                   <PackageIcon className="w-4 h-4" /> <span>Orders</span>{" "}
                 </Link>{" "}
               </SignedIn>{" "}
-              <OrganizationSwitcher/>
               {user ? (
                 <div className="flex items-center space-x-3 pl-4 border-l border-gray-200">
                   {" "}
@@ -159,7 +159,8 @@ function Header() {
                   <UserButton />{" "}
                 </div>
               ) : (
-                <SignInButton/>
+                <Button>            <SignInButton mode="modal" />
+            </Button>
               )}{" "}
             </ClerkLoaded>{" "}
           </div>{" "}

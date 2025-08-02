@@ -83,6 +83,7 @@ export default function AdminPanel() {
   }, []);
 
   const fetchData = async () => {
+    setLoading(true);
     try {
       const [filesRes, swatchesRes, logosRes] = await Promise.all([
         fetch("/api/admin/files"),
