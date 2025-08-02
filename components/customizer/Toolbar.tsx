@@ -849,12 +849,9 @@ Design ID: ${designId}`;
         <Separator />
         {/* Actions */}
         <div className="flex flex-col gap-2">
-          <h2 className="font-semibold text-sm text-muted-foreground">
-            Actions
-          </h2>
           <SignedIn>
             <Button onClick={orderNow} size="lg" disabled={isProcessing}>
-              {isProcessing ? "Processing..." : " Add to Basket"}
+              {isProcessing ? "Processing..." : " Download Design"}
             </Button>
           </SignedIn>
           <SignedOut>

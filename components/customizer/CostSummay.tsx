@@ -95,14 +95,15 @@ export default function CostSummary() {
                 className="mt-2 grid grid-cols-5 gap-2"
             >
                 {SIZES.map((size) => (
-                    <Label
-                        key={size}
-                        htmlFor={`size-${size}`}
-                        className={`cursor-pointer rounded-md border-2 ${selectedSize === size ? 'border-primary' : 'border-border'} flex items-center justify-center p-2 text-sm font-semibold hover:bg-accent`}
-                    >
-                         <RadioGroupItem value={size} id={`size-${size}`} className="sr-only" />
-                        {size}
-                    </Label>
+                    <div key={size}>
+                        <RadioGroupItem value={size} id={`size-${size}`} className="sr-only" />
+                        <Label
+                            htmlFor={`size-${size}`}
+                            className={`cursor-pointer rounded-md border-2 ${selectedSize === size ? 'border-primary' : 'border-border'} flex items-center justify-center p-2 text-sm font-semibold hover:bg-accent`}
+                        >
+                            {size}
+                        </Label>
+                    </div>
                 ))}
             </RadioGroup>
         </div>
