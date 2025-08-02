@@ -113,6 +113,8 @@ export default function Toolbar() {
     canRedo,
     totalCost,
     setShirtImageUrl,
+    addHighQualityImage,
+    shirtImageUrl,
   } = useEditorStore();
   const { setAssetId, setExtraCost, extraCost, setZipedFile } = useAppContext();
   const [selectedFont, setSelectedFont] = useState("Roboto");
@@ -203,6 +205,9 @@ export default function Toolbar() {
       return;
     }
 
+    // Preserve the high-quality image
+    addHighQualityImage(file);
+
     setIsUploadingCustomImage(true);
     fabric.Image.fromURL(
       URL.createObjectURL(file),
@@ -224,27 +229,45 @@ export default function Toolbar() {
     );
   };
 
-  const addTemplateLogo = (logoUrl: string, logoId: string) => {
+  const addTemplateLogo = async (logoUrl: string, logoId: string) => {
     if (!canvas) return;
     setTemplateLogoLoading((prev) => ({ ...prev, [logoId]: true }));
-    fabric.Image.fromURL(
-      logoUrl,
-      (img: any) => {
-        img.scaleToWidth(150);
-        img.set({
-          left: 175,
-          top: 175,
-          // @ts-ignore
-          cost: 3,
-          type: "logo",
+
+    try {
+        // Fetch the image and convert it to a File object to preserve it
+        const response = await fetch(logoUrl);
+        const blob = await response.blob();
+        const fileName = logoUrl.substring(logoUrl.lastIndexOf('/') + 1);
+        const file = new File([blob], fileName, { type: blob.type });
+        addHighQualityImage(file);
+
+        // Now, add the image to the canvas
+        fabric.Image.fromURL(
+        logoUrl,
+        (img: any) => {
+            img.scaleToWidth(150);
+            img.set({
+            left: 175,
+            top: 175,
+            // @ts-ignore
+            cost: 3,
+            type: "logo",
+            });
+            canvas.add(img);
+            canvas.setActiveObject(img);
+            canvas.renderAll();
+            setTemplateLogoLoading((prev) => ({ ...prev, [logoId]: false }));
+        },
+        { crossOrigin: "anonymous" }
+        );
+    } catch (error) {
+        toast({
+            title: "Error",
+            description: "Failed to load template logo.",
+            variant: "destructive",
         });
-        canvas.add(img);
-        canvas.setActiveObject(img);
-        canvas.renderAll();
         setTemplateLogoLoading((prev) => ({ ...prev, [logoId]: false }));
-      },
-      { crossOrigin: "anonymous" }
-    );
+    }
   };
 
   const deleteActiveObject = () => {
@@ -419,60 +442,59 @@ export default function Toolbar() {
       });
       return;
     }
+    if (!shirtImageUrl) {
+        toast({
+            title: "Error",
+            description: "T-shirt image not selected. Please choose a color.",
+            variant: "destructive",
+        });
+        return;
+    }
+
     setIsProcessing(true);
     try {
-      // Generate unique ID for the basket item
       const designId = `design_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       console.log("Starting design export process...");
-      // Ensure canvas is fully rendered
-      await waitForCanvasRender(canvas);
-      // Set canvas background color to match selected shirt color
-      const originalBackground = canvas.backgroundColor as
-        | string
-        | fabric.Pattern
-        | fabric.Gradient; // Explicitly type originalBackground
-      canvas.setBackgroundColor(selectedColor, () => {
-        canvas.renderAll();
+
+      // Call the new API to get the final composite image
+      const response = await fetch('/api/download-design', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          baseImageUrl: shirtImageUrl,
+          canvasJSON: canvas.toJSON(['cost', 'type']),
+          width: canvas.getWidth(),
+          height: canvas.getHeight(),
+        }),
       });
-      // Wait for background to be applied
-      await new Promise((resolve) => setTimeout(resolve, 200));
-      // Generate the complete t-shirt design PNG
-      const fullDesignDataURL = canvas.toDataURL({
-        format: "png",
-        quality: 1,
-        multiplier: 2, // Higher resolution
-        enableRetinaScaling: false,
-      });
-      console.log(
-        "Full design generated:",
-        fullDesignDataURL.substring(0, 100) + "..."
-      );
-      // Restore original background
-      canvas.setBackgroundColor(originalBackground, () => {
-        canvas.renderAll();
-      });
-      const fullDesignBlob = dataURLtoBlob(fullDesignDataURL);
-      // Generate individual element images
-      console.log("Generating individual element images...");
+
+      if (!response.ok) {
+        throw new Error('Failed to generate the final design image.');
+      }
+
+      const fullDesignBlob = await response.blob();
+
+      console.log("Full design image received from API.");
+
+      // Generate individual element images (this logic can remain the same)
       const elementImages = await generateElementImages();
+
       // Create ZIP file
       const zip = new JSZip();
-      // Add the full design
       zip.file("full_design.png", fullDesignBlob);
-      // Add individual elements if any exist
+
       if (elementImages.length > 0) {
         const elementsFolder = zip.folder("elements");
         elementImages.forEach((element) => {
           elementsFolder?.file(element.name, element.blob);
         });
       }
-      // Add design information as JSON
+
       const designInfo = {
         id: designId,
         name: `Custom T-Shirt - ${selectedSize} - ${SHIRT_COLORS.find((c) => c.value === selectedColor)?.name || "White"} - ${shirtStyle}`,
         size: selectedSize,
-        color:
-          SHIRT_COLORS.find((c) => c.value === selectedColor)?.name || "White",
+        color: SHIRT_COLORS.find((c) => c.value === selectedColor)?.name || "White",
         colorHex: selectedColor,
         style: shirtStyle,
         font: selectedFont,
@@ -487,30 +509,49 @@ export default function Toolbar() {
         },
       };
       zip.file("design_info.json", JSON.stringify(designInfo, null, 2));
-      // Add a readme file with instructions
-      const readmeContent = `T-Shirt Design Package======================This package contains:1. full_design.png - Complete t-shirt design with background color2. elements/ folder - Individual design elements (logos, text)3. design_info.json - Design specifications and metadataDesign Details:- Size: ${selectedSize}- Color: ${designInfo.color}- Style: ${shirtStyle}- Elements: ${elementImages.length}- Created: ${new Date().toLocaleString()}Design ID: ${designId}`;
+
+      const readmeContent = `T-Shirt Design Package
+======================
+This package contains:
+1. full_design.png - Complete t-shirt design with the T-shirt background.
+2. elements/ folder - Individual design elements (logos, text).
+3. design_info.json - Design specifications and metadata.
+
+Design ID: ${designId}`;
       zip.file("README.txt", readmeContent);
-      // Generate and download ZIP file
+
       console.log("Generating ZIP file...");
       const zipBlob = await zip.generateAsync({ type: "blob" });
+
+      // This part seems to be for a different flow (maybe admin).
+      // The user who customizes a T-shirt will use the new "Add to Basket" button in the CostSummary.
+      // The `orderNow` button seems to be for a different purpose, perhaps downloading assets for production.
+      // I will keep the download functionality as requested.
       const url = URL.createObjectURL(zipBlob);
       const link = document.createElement("a");
-      // link.href = url;
-      // link.download = `${designInfo.name.replace(/[^a-zA-Z0-9]/g, "_")}_${designId}.zip`;
-      // document.body.appendChild(link);
-      // link.click();
-      // document.body.removeChild(link);
-      // Add item to basket with the design ID
+      link.href = url;
+      link.download = `${designInfo.name.replace(/[^a-zA-Z0-9]/g, "_")}_${designId}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      // The user mentioned that the "Add to Basket" logic should be separate.
+      // The new logic is in `CostSummary.tsx`.
+      // This button's original purpose included adding a generic "custom-tshirt" to the basket.
+      // I will leave this part commented out to avoid confusion with the new flow.
+      /*
       const product = await getProductBySlug("custom-tshirt");
       addItem(product, selectedSize, extraCost);
-      // uploadZipFile(zipBlob)
       setZipedFile(zipBlob);
+      redirect("/basket");
+      */
 
       toast({
-        title: "Design Downloaded & Added to Basket!",
-        description: `Your custom t-shirt design has been downloaded and added to your basket. Design ID: ${designId}`,
+        title: "Design Downloaded!",
+        description: `Your custom t-shirt design package has been downloaded.`,
       });
-      redirect("/basket");
+
     } catch (error) {
       console.error("Failed to process design:", error);
       toast({

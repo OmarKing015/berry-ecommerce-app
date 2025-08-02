@@ -33,6 +33,9 @@ export interface EditorState {
   canUndo: boolean;
   canRedo: boolean;
   reset: () => void;
+
+  highQualityImages: File[];
+  addHighQualityImage: (image: File) => void;
 }
 
 const initialState = {
@@ -45,6 +48,7 @@ const initialState = {
   historyIndex: -1,
   canUndo: false,
   canRedo: false,
+  highQualityImages: [],
 };
 
 export const useEditorStore = create<EditorState>((set, get) => ({
@@ -119,4 +123,5 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   canUndo: false,
   canRedo: false,
   reset: () => set(initialState),
+  addHighQualityImage: (image) => set((state) => ({ highQualityImages: [...state.highQualityImages, image] })),
 }));
