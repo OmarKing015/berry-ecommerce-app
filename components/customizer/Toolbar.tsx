@@ -560,7 +560,11 @@ Design ID: ${designId}`
           </h2>
           <div className="flex items-center space-x-2">
             <Label htmlFor="shirt-style-toggle">Slim Fit</Label>
-            <Switch id="shirt-style-toggle" checked={shirtStyle === "oversized"} onCheckedChange={toggleShirtStyle} />
+            <Switch
+              id="shirt-style-toggle"
+              checked={shirtStyle === "oversized"}
+              onCheckedChange={() => toggleShirtStyle()}
+            />
             <Label htmlFor="shirt-style-toggle">Oversized</Label>
           </div>
         </div>
