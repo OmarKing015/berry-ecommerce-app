@@ -23,8 +23,9 @@ const TSHIRT_IMAGES = {
 
 export default function TshirtEditor() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { setCanvas, reset } = useEditorStore(
+  const { canvas, setCanvas, reset } = useEditorStore(
     (state) => ({
+      canvas: state.canvas,
       setCanvas: state.setCanvas,
       reset: state.reset,
     }),
@@ -55,7 +56,7 @@ export default function TshirtEditor() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] min-h-screen">
-      <Toolbar />
+      {canvas && <Toolbar />}
       <div className="flex flex-col items-center justify-center p-4 md:p-8 bg-muted/20 relative">
         <Card className="relative w-full max-w-[500px]    aspect-square bg-transparent overflow-hidden  rounded-2xl">
           <AnimatePresence mode="wait">
@@ -82,7 +83,7 @@ export default function TshirtEditor() {
             <canvas ref={canvasRef} />
           </div>
         </Card>
-        <CostSummary />
+        {canvas && <CostSummary />}
       </div>
     </div>
   );
