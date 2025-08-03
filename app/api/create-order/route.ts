@@ -76,6 +76,7 @@ export async function POST(req: NextRequest) {
       },
       items: items.map((item: any) => ({
         product: { _ref: item.id, _type: "reference" },
+        _key:`varient-${item.id}`,
         quantity: item.quantity,
         price: item.price,
       })),

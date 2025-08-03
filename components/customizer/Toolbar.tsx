@@ -674,7 +674,7 @@ export default function Toolbar() {
                       </SelectItem>
                     ))}
                   </SelectContent>
-                </select>
+                </Select>
                 {/* Font Color Selection */}
                 <Label className="mt-2">Font Color</Label>
                 <div className="flex flex-wrap gap-2">

@@ -18,6 +18,7 @@ export interface OrderData {
   }
   items: Array<{
     product: {
+      _key:string,
       _ref: string
       _type: "reference"
     }

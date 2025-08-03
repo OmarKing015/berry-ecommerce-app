@@ -18,7 +18,6 @@ function BasketPage() {
   const router = useRouter()
   const [isClient, setIsClient] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const { extraCost } = useAppContext()
   useEffect(() => {
     setIsClient(true)
   }, [])
@@ -51,7 +50,7 @@ function BasketPage() {
   const totalPrice = useBasketStore.getState().getTotalPrice()
   const shipping = 50 // Free shipping over 500 EGP
   // const tax = totalPrice * 0.14 // 14% tax
-  const finalTotal = totalPrice + shipping + extraCost
+  const finalTotal = totalPrice + shipping 
 
   const handleCheckout = async () => {
     // if (!isSignedIn) {
@@ -126,16 +125,16 @@ function BasketPage() {
                     >
                       {item.product.name}
                     </h3>
-                    {item.product.slug?.current === "custom-tshirt" && extraCost > 0 && (
+                    {/* {item.product.slug?.current === "custom-tshirt" && extraCost > 0 && (
                       <p className="text-sm font-medium text-green-600 mt-1">
                         + {extraCost.toFixed(2)} EGP (Customization)
                       </p>
-                    )}
+                    )} */}
                     {item.size && <p className="text-gray-600 mt-1">Size: {item.size}</p>}
 
                     {item?.product?.slug?.current ? (<><p className="text-gray-600 mt-1">{(item.product.price ?? 0).toFixed(2)} EGP each</p>
                       <p className="text-lg font-semibold text-gray-900 mt-2">
-                        Total: {((item.product.price ?? 0) + extraCost * item.quantity).toFixed(2)}EGP
+                        Total: {((item.product.price ?? 0)  * item.quantity).toFixed(2)}EGP
                       </p></>) : (<><p className="text-gray-600 mt-1">{(item.product.price ?? 0).toFixed(2)} EGP each</p>
                         <p className="text-lg font-semibold text-gray-900 mt-2">
                           Total: {((item.product.price ?? 0) * item.quantity).toFixed(2)}EGP
