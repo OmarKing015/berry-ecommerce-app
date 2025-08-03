@@ -30,6 +30,11 @@ export const productType = defineType({
       type: "image",
     }),
     defineField({
+      name: "file",
+      title: "File",
+      type: "file",
+    }),
+    defineField({
       name: "price",
       title: "Price",
       type: "number",

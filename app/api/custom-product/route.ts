@@ -25,23 +25,34 @@ function dataURLtoBuffer(dataurl: string) {
 
 export async function POST(req: Request) {
   try {
-    const { name, price, size, imageData, slug } = await req.json();
+    const formData = await req.formData();
+    const name = formData.get("name") as string;
+    const price = parseFloat(formData.get("price") as string);
+    const size = formData.get("size") as string;
+    const slug = formData.get("slug") as string;
+    const file = formData.get("file") as File;
+    const imageData = formData.get("imageData") as string;
 
-    if (!name || !price || !size || !imageData || !slug) {
+    if (!name || !price || !size || !slug || !file || !imageData) {
       return NextResponse.json(
         { message: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    // 1. Upload the image asset to Sanity
+    // 1. Upload the zip file asset to Sanity
+    const fileAsset = await backendClient.assets.upload('file', file, {
+      filename: file.name,
+    });
+
+    // 2. Upload the image asset to Sanity
     const { buffer, mime } = dataURLtoBuffer(imageData);
     const imageAsset = await backendClient.assets.upload('image', buffer, {
         contentType: mime,
         filename: `${slug}.png`,
     });
 
-    // 2. Find the "Custom T-shirts" category ID
+    // 3. Find the "Custom T-shirts" category ID
     const categories = await getAllCategories();
     const customCategory = categories.find(
       (cat: any) => cat.slug.current === "custom-design"
@@ -54,34 +65,41 @@ export async function POST(req: Request) {
       );
     }
 
-    // 3. Prepare the product data
+    // 4. Prepare the product data
     const productData: ProductData = {
-        name: name,
-        price: price,
-        description: `Customized T-Shirt - Size ${size}`,
-        stock: 999, // Assuming custom shirts are always in stock
-        slug: {
-            _type: 'slug',
-            current: slug,
+      name: name,
+      price: price,
+      description: `Customized T-Shirt - Size ${size}`,
+      stock: 999, // Assuming custom shirts are always in stock
+      slug: {
+        _type: 'slug',
+        current: slug,
+      },
+      image: {
+        _type: 'image',
+        asset: {
+          _type: 'reference',
+          _ref: imageAsset._id,
         },
-        image: {
-            _type: 'image',
-            asset: {
-                _type: 'reference',
-                _ref: imageAsset._id,
-            },
+      },
+      file: {
+        _type: 'file',
+        asset: {
+          _type: 'reference',
+          _ref: fileAsset._id,
         },
-        categories: [
-            {
-                _type: 'reference',
-                _ref: customCategory._id,
-                _key: customCategory._id
-            },
-        ],
-        size: [size] // Corrected from 'sizes' to 'size' to match the schema
+      },
+      categories: [
+        {
+          _type: 'reference',
+          _ref: customCategory._id,
+          _key: customCategory._id,
+        },
+      ],
+      size: [size],
     };
 
-    // 4. Create the product in Sanity
+    // 5. Create the product in Sanity
     const result = await createProduct(productData);
 
     if (!result.success) {

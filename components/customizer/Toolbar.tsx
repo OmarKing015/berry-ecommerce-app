@@ -32,6 +32,7 @@ import { useAppContext } from "@/context/context";
 import { SignedIn, SignedOut, SignInButton, useUser } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 import { costEngine } from "@/lib/costEngine";
+import { Loader2 } from "lucide-react";
 
 interface TEMPLATE_LOGOS_TYPE {
   _id: string;
@@ -60,6 +61,7 @@ const FONT_COLORS = [
   { name: "Orange", value: "#FFA500" },
 ];
 
+const SIZES = ["S", "M", "L", "XL", "XXL"];
 const SHIRT_SIZES = ["XS", "S", "M", "L", "XL", "XXL", "3XL"];
 
 const FONTS = {
@@ -116,10 +118,11 @@ export default function Toolbar() {
     addHighQualityImage,
     shirtImageUrl,
   } = useEditorStore();
-  const { setAssetId, setExtraCost, extraCost, setZipedFile } = useAppContext();
+  const {} = useAppContext();
   const [selectedFont, setSelectedFont] = useState("Roboto");
   const [selectedFontColor, setSelectedFontColor] = useState("#000000");
-  const [selectedSize, setSelectedSize] = useState("M");
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [selectedColor, setSelectedColor] = useState("#FFFFFF");
   const [isArabic, setIsArabic] = useState(false);
   const [text, setText] = useState("English");
@@ -170,12 +173,11 @@ export default function Toolbar() {
 
   useEffect(() => {
     if (canvas) {
-      const { totalCost: calculatedTotalCost, extraCost: calculatedExtraCost } =
+      const { totalCost: calculatedTotalCost } =
         costEngine.calculate(canvas.getObjects());
       useEditorStore.getState().setTotalCost(calculatedTotalCost);
-      setExtraCost(calculatedExtraCost);
     }
-  }, [canvas, setExtraCost]);
+  }, [canvas]);
 
   const addText = () => {
     if (!canvas) return;
@@ -418,70 +420,49 @@ export default function Toolbar() {
     return elements;
   };
 
-  async function uploadZipFile(file: Blob) {
-    const formData = new FormData();
-    formData.append("file", file);
-    const response = await fetch("/api/upload", {
-      method: "POST",
-      body: formData,
-    });
-    console.log("Here are the results", response.json);
-    if (!response.ok) {
-      throw new Error("File upload failed");
+  const handleAddToBasket = async () => {
+    if (!selectedSize) {
+      toast({
+        title: "Please select a size",
+        description: "You must select a size before adding to the basket.",
+        variant: "destructive",
+      });
+      return;
     }
-    const result = await response.json();
-    return result;
-  }
-
-  const orderNow = async () => {
     if (!canvas) {
       toast({
-        title: "Error",
-        description: "Canvas not found. Please try again.",
+        title: "Editor not ready",
+        description: "The design canvas is not ready. Please wait a moment and try again.",
         variant: "destructive",
       });
       return;
     }
     if (!shirtImageUrl) {
-        toast({
-            title: "Error",
-            description: "T-shirt image not selected. Please choose a color.",
-            variant: "destructive",
-        });
-        return;
+      toast({
+        title: "Please select a T-shirt color",
+        description: "You must select a T-shirt color before adding to the basket.",
+        variant: "destructive",
+      });
+      return;
     }
 
-    setIsProcessing(true);
+    setIsLoading(true);
     try {
       const designId = `design_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      console.log("Starting design export process...");
 
-      // Call the new API to get the final composite image
-      const response = await fetch('/api/download-design', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          baseImageUrl: shirtImageUrl,
-          canvasJSON: canvas.toJSON(['cost', 'type']),
-          width: canvas.getWidth(),
-          height: canvas.getHeight(),
-        }),
+      // Generate a transparent background data URL of the canvas content
+      const canvasDataUrl = canvas.toDataURL({
+        format: 'png',
+        quality: 1,
+        multiplier: 2, // for higher resolution
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to generate the final design image.');
-      }
-
-      const fullDesignBlob = await response.blob();
-
-      console.log("Full design image received from API.");
-
-      // Generate individual element images (this logic can remain the same)
+      // Generate individual element images
       const elementImages = await generateElementImages();
 
       // Create ZIP file
       const zip = new JSZip();
-      zip.file("full_design.png", fullDesignBlob);
+      zip.file("full_design_transparent.png", dataURLtoBlob(canvasDataUrl));
 
       if (elementImages.length > 0) {
         const elementsFolder = zip.folder("elements");
@@ -507,46 +488,54 @@ export default function Toolbar() {
           width: canvas.width,
           height: canvas.height,
         },
+        baseShirtUrl: shirtImageUrl,
       };
       zip.file("design_info.json", JSON.stringify(designInfo, null, 2));
 
-      const readmeContent = `T-Shirt Design Package
-======================
-This package contains:
-1. full_design.png - Complete t-shirt design with the T-shirt background.
-2. elements/ folder - Individual design elements (logos, text).
-3. design_info.json - Design specifications and metadata.
-
-Design ID: ${designId}`;
-      zip.file("README.txt", readmeContent);
-
-      console.log("Generating ZIP file...");
       const zipBlob = await zip.generateAsync({ type: "blob" });
+      const slug = `custom-tshirt-${Date.now()}`;
+      const fileName = `${slug}.zip`;
 
-      const url = URL.createObjectURL(zipBlob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${designInfo.name.replace(/[^a-zA-Z0-9]/g, "_")}_${designId}.zip`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      const formData = new FormData();
+      formData.append("name", "Custom T-shirt");
+      formData.append("price", totalCost.toString());
+      formData.append("size", selectedSize);
+      formData.append("slug", slug);
+      formData.append("file", zipBlob, fileName);
+      // Also send the canvas image for the product preview
+      formData.append("imageData", canvasDataUrl);
+
+      const response = await fetch('/api/custom-product', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to create custom product.");
+      }
+
+      const newProduct = await response.json();
+      addItem(newProduct, selectedSize, 0); // Assuming extraCost is 0
+
       toast({
-        title: "Design Downloaded!",
-        description: `Your custom t-shirt design package has been downloaded.`,
+        title: "Success!",
+        description: "Custom T-shirt added to your basket.",
       });
 
     } catch (error) {
-      console.error("Failed to process design:", error);
+      console.error(error);
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
       toast({
-        title: "Error",
-        description: "Failed to process your design. Please try again.",
+        title: "Failed to add to basket",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
-      setIsProcessing(false);
+      setIsLoading(false);
     }
   };
+
 
   if (isFetchingInitialData) {
     return (
@@ -685,7 +674,7 @@ Design ID: ${designId}`;
                       </SelectItem>
                     ))}
                   </SelectContent>
-                </Select>
+                </select>
                 {/* Font Color Selection */}
                 <Label className="mt-2">Font Color</Label>
                 <div className="flex flex-wrap gap-2">
@@ -815,10 +804,30 @@ Design ID: ${designId}`;
         </div>
         <Separator />
         {/* Actions */}
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-4">
+        <div>
+            <Label className="text-base font-medium">Select Size</Label>
+            <RadioGroup
+                value={selectedSize ?? ""}
+                onValueChange={setSelectedSize}
+                className="mt-2 grid grid-cols-5 gap-2"
+            >
+                {SIZES.map((size) => (
+                    <div key={size}>
+                        <RadioGroupItem value={size} id={`size-${size}`} className="sr-only" />
+                        <Label
+                            htmlFor={`size-${size}`}
+                            className={`cursor-pointer rounded-md border-2 ${selectedSize === size ? 'border-primary' : 'border-border'} flex items-center justify-center p-2 text-sm font-semibold hover:bg-accent`}
+                        >
+                            {size}
+                        </Label>
+                    </div>
+                ))}
+            </RadioGroup>
+        </div>
           <SignedIn>
-            <Button onClick={orderNow} size="lg" disabled={isProcessing}>
-              {isProcessing ? "Processing..." : " Download Design"}
+            <Button onClick={handleAddToBasket} size="lg" disabled={isLoading || !selectedSize}>
+              {isLoading ? "Adding..." : "Add to Basket"}
             </Button>
           </SignedIn>
           <SignedOut>
