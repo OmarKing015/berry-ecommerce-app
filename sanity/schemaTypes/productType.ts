@@ -54,6 +54,11 @@ export const productType = defineType({
       type: "array",
       of: [{ type: "reference", to: { type: "category" } }],
     }),
+    defineField({
+      name: "assetFiles",
+      title: "Asset Files",
+      type: "file",
+    }),
   ],
   preview: {
     select: {

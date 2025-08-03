@@ -32,6 +32,8 @@ import { useAppContext } from "@/context/context";
 import { SignedIn, SignedOut, SignInButton, useUser } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 import { costEngine } from "@/lib/costEngine";
+import { client } from "@/sanity/lib/client";
+import { Product } from "@/sanity.types";
 
 interface TEMPLATE_LOGOS_TYPE {
   _id: string;
@@ -433,7 +435,7 @@ export default function Toolbar() {
     return result;
   }
 
-  const orderNow = async () => {
+  const addToBasket = async () => {
     if (!canvas) {
       toast({
         title: "Error",
@@ -523,17 +525,39 @@ Design ID: ${designId}`;
       console.log("Generating ZIP file...");
       const zipBlob = await zip.generateAsync({ type: "blob" });
 
-      const url = URL.createObjectURL(zipBlob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${designInfo.name.replace(/[^a-zA-Z0-9]/g, "_")}_${designId}.zip`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      // upload the zip file to sanity
+      const asset = await client.assets.upload("file", zipBlob, {
+        filename: `${designInfo.name.replace(/[^a-zA-Z0-9]/g, "_")}_${designId}.zip`,
+      });
+
+      // create a new product in sanity
+      const newProduct = await client.create<Product>({
+        _type: "product",
+        name: designInfo.name,
+        slug: {
+          _type: "slug",
+          current: `${designInfo.name.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase()}-${designId}`,
+        },
+        description: "Custom T-shirt",
+        price: totalCost,
+        size: [selectedSize],
+        stock: 1,
+        categories: [],
+        assetFiles: {
+          _type: "file",
+          asset: {
+            _type: "reference",
+            _ref: asset._id,
+          },
+        },
+      });
+
+      // add the new product to the basket
+      addItem(newProduct, selectedSize, extraCost);
+
       toast({
-        title: "Design Downloaded!",
-        description: `Your custom t-shirt design package has been downloaded.`,
+        title: "Product Added!",
+        description: `Your custom t-shirt has been added to the basket.`,
       });
 
     } catch (error) {
@@ -638,6 +662,34 @@ Design ID: ${designId}`;
               </div>
             ))}
           </div>
+        </div>
+        <Separator />
+        {/* Size Selection */}
+        <div className="flex flex-col gap-4">
+          <h2 className="font-semibold text-sm text-muted-foreground">Size</h2>
+          <RadioGroup
+            value={selectedSize}
+            onValueChange={setSelectedSize}
+            className="grid grid-cols-5 gap-2"
+          >
+            {SHIRT_SIZES.map((size) => (
+              <div key={size}>
+                <RadioGroupItem
+                  value={size}
+                  id={`size-${size}`}
+                  className="sr-only"
+                />
+                <Label
+                  htmlFor={`size-${size}`}
+                  className={`cursor-pointer rounded-md border-2 ${
+                    selectedSize === size ? "border-primary" : "border-border"
+                  } flex items-center justify-center p-2 text-sm font-semibold hover:bg-accent`}
+                >
+                  {size}
+                </Label>
+              </div>
+            ))}
+          </RadioGroup>
         </div>
         <Separator />
         {/* Customize */}
@@ -817,8 +869,8 @@ Design ID: ${designId}`;
         {/* Actions */}
         <div className="flex flex-col gap-2">
           <SignedIn>
-            <Button onClick={orderNow} size="lg" disabled={isProcessing}>
-              {isProcessing ? "Processing..." : " Download Design"}
+            <Button onClick={addToBasket} size="lg" disabled={isProcessing}>
+              {isProcessing ? "Processing..." : "Add to Basket"}
             </Button>
           </SignedIn>
           <SignedOut>
