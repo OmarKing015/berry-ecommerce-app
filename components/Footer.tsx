@@ -8,6 +8,9 @@ const Footer = () => {
           <div>
             <h3 className="font-bold text-lg mb-4">Mazagk</h3>
             <p className="text-gray-400">Wear Your Mood</p>
+            <p className="text-gray-400">Email: yebrahim086@gmail.com</p>
+            <p className="text-gray-400">Phone: +2001204167144</p>
+            <p className="text-gray-400">Address: مصر اسكندريه فاكتوريا</p>
           </div>
           <div>
             <h3 className="font-bold text-lg mb-4">Quick Links</h3>
@@ -20,6 +23,11 @@ const Footer = () => {
               <li>
                 <Link href="/shipping-policy" className="text-gray-400 hover:text-white">
                   Shipping Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/privacy-policy" className="text-gray-400 hover:text-white">
+                Privacy Policy
                 </Link>
               </li>
               <li>
