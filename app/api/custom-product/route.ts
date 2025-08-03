@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { backendClient } from "@/sanity/lib/backendClient";
 import { getAllCategories } from "@/sanity/lib/products/getAllCategories";
-import { createProduct } from "@/sanity/lib/products/createProduct";
-import { Product } from "@/sanity.types";
+import { createProduct, ProductData } from "@/sanity/lib/products/createProduct";
 
 // Helper function to convert data URL to Buffer
 function dataURLtoBuffer(dataurl: string) {
@@ -45,7 +44,7 @@ export async function POST(req: Request) {
     // 2. Find the "Custom T-shirts" category ID
     const categories = await getAllCategories();
     const customCategory = categories.find(
-      (cat: any) => cat.name === "Custom T-shirts"
+      (cat: any) => cat.slug.current === "custom-design"
     );
 
     if (!customCategory) {
@@ -56,8 +55,7 @@ export async function POST(req: Request) {
     }
 
     // 3. Prepare the product data
-    const productData: Omit<Product, '_id' | '_createdAt' | '_updatedAt' | '_rev' | '_type'> & { _type: 'product' } = {
-        _type: 'product',
+    const productData: ProductData = {
         name: name,
         price: price,
         description: `Customized T-Shirt - Size ${size}`,
@@ -84,7 +82,7 @@ export async function POST(req: Request) {
     };
 
     // 4. Create the product in Sanity
-    const result = await createProduct(productData as Product);
+    const result = await createProduct(productData);
 
     if (!result.success) {
       throw new Error("Failed to create product in Sanity", { cause: result.error });

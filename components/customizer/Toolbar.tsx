@@ -523,10 +523,6 @@ Design ID: ${designId}`;
       console.log("Generating ZIP file...");
       const zipBlob = await zip.generateAsync({ type: "blob" });
 
-      // This part seems to be for a different flow (maybe admin).
-      // The user who customizes a T-shirt will use the new "Add to Basket" button in the CostSummary.
-      // The `orderNow` button seems to be for a different purpose, perhaps downloading assets for production.
-      // I will keep the download functionality as requested.
       const url = URL.createObjectURL(zipBlob);
       const link = document.createElement("a");
       link.href = url;
@@ -535,18 +531,6 @@ Design ID: ${designId}`;
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-
-      // The user mentioned that the "Add to Basket" logic should be separate.
-      // The new logic is in `CostSummary.tsx`.
-      // This button's original purpose included adding a generic "custom-tshirt" to the basket.
-      // I will leave this part commented out to avoid confusion with the new flow.
-      /*
-      const product = await getProductBySlug("custom-tshirt");
-      addItem(product, selectedSize, extraCost);
-      setZipedFile(zipBlob);
-      redirect("/basket");
-      */
-
       toast({
         title: "Design Downloaded!",
         description: `Your custom t-shirt design package has been downloaded.`,
@@ -576,23 +560,6 @@ Design ID: ${designId}`;
   return (
     <TooltipProvider>
       <aside className="w-full lg:w-72 bg-card border-r p-4 flex flex-col gap-6">
-        {/* Size Selection */}
-        <div className="flex flex-col gap-4">
-          <h2 className="font-semibold text-sm text-muted-foreground">Size</h2>
-          <RadioGroup
-            value={selectedSize}
-            onValueChange={setSelectedSize}
-            className="flex flex-wrap gap-2"
-          >
-            {SHIRT_SIZES.map((size) => (
-              <div key={size} className="flex items-center space-x-1">
-                <RadioGroupItem value={size} id={`size-${size}`} />
-                <Label htmlFor={`size-${size}`}>{size}</Label>
-              </div>
-            ))}
-          </RadioGroup>
-        </div>
-        <Separator />
         {/* Color Selection */}
         <div className="flex flex-col gap-4">
           <h2 className="font-semibold text-sm text-muted-foreground">Color</h2>

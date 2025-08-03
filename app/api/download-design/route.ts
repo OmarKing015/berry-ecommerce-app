@@ -34,23 +34,22 @@ export async function POST(req: Request) {
         // Load the base T-shirt image and set it as the background
         const backgroundImage = await loadImage(baseImageUrl);
         staticCanvas.setBackgroundImage(backgroundImage, staticCanvas.renderAll.bind(staticCanvas), {
-            scaleX: staticCanvas.width! / backgroundImage.width!,
-            scaleY: staticCanvas.height! / backgroundImage.height!,
+            // Scale to fit the canvas dimensions directly
+            scaleX: width / backgroundImage.width!,
+            scaleY: height / backgroundImage.height!,
         });
 
         // Load the user's design (logos, text, etc.) onto the canvas
-        staticCanvas.loadFromJSON(canvasJSON, staticCanvas.renderAll.bind(staticCanvas));
+        // Ensure loadFromJSON is awaited to ensure the canvas is ready
+        await new Promise<void>(resolve => {
+            staticCanvas.loadFromJSON(canvasJSON, () => {
+                staticCanvas.renderAll();
+                resolve();
+            });
+        });
 
-        // Wait for rendering to complete (optional, but good practice)
-        await new Promise(resolve => setTimeout(resolve, 200));
-
-        // Generate the final image as a PNG buffer
-        const stream = staticCanvas.createPNGStream();
-        const chunks: Buffer[] = [];
-        for await (const chunk of stream) {
-            chunks.push(chunk);
-        }
-        const buffer = Buffer.concat(chunks);
+        // Generate the final image as a PNG buffer using toBuffer
+        const buffer = staticCanvas.toBuffer('image/png');
 
         // Return the image as a downloadable file
         return new NextResponse(buffer, {

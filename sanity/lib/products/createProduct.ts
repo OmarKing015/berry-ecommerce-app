@@ -22,12 +22,13 @@ export interface ProductData {
     current: string
     _type: "slug"
   }
+  size: string[];
 }
 
-export async function createProduct(productData: Product) {
+export async function createProduct(productData: ProductData) {
   try {
     const product = await backendClient.create({
-     
+      _type: "product",
       ...productData,
     })
 
