@@ -420,6 +420,60 @@ export default function Toolbar() {
     return elements;
   };
 
+  // Helper function to generate the full design with background
+  const generateFullDesign = async (
+    imageUrl: string,
+    canvas: fabric.Canvas
+  ): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const tempCanvas = new fabric.StaticCanvas(null, {
+        width: canvas.width,
+        height: canvas.height,
+      });
+
+      fabric.Image.fromURL(
+        imageUrl,
+        (bgImg) => {
+          if (!bgImg) {
+            reject(new Error("Failed to load background image."));
+            return;
+          }
+          tempCanvas.setBackgroundImage(
+            bgImg,
+            tempCanvas.renderAll.bind(tempCanvas),
+            {
+              scaleX: tempCanvas.width! / bgImg.width!,
+              scaleY: tempCanvas.height! / bgImg.height!,
+            }
+          );
+
+          const objects = canvas.getObjects();
+          const clonePromises = objects.map((obj) => {
+            return new Promise<fabric.Object>((resolveClone) => {
+              obj.clone(resolveClone);
+            });
+          });
+
+          Promise.all(clonePromises).then((clonedObjects) => {
+            clonedObjects.forEach((clonedObj) => {
+              tempCanvas.add(clonedObj);
+            });
+            tempCanvas.renderAll();
+
+            const dataURL = tempCanvas.toDataURL({
+              format: "png",
+              quality: 1,
+              multiplier: 2,
+            });
+            const blob = dataURLtoBlob(dataURL);
+            resolve(blob);
+          });
+        },
+        { crossOrigin: "anonymous" }
+      );
+    });
+  };
+
   const handleAddToBasket = async () => {
     if (!selectedSize) {
       toast({
@@ -457,11 +511,15 @@ export default function Toolbar() {
         multiplier: 2, // for higher resolution
       });
 
+      // Generate the full design with background
+      const fullDesignBlob = await generateFullDesign(shirtImageUrl, canvas);
+
       // Generate individual element images
       const elementImages = await generateElementImages();
 
       // Create ZIP file
       const zip = new JSZip();
+      zip.file("full_design.png", fullDesignBlob);
       zip.file("full_design_transparent.png", dataURLtoBlob(canvasDataUrl));
 
       if (elementImages.length > 0) {
@@ -630,178 +688,195 @@ export default function Toolbar() {
         </div>
         <Separator />
         {/* Customize */}
-        <div className="flex flex-col gap-4">
-          <h2 className="font-semibold text-sm text-muted-foreground flex items-center gap-2">
-            <Palette /> Customize
-          </h2>
-          <Tabs defaultValue="text" className="w-full">
-            <TabsList className="grid grid-cols-2">
-              <TabsTrigger value="text">Text</TabsTrigger>
-              <TabsTrigger value="logo">Logo</TabsTrigger>
-            </TabsList>
-            <TabsContent value="text" className="space-y-4">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="text-input">Text Content</Label>
-                <input
-                  id="text-input"
-                  type="text"
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                  className="border rounded p-2"
-                />
-                <div className="flex items-center space-x-2 mt-2">
-                  <Label htmlFor="language-toggle">English</Label>
-                  <Switch
-                    id="language-toggle"
-                    checked={isArabic}
-                    onCheckedChange={setIsArabic}
+        <fieldset disabled={!shirtImageUrl} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4">
+            <h2 className="font-semibold text-sm text-muted-foreground flex items-center gap-2">
+              <Palette /> Customize
+            </h2>
+            {!shirtImageUrl && (
+              <p className="text-sm text-muted-foreground">
+                Please select a color to start designing.
+              </p>
+            )}
+            <Tabs defaultValue="text" className="w-full">
+              <TabsList className="grid grid-cols-2">
+                <TabsTrigger value="text">Text</TabsTrigger>
+                <TabsTrigger value="logo">Logo</TabsTrigger>
+              </TabsList>
+              <TabsContent value="text" className="space-y-4">
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="text-input">Text Content</Label>
+                  <input
+                    id="text-input"
+                    type="text"
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    className="border rounded p-2"
                   />
-                  <Label htmlFor="language-toggle">Arabic</Label>
-                </div>
-                <Label htmlFor="font-select" className="mt-2">
-                  Font
-                </Label>
-                <Select value={selectedFont} onValueChange={changeFont}>
-                  <SelectTrigger id="font-select">
-                    <SelectValue placeholder="Select Font" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(isArabic ? FONTS.arabic : FONTS.english).map((font) => (
-                      <SelectItem key={font} value={font}>
-                        <span style={{ fontFamily: font }}>
-                          {isArabic ? "عربي" : "English"}
-                        </span>
-                      </SelectItem>
+                  <div className="flex items-center space-x-2 mt-2">
+                    <Label htmlFor="language-toggle">English</Label>
+                    <Switch
+                      id="language-toggle"
+                      checked={isArabic}
+                      onCheckedChange={setIsArabic}
+                    />
+                    <Label htmlFor="language-toggle">Arabic</Label>
+                  </div>
+                  <Label htmlFor="font-select" className="mt-2">
+                    Font
+                  </Label>
+                  <Select value={selectedFont} onValueChange={changeFont}>
+                    <SelectTrigger id="font-select">
+                      <SelectValue placeholder="Select Font" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(isArabic ? FONTS.arabic : FONTS.english).map((font) => (
+                        <SelectItem key={font} value={font}>
+                          <span style={{ fontFamily: font }}>
+                            {isArabic ? "عربي" : "English"}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {/* Font Color Selection */}
+                  <Label className="mt-2">Font Color</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {FONT_COLORS.map((color) => (
+                      <Tooltip key={color.value}>
+                        <TooltipTrigger asChild>
+                          <button
+                            className={`w-8 h-8 rounded-full border-2 ${
+                              selectedFontColor === color.value
+                                ? "ring-2 ring-primary border-primary"
+                                : "border-gray-300"
+                            }`}
+                            style={{ backgroundColor: color.value }}
+                            onClick={() => changeFontColor(color.value)}
+                          >
+                            {selectedFontColor === color.value && (
+                              <div className="w-full h-full rounded-full flex items-center justify-center">
+                                <div
+                                  className={`w-2 h-2 rounded-full ${
+                                    color.value === "#FFFFFF"
+                                      ? "bg-black"
+                                      : "bg-white"
+                                  }`}
+                                />
+                              </div>
+                            )}
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{color.name}</p>
+                        </TooltipContent>
+                      </Tooltip>
                     ))}
-                  </SelectContent>
-                </Select>
-                {/* Font Color Selection */}
-                <Label className="mt-2">Font Color</Label>
-                <div className="flex flex-wrap gap-2">
-                  {FONT_COLORS.map((color) => (
-                    <Tooltip key={color.value}>
-                      <TooltipTrigger asChild>
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={addText}
+                    className="mt-2 bg-transparent"
+                  >
+                    <Type className="mr-2" /> Add Text
+                  </Button>
+                </div>
+              </TabsContent>
+              <TabsContent value="logo" className="space-y-4">
+                <div className="flex flex-col gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => uploadInputRef.current?.click()}
+                    disabled={isUploadingCustomImage}
+                  >
+                    {isUploadingCustomImage ? (
+                      <div className="flex items-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />{" "}
+                        Uploading...
+                      </div>
+                    ) : (
+                      <>
+                        <ImagePlus className="mr-2" /> Upload Custom Logo
+                      </>
+                    )}
+                  </Button>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    ref={uploadInputRef}
+                    onChange={handleImageUpload}
+                    style={{ display: "none" }}
+                  />
+                  <Label className="mt-4">Template Logos</Label>
+                  <div className="grid grid-cols-3 gap-2 mt-2">
+                    {logos?.map((logo) => (
+                      <div key={logo._id} className="relative">
                         <button
-                          className={`w-8 h-8 rounded-full border-2 ${
-                            selectedFontColor === color.value
-                              ? "ring-2 ring-primary border-primary"
-                              : "border-gray-300"
-                          }`}
-                          style={{ backgroundColor: color.value }}
-                          onClick={() => changeFontColor(color.value)}
+                          className="border rounded p-2 hover:bg-accent flex items-center justify-center"
+                          onClick={() =>
+                            addTemplateLogo(logo.imageUrl, logo._id)
+                          }
+                          disabled={templateLogoLoading[logo._id]}
                         >
-                          {selectedFontColor === color.value && (
-                            <div className="w-full h-full rounded-full flex items-center justify-center">
-                              <div
-                                className={`w-2 h-2 rounded-full ${
-                                  color.value === "#FFFFFF"
-                                    ? "bg-black"
-                                    : "bg-white"
-                                }`}
-                              />
-                            </div>
-                          )}
+                          <img
+                            src={logo.imageUrl || "/placeholder.svg"}
+                            alt={logo.name}
+                            className="w-full h-auto"
+                          />
                         </button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{color.name}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  ))}
+                        {templateLogoLoading[logo._id] && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 rounded">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <Button
-                  variant="outline"
-                  onClick={addText}
-                  className="mt-2 bg-transparent"
-                >
-                  <Type className="mr-2" /> Add Text
-                </Button>
-              </div>
-            </TabsContent>
-            <TabsContent value="logo" className="space-y-4">
-              <div className="flex flex-col gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => uploadInputRef.current?.click()}
-                  disabled={isUploadingCustomImage}
-                >
-                  {isUploadingCustomImage ? (
-                    <div className="flex items-center">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />{" "}
-                      Uploading...
-                    </div>
-                  ) : (
-                    <>
-                      <ImagePlus className="mr-2" /> Upload Custom Logo
-                    </>
-                  )}
-                </Button>
-                <input
-                  type="file"
-                  accept="image/*"
-                  ref={uploadInputRef}
-                  onChange={handleImageUpload}
-                  style={{ display: "none" }}
-                />
-                <Label className="mt-4">Template Logos</Label>
-                <div className="grid grid-cols-3 gap-2 mt-2">
-                  {logos?.map((logo) => (
-                    <div key={logo._id} className="relative">
-                      <button
-                        className="border rounded p-2 hover:bg-accent flex items-center justify-center"
-                        onClick={() => addTemplateLogo(logo.imageUrl, logo._id)}
-                        disabled={templateLogoLoading[logo._id]}
-                      >
-                        <img
-                          src={logo.imageUrl || "/placeholder.svg"}
-                          alt={logo.name}
-                          className="w-full h-auto"
-                        />
-                      </button>
-                      {templateLogoLoading[logo._id] && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 rounded">
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
-          <Button variant="destructive" onClick={deleteActiveObject}>
-            <Trash2 className="mr-2" /> Delete Selected
-          </Button>
-        </div>
-        <Separator />
-        {/* History */}
-        <div className="flex-grow flex flex-col gap-4">
-          <h2 className="font-semibold text-sm text-muted-foreground">
-            History
-          </h2>
-          <div className="grid grid-cols-2 gap-2">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" onClick={undo} disabled={!canUndo}>
-                  <Undo />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Undo</p>
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" onClick={redo} disabled={!canRedo}>
-                  <Redo />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Redo</p>
-              </TooltipContent>
-            </Tooltip>
+              </TabsContent>
+            </Tabs>
+            <Button variant="destructive" onClick={deleteActiveObject}>
+              <Trash2 className="mr-2" /> Delete Selected
+            </Button>
           </div>
-        </div>
+          <Separator />
+          {/* History */}
+          <div className="flex-grow flex flex-col gap-4">
+            <h2 className="font-semibold text-sm text-muted-foreground">
+              History
+            </h2>
+            <div className="grid grid-cols-2 gap-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    onClick={undo}
+                    disabled={!canUndo || !shirtImageUrl}
+                  >
+                    <Undo />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Undo</p>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    onClick={redo}
+                    disabled={!canRedo || !shirtImageUrl}
+                  >
+                    <Redo />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Redo</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </div>
+        </fieldset>
         <Separator />
         {/* Actions */}
         <div className="flex flex-col gap-4">
