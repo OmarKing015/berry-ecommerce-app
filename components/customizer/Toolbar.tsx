@@ -1,81 +1,68 @@
-"use client";
+"use client"
 
-import type React from "react";
-import { useRef, useState, useEffect } from "react";
-import { fabric } from "fabric";
-import { Type, ImagePlus, Undo, Redo, Trash2, Palette } from "lucide-react";
-import { useEditorStore } from "../../store/editorStore";
-import useBasketStore from "../../store/store";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { useToast } from "./use-toast";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import JSZip from "jszip";
-import { getProductBySlug } from "@/sanity/lib/products/getProductBySlug";
-import { useAppContext } from "@/context/context";
-import { SignedIn, SignedOut, SignInButton, useUser } from "@clerk/nextjs";
-import { redirect } from "next/navigation";
-import { costEngine } from "@/lib/costEngine";
-import { Loader2 } from "lucide-react";
+import type React from "react"
+import { useRef, useState, useEffect } from "react"
+import { fabric } from "fabric"
+import { Type, ImagePlus, Undo, Redo, Trash2, Palette, Sparkles, Zap, Heart, Star } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
+import { useEditorStore } from "../../store/editorStore"
+import useBasketStore from "../../store/store"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
+import { Separator } from "@/components/ui/separator"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useToast } from "./use-toast"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import JSZip from "jszip"
+import { SignedIn, SignedOut, SignInButton, useUser } from "@clerk/nextjs"
+import { costEngine } from "@/lib/costEngine"
+import { Loader2 } from "lucide-react"
+import { Popover } from "../ui/popover"
 
 interface TEMPLATE_LOGOS_TYPE {
-  _id: string;
-  name: string;
-  imageUrl: string;
-  createdAt: string;
+  _id: string
+  name: string
+  imageUrl: string
+  createdAt: string
 }
 
 const SHIRT_COLORS = [
-  { name: "White", value: "#FFFFFF" },
-  { name: "Black", value: "#000000" },
-  { name: "Navy", value: "#000080" },
-  { name: "Red", value: "#FF0000" },
-  { name: "Green", value: "#008000" },
-  { name: "Yellow", value: "#FFFF00" },
-];
+  { name: "Pure White", value: "#FFFFFF", gradient: "from-white to-gray-50" },
+  { name: "Midnight Black", value: "#000000", gradient: "from-gray-900 to-black" },
+  { name: "Ocean Navy", value: "#000080", gradient: "from-blue-900 to-navy-800" },
+  { name: "Crimson Red", value: "#FF0000", gradient: "from-red-500 to-red-700" },
+  { name: "Forest Green", value: "#008000", gradient: "from-green-500 to-green-700" },
+  { name: "Sunshine Yellow", value: "#FFFF00", gradient: "from-yellow-400 to-yellow-500" },
+]
 
 const FONT_COLORS = [
-  { name: "Black", value: "#000000" },
-  { name: "White", value: "#FFFFFF" },
-  { name: "Red", value: "#FF0000" },
-  { name: "Blue", value: "#0000FF" },
-  { name: "Green", value: "#008000" },
-  { name: "Yellow", value: "#FFFF00" },
-  { name: "Purple", value: "#800080" },
-  { name: "Orange", value: "#FFA500" },
-];
+  { name: "Midnight", value: "#000000", ring: "ring-gray-800" },
+  { name: "Snow", value: "#FFFFFF", ring: "ring-gray-200" },
+  { name: "Crimson", value: "#FF0000", ring: "ring-red-500" },
+  { name: "Ocean", value: "#0000FF", ring: "ring-blue-500" },
+  { name: "Forest", value: "#008000", ring: "ring-green-500" },
+  { name: "Sunshine", value: "#FFFF00", ring: "ring-yellow-500" },
+  { name: "Royal", value: "#800080", ring: "ring-purple-500" },
+  { name: "Sunset", value: "#FFA500", ring: "ring-orange-500" },
+]
 
-const SIZES = ["S", "M", "L", "XL", "XXL"];
-const SHIRT_SIZES = ["XS", "S", "M", "L", "XL", "XXL", "3XL"];
+const SIZES = ["XS", "S", "M", "L", "XL", "XXL"]
 
 const FONTS = {
   english: [
+    "Inter",
     "Roboto",
-    "Open Sans",
-    "Lato",
+    "Poppins",
     "Montserrat",
-    "Oswald",
     "Playfair Display",
-    "Merriweather",
+    "Oswald",
+    "Lato",
     "Source Sans Pro",
     "Nunito",
-    "Poppins",
+    "Merriweather",
   ],
   arabic: [
     "Noto Sans Arabic",
@@ -88,23 +75,21 @@ const FONTS = {
     "Tajawal",
     "El Messiri",
     "Lemonada",
-    "Changa",
-    "Reem Kufi",
   ],
-};
+}
 
 interface ColorSwatch {
-  _id: string;
-  name: string;
-  hexCode: string;
-  imageUrl: string;
-  createdAt: string;
-  style: "slim" | "oversized";
+  _id: string
+  name: string
+  hexCode: string
+  imageUrl: string
+  createdAt: string
+  style: "slim" | "oversized"
 }
 
 export default function Toolbar() {
-  const { user } = useUser();
-  const { addItem } = useBasketStore();
+  const { user } = useUser()
+  const { addItem } = useBasketStore()
   const {
     canvas,
     shirtStyle,
@@ -117,31 +102,25 @@ export default function Toolbar() {
     setShirtImageUrl,
     addHighQualityImage,
     shirtImageUrl,
-  } = useEditorStore();
-  const {} = useAppContext();
-  const [selectedFont, setSelectedFont] = useState("Roboto");
-  const [selectedFontColor, setSelectedFontColor] = useState("#000000");
-  const [selectedSize, setSelectedSize] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedColor, setSelectedColor] = useState("#FFFFFF");
-  const [isArabic, setIsArabic] = useState(false);
-  const [text, setText] = useState("English");
-  const [logos, setLogos] = useState<TEMPLATE_LOGOS_TYPE[]>([]);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const uploadInputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
-  const [colorSwatches, setColorSwatches] = useState<ColorSwatch[]>([]);
-  const [selectedStyle, setSelectedStyle] = useState<"slim" | "oversized">(
-    "slim"
-  );
-  const [imageLoading, setImageLoading] = useState<{ [key: string]: boolean }>(
-    {}
-  );
-  const [templateLogoLoading, setTemplateLogoLoading] = useState<{
-    [key: string]: boolean;
-  }>({});
-  const [isUploadingCustomImage, setIsUploadingCustomImage] = useState(false);
-  const [isFetchingInitialData, setIsFetchingInitialData] = useState(true);
+  } = useEditorStore()
+
+  const [selectedFont, setSelectedFont] = useState("Inter")
+  const [selectedFontColor, setSelectedFontColor] = useState("#000000")
+  const [selectedSize, setSelectedSize] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [selectedColor, setSelectedColor] = useState("#FFFFFF")
+  const [isArabic, setIsArabic] = useState(false)
+  const [text, setText] = useState("Your Text Here")
+  const [logos, setLogos] = useState<TEMPLATE_LOGOS_TYPE[]>([])
+  const [isProcessing, setIsProcessing] = useState(false)
+  const uploadInputRef = useRef<HTMLInputElement>(null)
+  const { toast } = useToast()
+  const [colorSwatches, setColorSwatches] = useState<ColorSwatch[]>([])
+  const [selectedStyle, setSelectedStyle] = useState<"slim" | "oversized">("slim")
+  const [imageLoading, setImageLoading] = useState<{ [key: string]: boolean }>({})
+  const [templateLogoLoading, setTemplateLogoLoading] = useState<{ [key: string]: boolean }>({})
+  const [isUploadingCustomImage, setIsUploadingCustomImage] = useState(false)
+  const [isFetchingInitialData, setIsFetchingInitialData] = useState(true)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -149,384 +128,408 @@ export default function Toolbar() {
         const [swatchesRes, logosRes] = await Promise.all([
           fetch("/api/admin/color-swatches"),
           fetch("/api/admin/logos"),
-        ]);
-        const swatchesData = await swatchesRes.json();
-        const logoData = await logosRes.json();
-        setColorSwatches(swatchesData);
-        setLogos(logoData);
+        ])
+        const swatchesData = await swatchesRes.json()
+        const logoData = await logosRes.json()
+        setColorSwatches(swatchesData)
+        setLogos(logoData)
       } catch (error) {
         toast({
-          title: "Error",
-          description: "Failed to fetch data",
+          title: "Connection Error",
+          description: "Unable to load design assets. Please refresh and try again.",
           variant: "destructive",
-        });
+        })
       } finally {
-        setIsFetchingInitialData(false);
+        setIsFetchingInitialData(false)
       }
-    };
-    fetchData();
-  }, [toast]);
+    }
+    fetchData()
+  }, [toast])
 
-  const filteredColorSwatches = colorSwatches.filter(
-    (swatch) => swatch.style === selectedStyle
-  );
+  const filteredColorSwatches = colorSwatches.filter((swatch) => swatch.style === selectedStyle)
 
   useEffect(() => {
     if (canvas) {
-      const { totalCost: calculatedTotalCost } =
-        costEngine.calculate(canvas.getObjects());
-      useEditorStore.getState().setTotalCost(calculatedTotalCost);
+      const { totalCost: calculatedTotalCost } = costEngine.calculate(canvas.getObjects())
+      useEditorStore.getState().setTotalCost(calculatedTotalCost)
     }
-  }, [canvas]);
+  }, [canvas])
 
   const addText = () => {
-    if (!canvas) return;
-    const textObject = new fabric.IText(text || "Type here", {
+    if (!canvas) return
+    const textObject = new fabric.IText(text || "Your Text Here", {
       left: 150,
       top: 200,
       fill: selectedFontColor,
       fontFamily: selectedFont,
+      fontSize: 24,
+      fontWeight: "bold",
       // @ts-ignore
       cost: text.length * 0.1,
       type: "text",
-    });
-    canvas.add(textObject);
-    canvas.setActiveObject(textObject);
-    canvas.renderAll();
-  };
+    })
+    canvas.add(textObject)
+    canvas.setActiveObject(textObject)
+    canvas.renderAll()
+  }
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!canvas || !e.target.files || !e.target.files[0]) return;
-    const file = e.target.files[0];
+    if (!canvas || !e.target.files || !e.target.files[0]) return
+    const file = e.target.files[0]
     if (!file.type.startsWith("image/")) {
       toast({
-        title: "Invalid File",
-        description: "Please upload an image file.",
+        title: "Invalid File Type",
+        description: "Please upload a valid image file (PNG, JPG, SVG).",
         variant: "destructive",
-      });
-      return;
+      })
+      return
     }
 
-    // Preserve the high-quality image
-    addHighQualityImage(file);
-
-    setIsUploadingCustomImage(true);
+    addHighQualityImage(file)
+    setIsUploadingCustomImage(true)
     fabric.Image.fromURL(
       URL.createObjectURL(file),
       (img: any) => {
-        img.scaleToWidth(150);
+        img.scaleToWidth(150)
         img.set({
           left: 175,
           top: 175,
           // @ts-ignore
           cost: 5,
           type: "logo",
-        });
-        canvas.add(img);
-        canvas.setActiveObject(img);
-        canvas.renderAll();
-        setIsUploadingCustomImage(false);
+        })
+        canvas.add(img)
+        canvas.setActiveObject(img)
+        canvas.renderAll()
+        setIsUploadingCustomImage(false)
       },
-      { crossOrigin: "anonymous" }
-    );
-  };
+      { crossOrigin: "anonymous" },
+    )
+  }
 
   const addTemplateLogo = async (logoUrl: string, logoId: string) => {
-    if (!canvas) return;
-    setTemplateLogoLoading((prev) => ({ ...prev, [logoId]: true }));
-
+    if (!canvas) return
+    setTemplateLogoLoading((prev) => ({ ...prev, [logoId]: true }))
     try {
-        // Fetch the image and convert it to a File object to preserve it
-        const response = await fetch(logoUrl);
-        const blob = await response.blob();
-        const fileName = logoUrl.substring(logoUrl.lastIndexOf('/') + 1);
-        const file = new File([blob], fileName, { type: blob.type });
-        addHighQualityImage(file);
+      const response = await fetch(logoUrl)
+      const blob = await response.blob()
+      const fileName = logoUrl.substring(logoUrl.lastIndexOf("/") + 1)
+      const file = new File([blob], fileName, { type: blob.type })
+      addHighQualityImage(file)
 
-        // Now, add the image to the canvas
-        fabric.Image.fromURL(
+      fabric.Image.fromURL(
         logoUrl,
         (img: any) => {
-            img.scaleToWidth(150);
-            img.set({
+          img.scaleToWidth(150)
+          img.set({
             left: 175,
             top: 175,
             // @ts-ignore
             cost: 3,
             type: "logo",
-            });
-            canvas.add(img);
-            canvas.setActiveObject(img);
-            canvas.renderAll();
-            setTemplateLogoLoading((prev) => ({ ...prev, [logoId]: false }));
+          })
+          canvas.add(img)
+          canvas.setActiveObject(img)
+          canvas.renderAll()
+          setTemplateLogoLoading((prev) => ({ ...prev, [logoId]: false }))
         },
-        { crossOrigin: "anonymous" }
-        );
+        { crossOrigin: "anonymous" },
+      )
     } catch (error) {
-        toast({
-            title: "Error",
-            description: "Failed to load template logo.",
-            variant: "destructive",
-        });
-        setTemplateLogoLoading((prev) => ({ ...prev, [logoId]: false }));
+      toast({
+        title: "Logo Load Error",
+        description: "Failed to load template logo. Please try again.",
+        variant: "destructive",
+      })
+      setTemplateLogoLoading((prev) => ({ ...prev, [logoId]: false }))
     }
-  };
+  }
 
   const deleteActiveObject = () => {
-    if (!canvas) return;
-    const activeObject = canvas.getActiveObject();
+    if (!canvas) return
+    const activeObject = canvas.getActiveObject()
     if (activeObject) {
-      canvas.remove(activeObject);
-      canvas.renderAll();
+      canvas.remove(activeObject)
+      canvas.renderAll()
     }
-  };
+  }
 
   const changeFont = (font: string) => {
-    setSelectedFont(font);
-    if (!canvas) return;
-    const activeObject = canvas.getActiveObject();
+    setSelectedFont(font)
+    if (!canvas) return
+    const activeObject = canvas.getActiveObject()
     if (activeObject && activeObject.type === "i-text") {
       // @ts-ignore
-      activeObject.set({ fontFamily: font });
-      canvas.renderAll();
+      activeObject.set({ fontFamily: font })
+      canvas.renderAll()
     }
-  };
+  }
 
   const changeFontColor = (color: string) => {
-    setSelectedFontColor(color);
-    if (!canvas) return;
-    const activeObject = canvas.getActiveObject();
-    if (
-      activeObject &&
-      (activeObject.type === "i-text" || activeObject.type === "text")
-    ) {
+    setSelectedFontColor(color)
+    if (!canvas) return
+    const activeObject = canvas.getActiveObject()
+    if (activeObject && (activeObject.type === "i-text" || activeObject.type === "text")) {
       // @ts-ignore
-      activeObject.set({ fill: color });
-      canvas.renderAll();
+      activeObject.set({ fill: color })
+      canvas.renderAll()
     }
-  };
+  }
 
-  //update shirt color
   const updateShirtColor = (color: string) => {
-    setSelectedColor(color);
+    setSelectedColor(color)
     if (canvas) {
-      canvas.renderAll();
+      canvas.renderAll()
     }
-  };
+  }
 
-  // Helper function to convert data URL to blob
   const dataURLtoBlob = (dataURL: string): Blob => {
-    const arr = dataURL.split(",");
-    const mime = arr[0].match(/:(.*?);/)![1];
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
+    const arr = dataURL.split(",")
+    const mime = arr[0].match(/:(.*?);/)![1]
+    const bstr = atob(arr[1])
+    let n = bstr.length
+    const u8arr = new Uint8Array(n)
     while (n--) {
-      u8arr[n] = bstr.charCodeAt(n);
+      u8arr[n] = bstr.charCodeAt(n)
     }
-    return new Blob([u8arr], { type: mime });
-  };
+    return new Blob([u8arr], { type: mime })
+  }
 
-  // Helper function to wait for canvas rendering
   const waitForCanvasRender = (canvas: fabric.Canvas): Promise<void> => {
     return new Promise((resolve) => {
-      canvas.renderAll();
-      // Use requestAnimationFrame to ensure rendering is complete
+      canvas.renderAll()
       requestAnimationFrame(() => {
-        setTimeout(resolve, 100); // Additional small delay to ensure complete rendering
-      });
-    });
-  };
+        setTimeout(resolve, 100)
+      })
+    })
+  }
 
-  // Helper function to generate individual element images
-  const generateElementImages = async (): Promise<
-    { name: string; blob: Blob }[]
-  > => {
-    if (!canvas) return [];
-    const elements: { name: string; blob: Blob }[] = [];
-    const objects = canvas.getObjects();
-    console.log(`Found ${objects.length} objects on canvas`);
+  const generateElementImages = async (): Promise<{ name: string; blob: Blob }[]> => {
+    if (!canvas) return []
+    const elements: { name: string; blob: Blob }[] = []
+    const objects = canvas.getObjects()
+
     for (let i = 0; i < objects.length; i++) {
-      const obj = objects[i];
-      console.log(`Processing object ${i}:`, obj.type, obj);
+      const obj = objects[i]
       try {
-        // Get object bounds
-        const bounds = obj.getBoundingRect();
-        const padding = 20; // Add some padding around the object
-        // Create a temporary canvas with proper dimensions
-        const tempCanvasElement = document.createElement("canvas");
-        tempCanvasElement.width = bounds.width + padding * 2;
-        tempCanvasElement.height = bounds.height + padding * 2;
+        const bounds = obj.getBoundingRect()
+
+        if (!bounds || !bounds.width || !bounds.height) {
+          console.warn(`Skipping object ${i}: Invalid bounds`, bounds)
+          continue
+        }
+
+        const padding = 20
+        const canvasWidth = Math.max(100, bounds.width + padding * 2)
+        const canvasHeight = Math.max(100, bounds.height + padding * 2)
+
+        const tempCanvasElement = document.createElement("canvas")
+        tempCanvasElement.width = canvasWidth
+        tempCanvasElement.height = canvasHeight
+
         const tempCanvas = new fabric.Canvas(tempCanvasElement, {
-          width: bounds.width + padding,
-          height: bounds.height + padding,
+          width: canvasWidth,
+          height: canvasHeight,
           backgroundColor: "transparent",
-        });
-        // Clone the object
-        const clonedObj = await new Promise<fabric.Object>(
-          (resolve, reject) => {
+        })
+
+        const clonedObj = await new Promise<fabric.Object>((resolve, reject) => {
+          try {
             obj.clone((cloned: fabric.Object) => {
               if (cloned) {
-                resolve(cloned);
+                resolve(cloned)
               } else {
-                reject(new Error("Failed to clone object"));
+                reject(new Error("Failed to clone object"))
               }
-            });
+            })
+          } catch (error) {
+            reject(error)
           }
-        );
-        // Position the cloned object in the center of the temp canvas
+        })
+
         clonedObj.set({
           left: padding,
           top: padding,
-        });
-        // Add the object to temp canvas
-        tempCanvas.add(clonedObj);
-        // Wait for rendering to complete
-        await waitForCanvasRender(tempCanvas);
-        // Generate image with white background for better visibility
-        const dataURL = tempCanvas.toDataURL({
-          format: "png",
-          quality: 1,
-          multiplier: 2, // Higher resolution
-          enableRetinaScaling: false,
-        });
-        console.log(
-          `Generated dataURL for object ${i}:`,
-          dataURL.substring(0, 100) + "..."
-        );
-        const blob = dataURLtoBlob(dataURL);
-        // @ts-ignore
-        const elementType = obj.type || "element";
-        let elementName = `${elementType}_${i + 1}`;
-        // For text objects, use the actual text as name
-        if (obj.type === "i-text" || obj.type === "text") {
+        })
+
+        tempCanvas.add(clonedObj)
+        await waitForCanvasRender(tempCanvas)
+
+        try {
+          const dataURL = tempCanvas.toDataURL({
+            format: "png",
+            quality: 1,
+            multiplier: 2,
+            enableRetinaScaling: false,
+          })
+
+          if (!dataURL || dataURL === "data:,") {
+            throw new Error("Failed to generate image data")
+          }
+
+          const blob = dataURLtoBlob(dataURL)
+
           // @ts-ignore
-          const textContent = obj.text || "text";
-          elementName = `text_${textContent.substring(0, 10).replace(/[^a-zA-Z0-9]/g, "_")}_${i + 1}`;
-        } else if (obj.type === "image") {
-          elementName = `logo_${i + 1}`;
+          const elementType = obj.type || "element"
+          let elementName = `${elementType}_${i + 1}`
+
+          if (obj.type === "i-text" || obj.type === "text") {
+            // @ts-ignore
+            const textContent = obj.text || "text"
+            elementName = `text_${textContent.substring(0, 10).replace(/[^a-zA-Z0-9]/g, "_")}_${i + 1}`
+          } else if (obj.type === "image") {
+            elementName = `logo_${i + 1}`
+          }
+
+          elements.push({
+            name: `${elementName}.png`,
+            blob,
+          })
+        } catch (imageError) {
+          console.error(`Error generating image for object ${i}:`, imageError)
         }
-        elements.push({
-          name: `${elementName}.png`,
-          blob,
-        });
-        // Clean up temp canvas
-        tempCanvas.dispose();
+
+        tempCanvas.dispose()
       } catch (error) {
-        console.error(`Error processing object ${i}:`, error);
+        console.error(`Error processing object ${i}:`, error)
       }
     }
-    console.log(`Generated ${elements.length} element images`);
-    return elements;
-  };
 
-  // Helper function to generate the full design with background
-  const generateFullDesign = async (
-    imageUrl: string,
-    canvas: fabric.Canvas
-  ): Promise<Blob> => {
+    console.log(`Successfully generated ${elements.length} element images out of ${objects.length} objects`)
+    return elements
+  }
+
+  const generateFullDesign = async (imageUrl: string, canvas: fabric.Canvas): Promise<Blob> => {
     return new Promise((resolve, reject) => {
-      const tempCanvas = new fabric.StaticCanvas(null, {
-        width: canvas.width,
-        height: canvas.height,
-      });
+      try {
+        const tempCanvas = new fabric.StaticCanvas(null, {
+          width: canvas.width || 500,
+          height: canvas.height || 500,
+        })
 
-      fabric.Image.fromURL(
-        imageUrl,
-        (bgImg) => {
-          if (!bgImg) {
-            reject(new Error("Failed to load background image."));
-            return;
-          }
-          tempCanvas.setBackgroundImage(
-            bgImg,
-            tempCanvas.renderAll.bind(tempCanvas),
-            {
-              scaleX: tempCanvas._objects[0].width! / bgImg.width!,
-              scaleY: tempCanvas._objects[0].height! / bgImg.height!,
+        fabric.Image.fromURL(
+          imageUrl,
+          (bgImg) => {
+            if (!bgImg) {
+              reject(new Error("Failed to load background image."))
+              return
             }
-          );
 
-          const objects = canvas.getObjects();
-          const clonePromises = objects.map((obj) => {
-            return new Promise<fabric.Object>((resolveClone) => {
-              obj.clone(resolveClone);
-            });
-          });
+            try {
+              const canvasWidth = tempCanvas._objects[0].width || 500
+              const canvasHeight = tempCanvas._objects[0].height || 500
+              const imgWidth = bgImg.width || 500
+              const imgHeight = bgImg.height || 500
 
-          Promise.all(clonePromises).then((clonedObjects) => {
-            clonedObjects.forEach((clonedObj) => {
-              tempCanvas.add(clonedObj);
-            });
-            tempCanvas.renderAll();
+              tempCanvas.setBackgroundImage(bgImg, tempCanvas.renderAll.bind(tempCanvas), {
+                scaleX: canvasWidth / imgWidth,
+                scaleY: canvasHeight / imgHeight,
+              })
 
-            const dataURL = tempCanvas.toDataURL({
-              format: "png",
-              quality: 1,
-              multiplier: 2,
-            });
-            const blob = dataURLtoBlob(dataURL);
-            resolve(blob);
-          });
-        },
-        { crossOrigin: "anonymous" }
-      );
-    });
-  };
+              const objects = canvas.getObjects()
+              const clonePromises = objects.map((obj) => {
+                return new Promise<fabric.Object>((resolveClone, rejectClone) => {
+                  try {
+                    obj.clone((cloned: fabric.Object) => {
+                      if (cloned) {
+                        resolveClone(cloned)
+                      } else {
+                        rejectClone(new Error("Failed to clone object"))
+                      }
+                    })
+                  } catch (error) {
+                    rejectClone(error)
+                  }
+                })
+              })
+
+              Promise.all(clonePromises)
+                .then((clonedObjects) => {
+                  try {
+                    clonedObjects.forEach((clonedObj) => {
+                      tempCanvas.add(clonedObj)
+                    })
+
+                    tempCanvas.renderAll()
+
+                    const dataURL = tempCanvas.toDataURL({
+                      format: "png",
+                      quality: 1,
+                      multiplier: 2,
+                    })
+
+                    if (!dataURL || dataURL === "data:,") {
+                      throw new Error("Failed to generate canvas image")
+                    }
+
+                    const blob = dataURLtoBlob(dataURL)
+                    resolve(blob)
+                  } catch (error) {
+                    reject(error)
+                  }
+                })
+                .catch(reject)
+            } catch (error) {
+              reject(error)
+            }
+          },
+          { crossOrigin: "anonymous" },
+        )
+      } catch (error) {
+        reject(error)
+      }
+    })
+  }
 
   const handleAddToBasket = async () => {
     if (!selectedSize) {
       toast({
-        title: "Please select a size",
-        description: "You must select a size before adding to the basket.",
+        title: "Size Required",
+        description: "Please select a size to continue with your masterpiece.",
         variant: "destructive",
-      });
-      return;
+      })
+      return
     }
+
     if (!canvas) {
       toast({
-        title: "Editor not ready",
-        description: "The design canvas is not ready. Please wait a moment and try again.",
+        title: "Canvas Not Ready",
+        description: "Please wait for the design canvas to load completely.",
         variant: "destructive",
-      });
-      return;
+      })
+      return
     }
+
     if (!shirtImageUrl) {
       toast({
-        title: "Please select a T-shirt color",
-        description: "You must select a T-shirt color before adding to the basket.",
+        title: "Color Required",
+        description: "Please select a T-shirt color to complete your design.",
         variant: "destructive",
-      });
-      return;
+      })
+      return
     }
 
-    setIsLoading(true);
+    setIsLoading(true)
     try {
-      const designId = `design_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-      // Generate a transparent background data URL of the canvas content
+      const designId = `design_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       const canvasDataUrl = canvas.toDataURL({
-        format: 'png',
+        format: "png",
         quality: 1,
-        multiplier: 2, // for higher resolution
-      });
+        multiplier: 2,
+      })
 
-      // Generate the full design with background
-      const fullDesignBlob = await generateFullDesign(shirtImageUrl, canvas);
+      const fullDesignBlob = await generateFullDesign(shirtImageUrl, canvas)
+      const elementImages = await generateElementImages()
 
-      // Generate individual element images
-      const elementImages = await generateElementImages();
-
-      // Create ZIP file
-      const zip = new JSZip();
-      zip.file("full_design.png", fullDesignBlob);
-      zip.file("full_design_transparent.png", dataURLtoBlob(canvasDataUrl));
+      const zip = new JSZip()
+      zip.file("full_design.png", fullDesignBlob)
+      zip.file("full_design_transparent.png", dataURLtoBlob(canvasDataUrl))
 
       if (elementImages.length > 0) {
-        const elementsFolder = zip.folder("elements");
+        const elementsFolder = zip.folder("elements")
         elementImages.forEach((element) => {
-          elementsFolder?.file(element.name, element.blob);
-        });
+          elementsFolder?.file(element.name, element.blob)
+        })
       }
 
       const designInfo = {
@@ -547,372 +550,597 @@ export default function Toolbar() {
           height: canvas.height,
         },
         baseShirtUrl: shirtImageUrl,
-      };
-      zip.file("design_info.json", JSON.stringify(designInfo, null, 2));
-
-      const zipBlob = await zip.generateAsync({ type: "blob" });
-      const slug = `custom-tshirt-${Date.now()}`;
-      const fileName = `${slug}.zip`;
-
-      const formData = new FormData();
-      formData.append("name", "Custom T-shirt");
-      formData.append("price", totalCost.toString());
-      formData.append("size", selectedSize);
-      formData.append("slug", slug);
-      formData.append("file", zipBlob, fileName);
-      // Also send the canvas image for the product preview
-      formData.append("imageData", canvasDataUrl);
-
-      const response = await fetch('/api/custom-product', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to create custom product.");
       }
 
-      const newProduct = await response.json();
-      addItem(newProduct, selectedSize, 0); // Assuming extraCost is 0
+      zip.file("design_info.json", JSON.stringify(designInfo, null, 2))
+      const zipBlob = await zip.generateAsync({ type: "blob" })
+      const slug = `custom-tshirt-${Date.now()}`
+      const fileName = `${slug}.zip`
+
+      const formData = new FormData()
+      formData.append("name", "Custom T-shirt")
+      formData.append("price", totalCost.toString())
+      formData.append("size", selectedSize)
+      formData.append("slug", slug)
+      formData.append("file", zipBlob, fileName)
+      const fullDesignFile = new File([fullDesignBlob], "product-image.png", { type: "image/png" })
+      formData.append("imageData", fullDesignFile)
+
+      const response = await fetch("/api/custom-product", {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || "Failed to create custom product.")
+      }
+
+      const newProduct = await response.json()
+      addItem(newProduct, selectedSize, 0)
 
       toast({
-        title: "Success!",
-        description: "Custom T-shirt added to your basket.",
-      });
-
+        title: "🎉 Masterpiece Created!",
+        description: "Your custom T-shirt has been added to your basket.",
+      })
     } catch (error) {
-      console.error(error);
-      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+      console.error(error)
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred."
       toast({
-        title: "Failed to add to basket",
+        title: "Creation Failed",
         description: errorMessage,
         variant: "destructive",
-      });
+      })
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
-
+  }
 
   if (isFetchingInitialData) {
     return (
-      <aside className="w-full lg:w-72 bg-card border-r p-4 flex flex-col gap-6 items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
-        <p className="text-muted-foreground">Loading design options...</p>
-      </aside>
-    );
+      <motion.aside
+        initial={{ opacity: 0, x: -50 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="w-full lg:w-80 h-screen bg-gradient-to-br from-background via-background/95 to-background/90 backdrop-blur-xl border-r border-border/50 p-6 flex flex-col gap-6 items-center justify-center"
+      >
+        <div className="relative">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary/20 border-t-primary" />
+          <Sparkles className="absolute inset-0 m-auto h-6 w-6 text-primary animate-pulse" />
+        </div>
+        <div className="text-center space-y-2">
+          <p className="text-lg font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+            Preparing Your Canvas
+          </p>
+          <p className="text-sm text-muted-foreground">Loading creative tools...</p>
+        </div>
+      </motion.aside>
+    )
   }
 
   return (
     <TooltipProvider>
-      <aside className="w-full lg:w-72 bg-card border-r p-4 flex flex-col gap-6">
-        {/* Color Selection */}
-        <div className="flex flex-col gap-4">
-          <h2 className="font-semibold text-sm text-muted-foreground">Color</h2>
-          <div className="flex gap-2">
-            <Button
-              variant={selectedStyle === "slim" ? "default" : "outline"}
-              onClick={() => setSelectedStyle("slim")}
-            >
-              Slim
-            </Button>
-            <Button
-              variant={selectedStyle === "oversized" ? "default" : "outline"}
-              onClick={() => setSelectedStyle("oversized")}
-            >
-              Oversized
-            </Button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {filteredColorSwatches.map((swatch) => (
-              <div key={swatch._id} className="relative">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      className={`w-8 h-8 rounded-full border ${
-                        selectedColor === swatch.hexCode
-                          ? "ring-2 ring-primary"
-                          : ""
-                      }`}
-                      style={{ backgroundColor: swatch.hexCode }}
-                      onClick={() => {
-                        if (imageLoading[swatch._id]) return; // Prevent click if image is loading
-                        setImageLoading((prev) => ({
-                          ...prev,
-                          [swatch._id]: true,
-                        }));
-                        const img = new Image();
-                        img.onload = () => {
-                          updateShirtColor(swatch.hexCode);
-                          setShirtImageUrl(swatch.imageUrl);
-                          setImageLoading((prev) => ({
-                            ...prev,
-                            [swatch._id]: false,
-                          }));
-                        };
-                        img.onerror = () => {
-                          toast({
-                            title: "Error",
-                            description: `Failed to load image for color ${swatch.name}`,
-                            variant: "destructive",
-                          });
-                          setImageLoading((prev) => ({
-                            ...prev,
-                            [swatch._id]: false,
-                          }));
-                        };
-                        img.src = swatch.imageUrl;
-                      }}
-                      disabled={imageLoading[swatch._id]}
-                    >
-                      {selectedColor === swatch.hexCode && (
-                        <div className="w-full h-full rounded-full flex items-center justify-center">
-                          <div className="w-2 h-2 bg-white rounded-full" />
-                        </div>
-                      )}
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{swatch.name}</p>
-                  </TooltipContent>
-                </Tooltip>
-                {imageLoading[swatch._id] && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 rounded-full">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-        <Separator />
-        {/* Customize */}
-        <fieldset disabled={!shirtImageUrl} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-4">
-            <h2 className="font-semibold text-sm text-muted-foreground flex items-center gap-2">
-              <Palette /> Customize
-            </h2>
-            {!shirtImageUrl && (
-              <p className="text-sm text-muted-foreground">
-                Please select a color to start designing.
-              </p>
-            )}
-            <Tabs defaultValue="text" className="w-full">
-              <TabsList className="grid grid-cols-2">
-                <TabsTrigger value="text">Text</TabsTrigger>
-                <TabsTrigger value="logo">Logo</TabsTrigger>
-              </TabsList>
-              <TabsContent value="text" className="space-y-4">
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="text-input">Text Content</Label>
-                  <input
-                    id="text-input"
-                    type="text"
-                    value={text}
-                    onChange={(e) => setText(e.target.value)}
-                    className="border rounded p-2"
+      <motion.aside
+        initial={{ opacity: 0, x: -50 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="w-full flex-col lg:w-80 h-[100vh] max-h-[100vh] bg-gradient-to-br from-background via-background/95 to-background/90 backdrop-blur-xl border-r border-border/50 overflow-hidden"
+      >
+        {/* Scrollable Content Container */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 space-y-6 min-w-0">
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-center space-y-2 flex-shrink-0"
+          >
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
+              Design Studio
+            </h1>
+            <p className="text-sm text-muted-foreground">Unleash your creativity</p>
+          </motion.div>
+
+          {/* Style Selection */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="space-y-4 flex-shrink-0"
+          >
+            <div className="flex items-center gap-2">
+              <Zap className="h-4 w-4 text-primary" />
+              <h2 className="font-semibold text-sm text-foreground">Style</h2>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                variant={selectedStyle === "slim" ? "default" : "outline"}
+                onClick={() => setSelectedStyle("slim")}
+                className="relative overflow-hidden group transition-all duration-300 h-10"
+              >
+                <span className="relative z-10">Slim Fit</span>
+                {selectedStyle === "slim" && (
+                  <motion.div
+                    layoutId="style-indicator"
+                    className="absolute inset-0 bg-gradient-to-r from-primary to-primary/80"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                   />
-                  <div className="flex items-center space-x-2 mt-2">
-                    <Label htmlFor="language-toggle">English</Label>
-                    <Switch
-                      id="language-toggle"
-                      checked={isArabic}
-                      onCheckedChange={setIsArabic}
-                    />
-                    <Label htmlFor="language-toggle">Arabic</Label>
-                  </div>
-                  <Label htmlFor="font-select" className="mt-2">
-                    Font
-                  </Label>
-                  <Select value={selectedFont} onValueChange={changeFont}>
-                    <SelectTrigger id="font-select">
-                      <SelectValue placeholder="Select Font" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {(isArabic ? FONTS.arabic : FONTS.english).map((font) => (
-                        <SelectItem key={font} value={font}>
-                          <span style={{ fontFamily: font }}>
-                            {isArabic ? "عربي" : "English"}
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {/* Font Color Selection */}
-                  <Label className="mt-2">Font Color</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {FONT_COLORS.map((color) => (
-                      <Tooltip key={color.value}>
-                        <TooltipTrigger asChild>
-                          <button
-                            className={`w-8 h-8 rounded-full border-2 ${
-                              selectedFontColor === color.value
-                                ? "ring-2 ring-primary border-primary"
-                                : "border-gray-300"
-                            }`}
-                            style={{ backgroundColor: color.value }}
-                            onClick={() => changeFontColor(color.value)}
+                )}
+              </Button>
+              <Button
+                variant={selectedStyle === "oversized" ? "default" : "outline"}
+                onClick={() => setSelectedStyle("oversized")}
+                className="relative overflow-hidden group transition-all duration-300 h-10"
+              >
+                <span className="relative z-10">Oversized</span>
+                {selectedStyle === "oversized" && (
+                  <motion.div
+                    layoutId="style-indicator"
+                    className="absolute inset-0 bg-gradient-to-r from-primary to-primary/80"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                  />
+                )}
+              </Button>
+            </div>
+          </motion.div>
+
+          {/* Color Selection */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="space-y-4 flex-shrink-0"
+          >
+            <div className="flex items-center gap-2">
+              <Palette className="h-4 w-4 text-primary" />
+              <h2 className="font-semibold text-sm text-foreground">Colors</h2>
+            </div>
+            <div className="flex gap-3">
+              <AnimatePresence mode="wait">
+                {filteredColorSwatches.map((swatch, index) => (
+                  <motion.div
+                    key={swatch._id}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="relative group"
+                  >
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.95 }}
+                          className={`w-12 h-12 rounded-xl border-2 transition-all duration-300 ${
+                            selectedColor === swatch.hexCode
+                              ? "ring-4 ring-primary/50 border-primary shadow-lg shadow-primary/25"
+                              : "border-border hover:border-primary/50 hover:shadow-md"
+                          }`}
+                          style={{ backgroundColor: swatch.hexCode }}
+                          onClick={() => {
+                            if (imageLoading[swatch._id]) return
+                            setImageLoading((prev) => ({ ...prev, [swatch._id]: true }))
+                            const img = new Image()
+                            img.onload = () => {
+                              updateShirtColor(swatch.hexCode)
+                              setShirtImageUrl(swatch.imageUrl)
+                              setImageLoading((prev) => ({ ...prev, [swatch._id]: false }))
+                            }
+                            img.onerror = () => {
+                              toast({
+                                title: "Image Load Error",
+                                description: `Failed to load ${swatch.name} color`,
+                                variant: "destructive",
+                              })
+                              setImageLoading((prev) => ({ ...prev, [swatch._id]: false }))
+                            }
+                            img.src = swatch.imageUrl
+                          }}
+                          disabled={imageLoading[swatch._id]}
+                        >
+                          {selectedColor === swatch.hexCode && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              className="w-full h-full rounded-xl flex items-center justify-center"
+                            >
+                              <div
+                                className={`w-3 h-3 rounded-full ${
+                                  swatch.hexCode === "#FFFFFF" ? "bg-gray-800" : "bg-white"
+                                }`}
+                              />
+                            </motion.div>
+                          )}
+                        </motion.button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom">
+                        <p className="font-medium">{swatch.name}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    {imageLoading[swatch._id] && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm rounded-xl">
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary/30 border-t-primary" />
+                      </div>
+                    )}
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+          </motion.div>
+
+          <Separator className="bg-gradient-to-r from-transparent via-border to-transparent flex-shrink-0" />
+
+          {/* Customize Section */}
+          <fieldset disabled={!shirtImageUrl} className="space-y-6 flex-shrink-0">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="space-y-4"
+            >
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-primary" />
+                <h2 className="font-semibold text-sm text-foreground">Customize</h2>
+              </div>
+
+              {!shirtImageUrl && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="p-4 rounded-xl bg-muted/50 border border-dashed border-muted-foreground/30"
+                >
+                  <p className="text-sm text-muted-foreground text-center">
+                    Select a color above to start designing your masterpiece
+                  </p>
+                </motion.div>
+              )}
+
+              <Tabs defaultValue="text" className="w-full">
+                <TabsList className="grid grid-cols-2 bg-muted/50 p-1 rounded-xl h-10">
+                  <TabsTrigger
+                    value="text"
+                    className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs"
+                  >
+                    <Type className="h-3 w-3 mr-1" />
+                    Text
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="logo"
+                    className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs"
+                  >
+                    <ImagePlus className="h-3 w-3 mr-1" />
+                    Logo
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="text" className="space-y-4 mt-4">
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="text-input" className="text-sm font-medium">
+                        Text Content
+                      </Label>
+                      <motion.input
+                        whileFocus={{ scale: 1.02 }}
+                        id="text-input"
+                        type="text"
+                        value={text}
+                        onChange={(e) => setText(e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl border border-border bg-background/50 backdrop-blur-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300 text-sm"
+                        placeholder="Enter your creative text..."
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between p-2 rounded-xl bg-muted/30">
+                      <Label htmlFor="language-toggle" className="text-xs font-medium">
+                        English
+                      </Label>
+                      <Switch
+                        id="language-toggle"
+                        checked={isArabic}
+                        onCheckedChange={setIsArabic}
+                        className="data-[state=checked]:bg-primary scale-75"
+                      />
+                      <Label htmlFor="language-toggle" className="text-xs font-medium">
+                        العربية
+                      </Label>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="font-select" className="text-sm font-medium">
+                        Font Family
+                      </Label>
+                      <Select value={selectedFont} onValueChange={changeFont}>
+                        <SelectTrigger
+                          id="font-select"
+                          className="rounded-xl border-border bg-background/50 backdrop-blur-sm h-9 text-sm"
+                        >
+                          <SelectValue placeholder="Choose Font" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-border bg-background/95 backdrop-blur-xl">
+                          {(isArabic ? FONTS.arabic : FONTS.english).map((font) => (
+                            <SelectItem key={font} value={font} className="rounded-lg text-sm">
+                              <span style={{ fontFamily: font }} className="font-medium">
+                                {isArabic ? "عربي" : "Aa"}
+                              </span>
+                              <span className="ml-2 text-muted-foreground text-xs">{font}</span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Font Color</Label>
+                      <div className="flex gap-2">
+                        {FONT_COLORS.map((color, index) => (
+                          <motion.div
+                            key={color.value}
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: index * 0.05 }}
                           >
-                            {selectedFontColor === color.value && (
-                              <div className="w-full h-full rounded-full flex items-center justify-center">
-                                <div
-                                  className={`w-2 h-2 rounded-full ${
-                                    color.value === "#FFFFFF"
-                                      ? "bg-black"
-                                      : "bg-white"
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <motion.button
+                                  whileHover={{ scale: 1.1 }}
+                                  whileTap={{ scale: 0.95 }}
+                                  className={`w-8 h-8 rounded-lg border-2 transition-all duration-300 ${
+                                    selectedFontColor === color.value
+                                      ? `ring-2 ${color.ring} border-current shadow-lg`
+                                      : "border-border hover:border-primary/50"
                                   }`}
-                                />
+                                  style={{ backgroundColor: color.value }}
+                                  onClick={() => changeFontColor(color.value)}
+                                >
+                                  {selectedFontColor === color.value && (
+                                    <motion.div
+                                      initial={{ scale: 0 }}
+                                      animate={{ scale: 1 }}
+                                      className="w-full h-full rounded-lg flex items-center justify-center"
+                                    >
+                                      <div
+                                        className={`w-1.5 h-1.5 rounded-full ${
+                                          color.value === "#FFFFFF" ? "bg-gray-800" : "bg-white"
+                                        }`}
+                                      />
+                                    </motion.div>
+                                  )}
+                                </motion.button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="font-medium">{color.name}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      <Button
+                        onClick={addText}
+                        className="w-full py-2 rounded-xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300 text-sm h-9"
+                      >
+                        <Type className="mr-2 h-3 w-3" />
+                        Add Text to Design
+                      </Button>
+                    </motion.div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="logo" className="space-y-4 mt-4">
+                  <div className="space-y-3">
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      <Button
+                        variant="outline"
+                        onClick={() => uploadInputRef.current?.click()}
+                        disabled={isUploadingCustomImage}
+                        className="w-full py-2 rounded-xl border-dashed border-2 hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 text-sm h-9"
+                      >
+                        {isUploadingCustomImage ? (
+                          <div className="flex items-center">
+                            <Loader2 className="animate-spin h-3 w-3 mr-2" />
+                            Uploading...
+                          </div>
+                        ) : (
+                          <>
+                            <ImagePlus className="mr-2 h-3 w-3" />
+                            Upload Custom Logo
+                          </>
+                        )}
+                      </Button>
+                    </motion.div>
+
+                    <input
+                      type="file"
+                      accept="image/*"
+                      ref={uploadInputRef}
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium flex items-center gap-2">
+                        <Star className="h-3 w-3 text-primary" />
+                        Template Logos
+                      </Label>
+                      <div className="flex  max-w-[30hv] gap-2">
+                        
+                        {logos?.map((logo, index) => (
+                          <motion.div
+                            key={logo._id}
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: index * 0.1 }}
+                            className="relative group"
+                          >
+                            <motion.button
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              className=" aspect-s border-2 border-border rounded-lg p-1 hover:border-primary/50 hover:shadow-lg transition-all duration-300 bg-background/50 backdrop-blur-sm overflow-hidden"
+                              onClick={() => addTemplateLogo(logo.imageUrl, logo._id)}
+                              disabled={templateLogoLoading[logo._id]}
+                            >
+                              <img
+                                src={logo.imageUrl || "/placeholder.svg"}
+                                alt={logo.name}
+                                className="w-full h-full object-contain rounded"
+                              />
+                            </motion.button>
+                            {templateLogoLoading[logo._id] && (
+                              <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm rounded-lg">
+                                <Loader2 className="animate-spin h-4 w-4 text-primary" />
                               </div>
                             )}
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{color.name}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    ))}
-                  </div>
-                  <Button
-                    variant="outline"
-                    onClick={addText}
-                    className="mt-2 bg-transparent"
-                  >
-                    <Type className="mr-2" /> Add Text
-                  </Button>
-                </div>
-              </TabsContent>
-              <TabsContent value="logo" className="space-y-4">
-                <div className="flex flex-col gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => uploadInputRef.current?.click()}
-                    disabled={isUploadingCustomImage}
-                  >
-                    {isUploadingCustomImage ? (
-                      <div className="flex items-center">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />{" "}
-                        Uploading...
+                          </motion.div>
+                        ))}
                       </div>
-                    ) : (
-                      <>
-                        <ImagePlus className="mr-2" /> Upload Custom Logo
-                      </>
-                    )}
-                  </Button>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    ref={uploadInputRef}
-                    onChange={handleImageUpload}
-                    style={{ display: "none" }}
-                  />
-                  <Label className="mt-4">Template Logos</Label>
-                  <div className="grid grid-cols-3 gap-2 mt-2">
-                    {logos?.map((logo) => (
-                      <div key={logo._id} className="relative">
-                        <button
-                          className="border rounded p-2 hover:bg-accent flex items-center justify-center"
-                          onClick={() =>
-                            addTemplateLogo(logo.imageUrl, logo._id)
-                          }
-                          disabled={templateLogoLoading[logo._id]}
-                        >
-                          <img
-                            src={logo.imageUrl || "/placeholder.svg"}
-                            alt={logo.name}
-                            className="w-full h-auto"
-                          />
-                        </button>
-                        {templateLogoLoading[logo._id] && (
-                          <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 rounded">
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                    </div>
                   </div>
-                </div>
-              </TabsContent>
-            </Tabs>
-            <Button variant="destructive" onClick={deleteActiveObject}>
-              <Trash2 className="mr-2" /> Delete Selected
-            </Button>
-          </div>
-          <Separator />
-          {/* History */}
-          <div className="flex-grow flex flex-col gap-4">
-            <h2 className="font-semibold text-sm text-muted-foreground">
-              History
-            </h2>
-            <div className="grid grid-cols-2 gap-2">
+                </TabsContent>
+              </Tabs>
+
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Button
+                  variant="destructive"
+                  onClick={deleteActiveObject}
+                  className="w-full py-2 rounded-xl bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl transition-all duration-300 text-sm h-9"
+                >
+                  <Trash2 className="mr-2 h-3 w-3" />
+                  Delete Selected
+                </Button>
+              </motion.div>
+            </motion.div>
+          </fieldset>
+
+          <Separator className="bg-gradient-to-r from-transparent via-border to-transparent flex-shrink-0" />
+
+          {/* History Controls */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="space-y-4 flex-shrink-0"
+          >
+            <div className="flex items-center gap-2">
+              <Heart className="h-4 w-4 text-primary" />
+              <h2 className="font-semibold text-sm text-foreground">History</h2>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    onClick={undo}
-                    disabled={!canUndo || !shirtImageUrl}
-                  >
-                    <Undo />
-                  </Button>
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Button
+                      variant="outline"
+                      onClick={undo}
+                      disabled={!canUndo || !shirtImageUrl}
+                      className="w-full py-2 rounded-xl border-border hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 disabled:opacity-50 bg-transparent h-9"
+                    >
+                      <Undo className="h-3 w-3" />
+                    </Button>
+                  </motion.div>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Undo</p>
+                  <p>Undo Last Action</p>
                 </TooltipContent>
               </Tooltip>
+
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    onClick={redo}
-                    disabled={!canRedo || !shirtImageUrl}
-                  >
-                    <Redo />
-                  </Button>
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Button
+                      variant="outline"
+                      onClick={redo}
+                      disabled={!canRedo || !shirtImageUrl}
+                      className="w-full py-2 rounded-xl border-border hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 disabled:opacity-50 bg-transparent h-9"
+                    >
+                      <Redo className="h-3 w-3" />
+                    </Button>
+                  </motion.div>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Redo</p>
+                  <p>Redo Last Action</p>
                 </TooltipContent>
               </Tooltip>
             </div>
-          </div>
-        </fieldset>
-        <Separator />
-        {/* Actions */}
-        <div className="flex flex-col gap-4">
-        <div>
-            <Label className="text-base font-medium">Select Size</Label>
-            <RadioGroup
-                value={selectedSize ?? ""}
-                onValueChange={setSelectedSize}
-                className="mt-2 grid grid-cols-5 gap-2"
-            >
-                {SIZES.map((size) => (
-                    <div key={size}>
-                        <RadioGroupItem value={size} id={`size-${size}`} className="sr-only" />
-                        <Label
-                            htmlFor={`size-${size}`}
-                            className={`cursor-pointer rounded-md border-2 ${selectedSize === size ? 'border-primary' : 'border-border'} flex items-center justify-center p-2 text-sm font-semibold hover:bg-accent`}
-                        >
-                            {size}
-                        </Label>
-                    </div>
+          </motion.div>
+
+          <Separator className="bg-gradient-to-r from-transparent via-border to-transparent flex-shrink-0" />
+
+          {/* Size Selection */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="space-y-3 flex-shrink-0"
+          >
+            <Label className="text-sm font-medium">Select Size</Label>
+            <div className="flex-col gap-2 min-h-[2.5rem]">
+              <RadioGroup value={selectedSize ?? ""} onValueChange={setSelectedSize} className="contents">
+                {SIZES.map((size, index) => (
+                  <motion.div
+                    key={size}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="contents"
+                  >
+                    <RadioGroupItem value={size} id={`size-${size}`} className="sr-only" />
+                    <Label
+                      htmlFor={`size-${size}`}
+                      className={`cursor-pointer rounded-lg border-2 transition-all duration-300 flex items-center justify-center py-2 text-sm font-semibold hover:scale-105 min-h-[2.5rem] ${
+                        selectedSize === size
+                          ? "border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/25"
+                          : "border-border hover:border-primary/50 hover:bg-primary/5"
+                      }`}
+                    >
+                      {size}
+                    </Label>
+                  </motion.div>
                 ))}
-            </RadioGroup>
+              </RadioGroup>
+            </div>
+          </motion.div>
         </div>
+
+        {/* Fixed Bottom Action Button */}
+        <div className="flex-shrink-0 p-6 pt-4 border-t border-border/50 bg-gradient-to-t from-background/95 to-transparent backdrop-blur-sm">
           <SignedIn>
-            <Button onClick={handleAddToBasket} size="lg" disabled={isLoading || !selectedSize}>
-              {isLoading ? "Adding..." : "Add to Basket"}
-            </Button>
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button
+                onClick={handleAddToBasket}
+                size="lg"
+                disabled={isLoading || !selectedSize}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 shadow-xl hover:shadow-2xl transition-all duration-500 text-base font-semibold disabled:opacity-50 disabled:cursor-not-allowed h-12"
+              >
+                {isLoading ? (
+                  <div className="flex items-center">
+                    <Loader2 className="animate-spin h-4 w-4 mr-2" />
+                    Creating Masterpiece...
+                  </div>
+                ) : (
+                  <div className="flex items-center">
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Add to Basket
+                  </div>
+                )}
+              </Button>
+            </motion.div>
           </SignedIn>
+
           <SignedOut>
-            <Button>
-              {" "}
-              <SignInButton mode="modal" />
-            </Button>
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button className="w-full py-3 rounded-xl bg-gradient-to-r from-primary to-primary/80 shadow-xl hover:shadow-2xl transition-all duration-300 text-base font-semibold h-12">
+                <SignInButton mode="modal">
+                  <span className="flex items-center">
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Sign In to Create
+                  </span>
+                </SignInButton>
+              </Button>
+            </motion.div>
           </SignedOut>
         </div>
-      </aside>
+      </motion.aside>
     </TooltipProvider>
-  );
+  )
 }
