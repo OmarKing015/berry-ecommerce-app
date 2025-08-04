@@ -49,7 +49,6 @@ export default function CODSuccessPage() {
       return result;
     }
 
-    const orderId = searchParams.get("order_id");
 
     const finalizeOrder = async (orderData: any) => {
       try {
