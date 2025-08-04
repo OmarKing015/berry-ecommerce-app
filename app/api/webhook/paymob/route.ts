@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (success && paid) {
-      // Payment successful - update order status
+      // Payment successful - update order status to completed
       const updateResult = await backendClient
         .patch(order._id)
         .set({
@@ -49,10 +49,18 @@ export async function POST(request: NextRequest) {
       console.log(`Order ${order._id} payment completed successfully`)
       return NextResponse.json({ success: true, orderId: order._id })
     } else if (!success || refunded) {
-      // Payment failed or refunded - delete the order
-      await backendClient.delete(order._id)
-      console.log(`Order ${order._id} deleted due to failed/refunded payment`)
-      return NextResponse.json({ success: true, deleted: true, orderId: order._id })
+      // Payment failed or refunded - update order status to failed
+      const updateResult = await backendClient
+        .patch(order._id)
+        .set({
+          paymentStatus: "failed",
+          orderStatus: "cancelled",
+          updatedAt: new Date().toISOString(),
+        })
+        .commit()
+      
+      console.log(`Order ${order._id} marked as failed/refunded`)
+      return NextResponse.json({ success: true, orderId: order._id })
     } else {
       // Payment pending or other status
       console.log(`Order ${order._id} payment status: ${pending ? "pending" : "unknown"}`)

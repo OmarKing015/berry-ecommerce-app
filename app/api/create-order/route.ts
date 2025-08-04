@@ -1,8 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createOrder } from "@/sanity/lib/orders/createOrder"
 import { auth } from "@clerk/nextjs/server"
-import { client } from "@/sanity/lib/client"
-import { useAppContext } from "@/context/context"
 
 // Paymob API configuration
 const PAYMOB_API_KEY = process.env.PAYMOB_API_KEY
@@ -24,7 +21,7 @@ interface PaymobPaymentKeyResponse {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { amount, currency, items, customer,assetId } = body
+    const { amount, currency, items, customer, assetId } = body
 
     // Get user info from Clerk
     const { userId } = await auth()
@@ -79,44 +76,7 @@ export async function POST(request: NextRequest) {
     const orderData: PaymobOrderResponse = await orderResponse.json()
     const paymobOrderId = orderData.id
 
-    // Step 3: Create order in Sanity
-    const sanityOrderData = {
-      orderId: `ORDER-${Date.now()}`,
-      clerkUserId: userId || undefined,
-      customerEmail: customer.email,
-      customerName: `${customer.firstName} ${customer.lastName}`,
-      customerPhone: customer.phone,
-      shippingAddress: {
-        street: customer.address,
-        city: customer.city,
-        country: customer.country,
-        postalCode: customer.postalCode,
-      },
-      items: items.map((item: any) => ({
-        product: {
-          _ref: item.id,
-          _type: "reference" as const,
-        },
-        quantity: item.quantity,
-        price: item.price,
-      })),
-      totalAmount: amount / 100, // Convert back from cents
-      paymentStatus: "pending" as const,
-      paymentMethod: "paymob",
-      fileUrl:assetId,
-      paymobOrderId: paymobOrderId.toString(),
-      orderStatus: "pending" as const,
-      createdAt: new Date().toISOString(),
-    }
-
-    const sanityResult = await createOrder(sanityOrderData)
-
-    if (!sanityResult.success) {
-      console.error("Failed to create order in Sanity:", sanityResult.error)
-      // Continue with payment flow even if Sanity fails
-    }
-
-    // Step 4: Payment Key Request
+    // Step 3: Payment Key Request
     const paymentKeyResponse = await fetch("https://accept.paymob.com/api/acceptance/payment_keys", {
       method: "POST",
       headers: {
@@ -155,14 +115,24 @@ export async function POST(request: NextRequest) {
     const paymentKeyData: PaymobPaymentKeyResponse = await paymentKeyResponse.json()
     const paymentToken = paymentKeyData.token
 
-    // Step 5: Generate payment URL
+    // Step 4: Generate payment URL
     const paymentUrl = `https://accept.paymob.com/api/acceptance/iframes/${PAYMOB_IFRAME_ID}?payment_token=${paymentToken}`
+    
+    // Return order data for temporary storage and payment URL
     return NextResponse.json({
       success: true,
       paymentUrl,
       orderId: paymobOrderId,
-      sanityOrderId: sanityResult.success ? sanityResult.order?._id : null,
       paymentToken,
+      orderData: {
+        amount,
+        currency,
+        items,
+        customer,
+        assetId,
+        userId,
+        createdAt: new Date().toISOString()
+      }
     })
    
   } catch (error) {
