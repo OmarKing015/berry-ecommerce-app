@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
         postalCode: customer.postalCode,
       },
       items: items.map((item: any) => ({
+        _key: `variant-${item.id}-${Math.random().toString(36).substring(2, 15)}`,
         product: {
           _ref: item.id,
           _type: "reference" as const,

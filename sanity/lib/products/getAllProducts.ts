@@ -4,7 +4,7 @@ import { All_PRODUCTS_QUERYResult } from "@/sanity.types";
 
 export const getAllProducts = async () => {
   const All_PRODUCTS_QUERY   = defineQuery(`
-        *[_type == "product"] | order(name asc) 
+        *[_type == "product" && name != "custom t-shirt"] | order(name asc)
         `);
 
   try {

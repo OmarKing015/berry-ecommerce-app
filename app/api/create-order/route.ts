@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
       },
       items: items.map((item: any) => ({
         product: { _ref: item.id, _type: "reference" },
-        _key:`varient-${item.id}`,
+        _key: `variant-${item.id}-${Math.random().toString(36).substring(2, 15)}`,
         quantity: item.quantity,
         price: item.price,
       })),
