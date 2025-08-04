@@ -1,43 +1,64 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
-import { Badge } from "@/components/ui/badge"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { CreditCard, ShoppingCart, User, MapPin, Truck, Banknote } from "lucide-react"
-import { useRouter } from "next/navigation"
-import { useAppContext } from "@/context/context"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  CreditCard,
+  ShoppingCart,
+  User,
+  MapPin,
+  Truck,
+  Banknote,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useAppContext } from "@/context/context";
+import useBasketStore from "@/store/store";
 
 interface CartItem {
-  id: string
-  name: string
-  price: number
-  quantity: number
-  image: string
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  image: string;
 }
 
 interface PaymentFormData {
-  firstName: string
-  lastName: string
-  email: string
-  phone: string
-  address: string
-  city: string
-  country: string
-  postalCode: string
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  country: string;
+  postalCode: string;
 }
 
 export default function PaymentPage() {
-  const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
-  const [paymentMethod, setPaymentMethod] = useState("card")
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("card");
   const [formData, setFormData] = useState<PaymentFormData>({
     firstName: "",
     lastName: "",
@@ -47,38 +68,84 @@ export default function PaymentPage() {
     city: "",
     country: "EG",
     postalCode: "",
-  })
+  });
 
-  const [cartItems, setCartItems] = useState<CartItem[]>([])
-  const {assetId} = useAppContext()
+  const [orderDetails, setOrderDetails] = useState({
+    orderId: "",
+    customerEmail: "",
+    customerName: "",
+    customerPhone: "",
+    shippingAddress: {
+      street: "",
+      city: "",
+      country: "EG",
+      postalCode: "",
+    },
+    items: [] as CartItem[],
+    totalAmount: 0,
+    paymentStatus: "pending" as const,
+    paymentMethod: "paymob" as "paymob" | "cod",
+    orderStatus: "pending" as const,
+    paymobOrderId: "",
+    paymobTransactionId: "",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  });
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+
+  const subtotal = cartItems.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
+
+  const shipping = paymentMethod === "cod" ? 25 : 15.99; // COD has higher shipping fee
+  // const tax = subtotal * 0.14 // 14% tax
+  const codFee = paymentMethod === "cod" ? 10 : 0; // COD processing fee
+  const total = subtotal + shipping + codFee;
+  const { assetId } = useAppContext();
+  const { clearBasket } = useBasketStore();
 
   useEffect(() => {
     // Get cart data from sessionStorage
-    const storedItems = sessionStorage.getItem("checkoutItems")
-    const storedTotal = sessionStorage.getItem("checkoutTotal")
+    const storedItems = sessionStorage.getItem("checkoutItems");
+    const storedTotal = sessionStorage.getItem("checkoutTotal");
 
     if (storedItems) {
-      setCartItems(JSON.parse(storedItems))
+      setCartItems(JSON.parse(storedItems));
     }
 
     if (storedTotal) {
-      console.log("Stored total:", storedTotal)
+      console.log("Stored total:", storedTotal);
     }
-  }, [])
+  }, []);
 
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const shipping = paymentMethod === "cod" ? 25 : 15.99 // COD has higher shipping fee
-  // const tax = subtotal * 0.14 // 14% tax
-  const codFee = paymentMethod === "cod" ? 10 : 0 // COD processing fee
-  const total = subtotal + shipping + codFee
+  useEffect(() => {
+    // Update order details whenever form data or cart items change
+    setOrderDetails((prev) => ({
+      ...prev,
+      customerEmail: formData.email,
+      customerName: `${formData.firstName} ${formData.lastName}`.trim(),
+      customerPhone: formData.phone,
+      shippingAddress: {
+        street: formData.address,
+        city: formData.city,
+        country: formData.country,
+        postalCode: formData.postalCode,
+      },
+      items: cartItems,
+      totalAmount: total,
+      paymentMethod: "paymob" as "paymob" | "cod",
+      updatedAt: new Date().toISOString(),
+    }));
+  }, [formData, cartItems, total, paymentMethod]);
 
   const handleInputChange = (field: keyof PaymentFormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-  }
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
 
     try {
       if (paymentMethod === "cod") {
@@ -94,17 +161,19 @@ export default function PaymentPage() {
             items: cartItems,
             customer: formData,
             paymentMethod: "cod",
-            assetId:assetId,
+            assetId: assetId,
           }),
-        })
+        });
 
-        const data = await response.json()
+        const data = await response.json();
 
         if (data.success) {
-          // Redirect to COD success page
-          router.push(`/payment/success?order_id=${data.orderId}&payment_method=cod`)
+          clearBasket();
+          router.push(
+            `/payment/success?order_id=${data.orderId}&payment_method=cod`
+          );
         } else {
-          throw new Error(data.error || "COD order creation failed")
+          throw new Error(data.error || "COD order creation failed");
         }
       } else {
         // Handle Card Payment with Paymob
@@ -118,26 +187,26 @@ export default function PaymentPage() {
             currency: "EGP",
             items: cartItems,
             customer: formData,
-            assetId:assetId,
+            assetId: assetId,
           }),
-        })
+        });
 
-        const data = await response.json()
+        const data = await response.json();
 
         if (data.success && data.paymentUrl) {
           // Redirect to Paymob payment page
-          window.location.href = data.paymentUrl
+          window.location.href = data.paymentUrl;
         } else {
-          throw new Error(data.error || "Payment initialization failed")
+          throw new Error(data.error || "Payment initialization failed");
         }
       }
     } catch (error) {
-      console.error("Payment error:", error)
-      alert("Order processing failed. Please try again.")
+      console.error("Payment error:", error);
+      alert("Order processing failed. Please try again.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -156,7 +225,9 @@ export default function PaymentPage() {
                   <User className="h-5 w-5" />
                   Customer Information
                 </CardTitle>
-                <CardDescription>Please provide your details for order processing</CardDescription>
+                <CardDescription>
+                  Please provide your details for order processing
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -165,7 +236,9 @@ export default function PaymentPage() {
                     <Input
                       id="firstName"
                       value={formData.firstName}
-                      onChange={(e) => handleInputChange("firstName", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("firstName", e.target.value)
+                      }
                       required
                     />
                   </div>
@@ -174,7 +247,9 @@ export default function PaymentPage() {
                     <Input
                       id="lastName"
                       value={formData.lastName}
-                      onChange={(e) => handleInputChange("lastName", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("lastName", e.target.value)
+                      }
                       required
                     />
                   </div>
@@ -215,7 +290,9 @@ export default function PaymentPage() {
                   <Input
                     id="address"
                     value={formData.address}
-                    onChange={(e) => handleInputChange("address", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("address", e.target.value)
+                    }
                     required
                   />
                 </div>
@@ -225,7 +302,9 @@ export default function PaymentPage() {
                     <Input
                       id="city"
                       value={formData.city}
-                      onChange={(e) => handleInputChange("city", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("city", e.target.value)
+                      }
                       required
                     />
                   </div>
@@ -234,14 +313,21 @@ export default function PaymentPage() {
                     <Input
                       id="postalCode"
                       value={formData.postalCode}
-                      onChange={(e) => handleInputChange("postalCode", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("postalCode", e.target.value)
+                      }
                       required
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="country">Country</Label>
-                  <Select value={formData.country} onValueChange={(value) => handleInputChange("country", value)}>
+                  <Select
+                    value={formData.country}
+                    onValueChange={(value) =>
+                      handleInputChange("country", value)
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -260,18 +346,28 @@ export default function PaymentPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Payment Method</CardTitle>
-                <CardDescription>Choose your preferred payment method</CardDescription>
+                <CardDescription>
+                  Choose your preferred payment method
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="space-y-4">
+                <RadioGroup
+                  value={paymentMethod}
+                  onValueChange={setPaymentMethod}
+                  className="space-y-4"
+                >
                   <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                     <RadioGroupItem value="card" id="card" />
                     <Label htmlFor="card" className="flex-1 cursor-pointer">
                       <div className="flex items-center space-x-3">
                         <CreditCard className="h-5 w-5 text-blue-600" />
                         <div>
-                          <p className="font-medium text-gray-900">Credit/Debit Card</p>
-                          <p className="text-sm text-gray-600">Secure payment powered by Paymob</p>
+                          <p className="font-medium text-gray-900">
+                            Credit/Debit Card
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            Secure payment powered by Paymob
+                          </p>
                         </div>
                       </div>
                     </Label>
@@ -283,8 +379,12 @@ export default function PaymentPage() {
                       <div className="flex items-center space-x-3">
                         <Banknote className="h-5 w-5 text-green-600" />
                         <div>
-                          <p className="font-medium text-gray-900">Cash on Delivery</p>
-                          <p className="text-sm text-gray-600">Pay when your order arrives</p>
+                          <p className="font-medium text-gray-900">
+                            Cash on Delivery
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            Pay when your order arrives
+                          </p>
                         </div>
                       </div>
                     </Label>
@@ -295,7 +395,9 @@ export default function PaymentPage() {
                   <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
                     <div className="flex items-center gap-2 mb-2">
                       <Truck className="h-4 w-4 text-amber-600" />
-                      <p className="font-medium text-amber-800">Cash on Delivery Information</p>
+                      <p className="font-medium text-amber-800">
+                        Cash on Delivery Information
+                      </p>
                     </div>
                     <ul className="text-sm text-amber-700 space-y-1">
                       <li>• Additional COD processing fee: 10 EGP</li>
@@ -328,7 +430,9 @@ export default function PaymentPage() {
                     />
                     <div className="flex-1">
                       <h3 className="font-medium">{item.name}</h3>
-                      <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                      <p className="text-sm text-gray-600">
+                        Qty: {item.quantity}
+                      </p>
                     </div>
                     <div className="text-right">
                       <p className="font-medium">{item.price.toFixed(2)} EGP</p>
@@ -365,7 +469,12 @@ export default function PaymentPage() {
                 </div>
               </CardContent>
               <CardFooter>
-                <Button onClick={handleSubmit} className="w-full" size="lg" disabled={isLoading}>
+                <Button
+                  onClick={handleSubmit}
+                  className="w-full"
+                  size="lg"
+                  disabled={isLoading}
+                >
                   {isLoading ? (
                     "Processing..."
                   ) : paymentMethod === "cod" ? (
@@ -386,7 +495,10 @@ export default function PaymentPage() {
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center justify-center space-x-4 text-sm text-gray-600">
-                  <Badge variant="secondary" className="flex items-center gap-1">
+                  <Badge
+                    variant="secondary"
+                    className="flex items-center gap-1"
+                  >
                     {paymentMethod === "cod" ? (
                       <>
                         <Banknote className="h-3 w-3" />
@@ -408,5 +520,5 @@ export default function PaymentPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

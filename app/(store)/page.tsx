@@ -8,7 +8,7 @@ import Image from "next/image";
 
 export default async function Home() {
   const products: Product[] = await getAllProducts();
-  const updatedProducts = products.filter(product => product.slug?.current !== "custom-tshirt");
+  const updatedProducts = products.filter(product => !product.slug?.current?.includes("custom"));
   
   updatedProducts.sort((a, b) => {
     if (a.name && b.name) return a.name.localeCompare(b.name);

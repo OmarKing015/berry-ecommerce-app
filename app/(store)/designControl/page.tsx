@@ -19,6 +19,7 @@ import { toast } from "@/components/customizer/use-toast";
 import Image from "next/image";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { SketchPicker } from "react-color";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface ColorSwatch {
   _id: string;
@@ -30,7 +31,7 @@ interface ColorSwatch {
 }
 
 interface Logo {
-  _id:string;
+  _id: string;
   name: string;
   imageUrl: string;
   createdAt: string;
@@ -39,7 +40,6 @@ interface Logo {
 export default function DesignControlPage() {
   const [colorSwatches, setColorSwatches] = useState<ColorSwatch[]>([]);
   const [logos, setLogos] = useState<Logo[]>([]);
-  const [loading, setLoading] = useState(true);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingSwatch, setUploadingSwatch] = useState(false);
 
@@ -60,7 +60,6 @@ export default function DesignControlPage() {
   }, []);
 
   const fetchData = async () => {
-    setLoading(true);
     try {
       const [swatchesRes, logosRes] = await Promise.all([
         fetch("/api/admin/color-swatches"),
@@ -78,8 +77,6 @@ export default function DesignControlPage() {
         description: "Failed to fetch data" + error,
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -189,14 +186,6 @@ export default function DesignControlPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-blue-500">Loading...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-white">
       <div className="bg-blue-500 text-white p-6">
@@ -296,12 +285,23 @@ export default function DesignControlPage() {
                     </div>
                     <div>
                       <Label>Color</Label>
-                      <SketchPicker
-                        color={swatchForm.hexCode}
-                        onChangeComplete={(color) =>
-                          setSwatchForm({ ...swatchForm, hexCode: color.hex })
-                        }
-                      />
+                      <Popover>
+                        <PopoverTrigger >
+                          <Button variant="outline">Choose the Color</Button>
+                        </PopoverTrigger>
+                        <PopoverContent >
+                          <SketchPicker
+                          className="w-full mx-auto"
+                            color={swatchForm.hexCode}
+                            onChangeComplete={(color) =>
+                              setSwatchForm({
+                                ...swatchForm,
+                                hexCode: color.hex,
+                              })
+                            }
+                          />
+                        </PopoverContent>
+                      </Popover>
                     </div>
                     <div>
                       <Label>Style</Label>
@@ -343,9 +343,7 @@ export default function DesignControlPage() {
                       className="w-full bg-blue-500 hover:bg-blue-600"
                     >
                       <Upload className="w-4 h-4 mr-2" />
-                      {uploadingSwatch
-                        ? "Uploading..."
-                        : "Upload Color Swatch"}
+                      {uploadingSwatch ? "Uploading..." : "Upload Color Swatch"}
                     </Button>
                   </form>
                 </CardContent>
@@ -372,9 +370,9 @@ export default function DesignControlPage() {
                           <Image
                             src={logo.imageUrl || "/placeholder.svg"}
                             alt={logo.name}
-                            width={100}
-                            height={100}
-                            className="object-contain rounded"
+                            width={580}
+                            height={580}
+                            className="object-contain aspect-square rounded"
                           />
                         </div>
                         <h4 className="font-medium text-sm">{logo.name}</h4>
@@ -411,9 +409,9 @@ export default function DesignControlPage() {
                           <Image
                             src={swatch.imageUrl || "/placeholder.svg"}
                             alt={swatch.name}
-                            width={100}
-                            height={100}
-                            className="object-contain rounded"
+                            width={580}
+                            height={580}
+                            className="object-contain aspect-square rounded"
                           />
                         </div>
                         <h4 className="font-medium text-sm">{swatch.name}</h4>

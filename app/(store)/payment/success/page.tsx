@@ -21,6 +21,7 @@ import Link from "next/link";
 import useBasketStore from "@/store/store";
 import { useAppContext } from "@/context/context";
 import { backendClient } from "@/sanity/lib/backendClient";
+import { Order } from "@/sanity.types";
 
 export default function SuccessPage() {
   const searchParams = useSearchParams();
@@ -29,10 +30,11 @@ export default function SuccessPage() {
   const [paymentDetails, setPaymentDetails] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const { zipedFile } = useAppContext();
+const [currentOrder,setCurrentOrder] = useState<Order>()
   useEffect(() => {
     async function editOrderState(paymobOrderId: string | null) {
       if (!paymobOrderId) return null;
-      
+
       const order = await backendClient.fetch(
         `*[_type == "order" && paymobOrderId == $paymobOrderId][0]{
           _id,
@@ -40,15 +42,15 @@ export default function SuccessPage() {
         }`,
         { paymobOrderId }
       );
-
       if (!order) return null;
+      setCurrentOrder(order)
 
       const result = await backendClient
         .patch(order._id)
-        .set({ 
+        .set({
           paymentStatus: "completed",
           orderStatus: "confirmed",
-          updatedAt: new Date().toISOString()
+          updatedAt: new Date().toISOString(),
         })
         .commit();
       return result;
@@ -87,11 +89,6 @@ export default function SuccessPage() {
       });
     }
 
-    // if (zipedFile && orderId) {
-    //   uploadZipFile(zipedFile, orderId);
-    // }
-
-    // Clear sessionStorage
     sessionStorage.removeItem("checkoutItems");
     sessionStorage.removeItem("checkoutTotal");
     setLoading(false);
@@ -104,7 +101,7 @@ export default function SuccessPage() {
       </div>
     );
   }
-
+  //ending email once the order is done
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4 max-w-2xl">

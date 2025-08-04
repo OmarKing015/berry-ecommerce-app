@@ -27,32 +27,14 @@ export default function CODSuccessPage() {
   const [orderDetails, setOrderDetails] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const { zipedFile } = useAppContext();
-  useEffect(() => {
     const orderId = searchParams.get("order_id");
+    console.log
+  useEffect(() => {
 
-    async function uploadZipFile(file: Blob, orderId: string) {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("orderId", orderId);
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      console.log("Here are the results", response.json);
-
-      if (!response.ok) {
-        throw new Error("File upload failed");
-      }
-
-      const result = await response.json();
-      return result;
-    }
+    clearBasket();
 
     if (orderId) {
-      if (zipedFile) {
-        uploadZipFile(zipedFile, orderId);
-      } // Clear the basket since order was placed
+    
       clearBasket();
 
       // Clear sessionStorage
