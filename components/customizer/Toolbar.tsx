@@ -442,8 +442,8 @@ export default function Toolbar() {
             bgImg,
             tempCanvas.renderAll.bind(tempCanvas),
             {
-              scaleX: tempCanvas.width! / bgImg.width!,
-              scaleY: tempCanvas.height! / bgImg.height!,
+              scaleX: tempCanvas._objects[0].width! / bgImg.width!,
+              scaleY: tempCanvas._objects[0].height! / bgImg.height!,
             }
           );
 
