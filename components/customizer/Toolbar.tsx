@@ -20,7 +20,6 @@ import JSZip from "jszip"
 import { SignedIn, SignedOut, SignInButton, useUser } from "@clerk/nextjs"
 import { costEngine } from "@/lib/costEngine"
 import { Loader2 } from "lucide-react"
-import { Popover } from "../ui/popover"
 
 interface TEMPLATE_LOGOS_TYPE {
   _id: string
@@ -618,15 +617,16 @@ export default function Toolbar() {
   }
 
   return (
+    
     <TooltipProvider>
       <motion.aside
         initial={{ opacity: 0, x: -50 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="w-full flex-col lg:w-80 h-[100vh] max-h-[100vh] bg-gradient-to-br from-background via-background/95 to-background/90 backdrop-blur-xl border-r border-border/50 overflow-hidden"
+        className="w-full lg:w-80 bg-gradient-to-br from-background via-background/95 to-background/90 backdrop-blur-xl border-r border-border/50 flex flex-col"
       >
         {/* Scrollable Content Container */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 space-y-6 min-w-0">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 space-y-6">
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -694,7 +694,7 @@ export default function Toolbar() {
               <Palette className="h-4 w-4 text-primary" />
               <h2 className="font-semibold text-sm text-foreground">Colors</h2>
             </div>
-            <div className="flex gap-3">
+            <div className="flex grid-cols-4 gap-3">
               <AnimatePresence mode="wait">
                 {filteredColorSwatches.map((swatch, index) => (
                   <motion.div
@@ -870,7 +870,7 @@ export default function Toolbar() {
 
                     <div className="space-y-2">
                       <Label className="text-sm font-medium">Font Color</Label>
-                      <div className="flex gap-2">
+                      <div className="flex grid-cols-4 gap-2">
                         {FONT_COLORS.map((color, index) => (
                           <motion.div
                             key={color.value}
@@ -963,8 +963,7 @@ export default function Toolbar() {
                         <Star className="h-3 w-3 text-primary" />
                         Template Logos
                       </Label>
-                      <div className="flex  max-w-[30hv] gap-2">
-                        
+                      <div className="flex grid-cols-3 gap-2">
                         {logos?.map((logo, index) => (
                           <motion.div
                             key={logo._id}
@@ -976,7 +975,7 @@ export default function Toolbar() {
                             <motion.button
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
-                              className=" aspect-s border-2 border-border rounded-lg p-1 hover:border-primary/50 hover:shadow-lg transition-all duration-300 bg-background/50 backdrop-blur-sm overflow-hidden"
+                              className="w-full aspect-square border-2 border-border rounded-lg p-1 hover:border-primary/50 hover:shadow-lg transition-all duration-300 bg-background/50 backdrop-blur-sm overflow-hidden"
                               onClick={() => addTemplateLogo(logo.imageUrl, logo._id)}
                               disabled={templateLogoLoading[logo._id]}
                             >
@@ -1074,7 +1073,7 @@ export default function Toolbar() {
             className="space-y-3 flex-shrink-0"
           >
             <Label className="text-sm font-medium">Select Size</Label>
-            <div className="flex-col gap-2 min-h-[2.5rem]">
+            <div className="flex-col grid-cols-3 gap-2 min-h-[2.5rem]">
               <RadioGroup value={selectedSize ?? ""} onValueChange={setSelectedSize} className="contents">
                 {SIZES.map((size, index) => (
                   <motion.div
