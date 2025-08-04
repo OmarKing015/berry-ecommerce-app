@@ -20,6 +20,7 @@ import {
 import Link from "next/link";
 import useBasketStore from "@/store/store";
 import { useAppContext } from "@/context/context";
+import { backendClient } from "@/sanity/lib/backendClient";
 
 export default function SuccessPage() {
   const searchParams = useSearchParams();
@@ -29,25 +30,21 @@ export default function SuccessPage() {
   const [loading, setLoading] = useState(true);
   const { zipedFile } = useAppContext();
   useEffect(() => {
+    async function editOrderState(orderId: string | null) {
+      const order = await backendClient.fetch(
+        `*[_type == "order" && _id == $orderId][0]{
+          _id,
+          stock
+        }`,
+        { orderId }
+      );
 
-    // async function uploadZipFile(file: Blob, orderId: string | null) {
-    //   const formData = new FormData();
-    //   formData.append("file", file);
-    //   formData.append("orderId", orderId);
-    //   const response = await fetch("/api/upload", {
-    //     method: "POST",
-    //     body: formData,
-    //   });
-
-    //   console.log("Here are the results", response.json);
-
-    //   if (!response.ok) {
-    //     throw new Error("File upload failed");
-    //   }
-
-    //   const result = await response.json();
-    //   return result;
-    // }
+      const result = await backendClient
+        .patch(order._id)
+        .set({ paymentStatus: "Completed" })
+        .commit();
+      return result;
+    }
 
     const orderId = searchParams.get("order");
     const acqResponseCode = searchParams.get("acq_response_code");
@@ -59,7 +56,7 @@ export default function SuccessPage() {
     const sourcePan = searchParams.get("source_data.pan");
     const sourceSubType = searchParams.get("source_data.sub_type");
 
-    if (success === 'true') {
+    if (success === "true") {
       setPaymentDetails({
         transactionId,
         acqResponseCode,
@@ -72,6 +69,8 @@ export default function SuccessPage() {
     }
 
     if (orderId) {
+      editOrderState(orderId);
+
       clearBasket();
 
       setOrderDetails({
@@ -88,7 +87,6 @@ export default function SuccessPage() {
     sessionStorage.removeItem("checkoutItems");
     sessionStorage.removeItem("checkoutTotal");
     setLoading(false);
-
   }, [searchParams, clearBasket, zipedFile]);
 
   if (loading) {

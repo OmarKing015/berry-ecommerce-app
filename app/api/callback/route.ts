@@ -6,8 +6,8 @@ export async function GET(req: NextRequest) {
   const orderId = searchParams.get("id");
 
   if (success === "true") {
-    return NextResponse.redirect(new URL(`/payment/success?orderId=${orderId}`, req.url));
+    return NextResponse.redirect(new URL(`/payment/success?${searchParams.toString()}`, req.url));
   } else {
-    return NextResponse.redirect(new URL("/payment/failed", req.url));
+    return NextResponse.redirect(new URL(`/payment/failed?${searchParams.toString()}`, req.url));
   }
 }
