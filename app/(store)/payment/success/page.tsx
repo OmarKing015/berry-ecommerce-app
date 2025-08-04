@@ -31,17 +31,25 @@ export default function SuccessPage() {
   const { zipedFile } = useAppContext();
   useEffect(() => {
     async function editOrderState(paymobOrderId: string | null) {
+      if (!paymobOrderId) return null;
+      
       const order = await backendClient.fetch(
         `*[_type == "order" && paymobOrderId == $paymobOrderId][0]{
           _id,
-          stock
+          paymentStatus
         }`,
-        { orderId }
+        { paymobOrderId }
       );
+
+      if (!order) return null;
 
       const result = await backendClient
         .patch(order._id)
-        .set({ paymentStatus: "Completed" })
+        .set({ 
+          paymentStatus: "completed",
+          orderStatus: "confirmed",
+          updatedAt: new Date().toISOString()
+        })
         .commit();
       return result;
     }
