@@ -11,6 +11,13 @@ export interface ProductData {
     }
     _type: "image"
   }
+  file?: {
+    _type: 'file',
+    asset: {
+      _type: 'reference',
+      _ref: string,
+    },
+  },
   price: number
   stock?: number
   categories?: Array<{
