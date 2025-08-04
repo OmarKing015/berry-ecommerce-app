@@ -30,9 +30,9 @@ export default function SuccessPage() {
   const [loading, setLoading] = useState(true);
   const { zipedFile } = useAppContext();
   useEffect(() => {
-    async function editOrderState(orderId: string | null) {
+    async function editOrderState(paymobOrderId: string | null) {
       const order = await backendClient.fetch(
-        `*[_type == "order" && _id == $orderId][0]{
+        `*[_type == "order" && paymobOrderId == $paymobOrderId][0]{
           _id,
           stock
         }`,
