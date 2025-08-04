@@ -52,18 +52,7 @@ export async function POST(request: NextRequest) {
           transaction.id.toString()
         );
 
-        if (updateResult.success) {
-          // Get order details to update stock
-          const orderResult = await findOrderByPaymobId(paymobOrderId);
-
-          if (orderResult.success && orderResult.order) {
-            // Update product stock
-            orderResult.order.items.map((item: any) => ( backendClient.patch(item._id).dec({ stock :item.quantity }).commit()));
-
-            // await updateMultipleProductsStock(stockUpdates);
-            console.log("Stock updated for order:", paymobOrderId);
-          }
-        }
+        // Stock will be updated when the order is finalized
 
         // TODO: Send confirmation email
         // TODO: Clear user's basket

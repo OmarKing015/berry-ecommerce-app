@@ -24,56 +24,12 @@ export async function POST(request: NextRequest) {
     const codOrderId = `COD-${Date.now()}`
     console.log("Generated COD order ID:", codOrderId)
 
-    // Create order in Sanity for COD
-    const sanityOrderData = {
-      orderId: `ORDER-${Date.now()}`,
-      clerkUserId: userId || undefined,
-      customerEmail: customer.email,
-      customerName: `${customer.firstName} ${customer.lastName}`,
-      customerPhone: customer.phone,
-      shippingAddress: {
-        street: customer.address,
-        city: customer.city,
-        country: customer.country,
-        postalCode: customer.postalCode,
-      },
-      items: items.map((item: any) => ({
-        _key: `variant-${item.id}-${Math.random().toString(36).substring(2, 15)}`,
-        product: {
-          _ref: item.id,
-          _type: "reference" as const,
-        },
-        quantity: item.quantity,
-        price: item.price,
-      })),
-      totalAmount: amount / 100, // Convert back from cents
-      paymentStatus: "pending" as const, // COD starts as pending
-      paymentMethod: paymentMethod || "cod", // Use provided paymentMethod or default to "cod"
-      paymobOrderId: codOrderId, // Use COD order ID instead of Paymob ID
-     fileUrl:assetId,
-      orderStatus: "confirmed" as const, // COD orders are confirmed immediately
-      createdAt: new Date().toISOString(),
-    }
-
-    console.log("Sanity COD order data:", JSON.stringify(sanityOrderData, null, 2))
-
-    const sanityResult = await createOrder(sanityOrderData)
-
-    if (!sanityResult.success) {
-      console.error("Failed to create COD order in Sanity:", sanityResult.error)
-      return NextResponse.json({ success: false, error: "Failed to create order" }, { status: 500 })
-    }
-
-    console.log("COD order created successfully:", sanityResult.order?._id)
-
-    // For COD, we don't need to process payment immediately
-    // The order is created and will be marked as paid when delivered
-
+    // For COD, we just generate an order ID and return it.
+    // The order will be created on the success page.
     return NextResponse.json({
       success: true,
       orderId: codOrderId,
-      sanityOrderId: sanityResult.order?._id,
-      message: "COD order created successfully",
+      message: "COD order initiated successfully",
     })
   } catch (error) {
     console.error("=== COD ORDER CREATION ERROR ===")

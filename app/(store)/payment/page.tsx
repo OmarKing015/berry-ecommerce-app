@@ -101,8 +101,18 @@ export default function PaymentPage() {
         const data = await response.json()
 
         if (data.success) {
+          // Store order data in sessionStorage
+          sessionStorage.setItem("codOrderData", JSON.stringify({
+            orderId: data.orderId,
+            amount: Math.round(total * 100),
+            currency: "EGP",
+            items: cartItems,
+            customer: formData,
+            paymentMethod: "cod",
+            assetId: assetId,
+          }));
           // Redirect to COD success page
-          router.push(`/payment/success?order_id=${data.orderId}&payment_method=cod`)
+          router.push(`/payment/cod-success?order_id=${data.orderId}`)
         } else {
           throw new Error(data.error || "COD order creation failed")
         }
@@ -125,6 +135,15 @@ export default function PaymentPage() {
         const data = await response.json()
 
         if (data.success && data.paymentUrl) {
+          // Store order data in sessionStorage
+          sessionStorage.setItem("cardOrderData", JSON.stringify({
+            amount: Math.round(total * 100),
+            currency: "EGP",
+            items: cartItems,
+            customer: formData,
+            assetId: assetId,
+            paymobOrderId: data.orderId,
+          }));
           // Redirect to Paymob payment page
           window.location.href = data.paymentUrl
         } else {

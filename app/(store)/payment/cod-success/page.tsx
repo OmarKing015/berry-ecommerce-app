@@ -49,23 +49,76 @@ export default function CODSuccessPage() {
       return result;
     }
 
+    const orderId = searchParams.get("order_id");
+
+    const finalizeOrder = async (orderData: any) => {
+      try {
+        const response = await fetch("/api/finalize-order", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            orderId: orderData.orderId,
+            clerkUserId: undefined, // You might need to get this from somewhere
+            customerEmail: orderData.customer.email,
+            customerName: `${orderData.customer.firstName} ${orderData.customer.lastName}`,
+            customerPhone: orderData.customer.phone,
+            shippingAddress: {
+              street: orderData.customer.address,
+              city: orderData.customer.city,
+              country: orderData.customer.country,
+              postalCode: orderData.customer.postalCode,
+            },
+            items: orderData.items.map((item: any) => ({
+              product: {
+                _ref: item.id,
+                _type: "reference" as const,
+              },
+              quantity: item.quantity,
+              price: item.price,
+            })),
+            totalAmount: orderData.amount / 100,
+            paymentStatus: "pending",
+            paymentMethod: "cod",
+            paymobOrderId: orderData.orderId,
+            fileUrl: orderData.assetId,
+            orderStatus: "confirmed",
+          }),
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          setOrderDetails({
+            orderId: data.orderId,
+            status: "confirmed",
+            paymentMethod: "cod",
+          });
+        } else {
+          console.error("Failed to finalize order:", data.error);
+        }
+      } catch (error) {
+        console.error("Error finalizing order:", error);
+      } finally {
+        setLoading(false);
+        clearBasket();
+        sessionStorage.removeItem("checkoutItems");
+        sessionStorage.removeItem("checkoutTotal");
+        sessionStorage.removeItem("codOrderData");
+      }
+    };
+
     if (orderId) {
-      if (zipedFile) {
-        uploadZipFile(zipedFile, orderId);
-      } // Clear the basket since order was placed
-      clearBasket();
-
-      // Clear sessionStorage
-      sessionStorage.removeItem("checkoutItems");
-      sessionStorage.removeItem("checkoutTotal");
-
-      setOrderDetails({
-        orderId,
-        status: "confirmed",
-        paymentMethod: "cod",
-      });
+      const storedOrderData = sessionStorage.getItem("codOrderData");
+      if (storedOrderData) {
+        const orderData = JSON.parse(storedOrderData);
+        if (orderData.orderId === orderId) {
+          finalizeOrder(orderData);
+        }
+      }
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
   }, [searchParams, clearBasket]);
 
   if (loading) {

@@ -10,6 +10,13 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { ShoppingCart, Package, CreditCard, ArrowRight, Trash2 } from "lucide-react"
 import { useAppContext } from "@/context/context"
+import { getProductsByIds } from "@/sanity/lib/products/getProductsByIds"
+
+interface StockData {
+  [productId: string]: {
+    stock: number;
+  };
+}
 
 function BasketPage() {
   const groupedItems = useBasketStore((state) => state.getGroupedItems())
@@ -18,9 +25,40 @@ function BasketPage() {
   const router = useRouter()
   const [isClient, setIsClient] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [stockData, setStockData] = useState<StockData>({});
+  const [isCheckoutDisabled, setIsCheckoutDisabled] = useState(true);
+
   useEffect(() => {
-    setIsClient(true)
-  }, [])
+    setIsClient(true);
+
+    const fetchStock = async () => {
+      const productIds = groupedItems.map((item) => item.product._id);
+      if (productIds.length > 0) {
+        const { success, products } = await getProductsByIds(productIds);
+        if (success && products) {
+          const newStockData = products.reduce((acc, product) => {
+            acc[product._id] = { stock: product.stock ?? 0 };
+            return acc;
+          }, {} as StockData);
+          setStockData(newStockData);
+        }
+      }
+    };
+
+    fetchStock();
+  }, [groupedItems]);
+
+  useEffect(() => {
+    if (Object.keys(stockData).length > 0) {
+      const isDisabled = groupedItems.some(item => {
+        const stockInfo = stockData[item.product._id];
+        return !stockInfo || stockInfo.stock < item.quantity;
+      });
+      setIsCheckoutDisabled(isDisabled);
+    } else {
+      setIsCheckoutDisabled(groupedItems.length > 0);
+    }
+  }, [groupedItems, stockData]);
 
   if (!isClient) {
     return <Loader />
@@ -145,6 +183,12 @@ function BasketPage() {
                     <AddToBasketButton selectedSize={item.size} product={item.product} />
                   </div>
                 </div>
+                {stockData[item.product._id] && stockData[item.product._id].stock < item.quantity && (
+                  <p className="text-red-600 text-sm mt-2">
+                    Only {stockData[item.product._id].stock} items available in stock.
+                  </p>
+                )}
+                </div>
               </div>
             ))}
 
@@ -228,7 +272,7 @@ function BasketPage() {
               )} */}
               <button
                 onClick={handleCheckout}
-                disabled={isLoading}
+                disabled={isLoading || isCheckoutDisabled}
                 className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
               >
                 {isLoading ? (
@@ -244,6 +288,11 @@ function BasketPage() {
                   </>
                 )}
               </button>
+              {isCheckoutDisabled && (
+                <p className="text-red-600 text-sm mt-2 text-center">
+                  Some items in your basket are out of stock or have insufficient quantity. Please adjust your basket to proceed.
+                </p>
+              )}
               <div className="mt-4 flex items-center justify-center space-x-4 text-xs text-gray-500">
                 <span className="flex items-center gap-1">
                   <CreditCard className="h-3 w-3" />

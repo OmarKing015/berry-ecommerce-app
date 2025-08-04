@@ -79,44 +79,7 @@ export async function POST(request: NextRequest) {
     const orderData: PaymobOrderResponse = await orderResponse.json()
     const paymobOrderId = orderData.id
 
-    // Step 3: Create order in Sanity
-    const sanityOrderData = {
-      orderId: `ORDER-${Date.now()}`,
-      clerkUserId: userId || undefined,
-      customerEmail: customer.email,
-      customerName: `${customer.firstName} ${customer.lastName}`,
-      customerPhone: customer.phone,
-      shippingAddress: {
-        street: customer.address,
-        city: customer.city,
-        country: customer.country,
-        postalCode: customer.postalCode,
-      },
-      items: items.map((item: any) => ({
-        product: {
-          _ref: item.id,
-          _type: "reference" as const,
-        },
-        quantity: item.quantity,
-        price: item.price,
-      })),
-      totalAmount: amount / 100, // Convert back from cents
-      paymentStatus: "pending" as const,
-      paymentMethod: "paymob",
-      fileUrl:assetId,
-      paymobOrderId: paymobOrderId.toString(),
-      orderStatus: "pending" as const,
-      createdAt: new Date().toISOString(),
-    }
-
-    const sanityResult = await createOrder(sanityOrderData)
-
-    if (!sanityResult.success) {
-      console.error("Failed to create order in Sanity:", sanityResult.error)
-      // Continue with payment flow even if Sanity fails
-    }
-
-    // Step 4: Payment Key Request
+    // Step 3: Payment Key Request
     const paymentKeyResponse = await fetch("https://accept.paymob.com/api/acceptance/payment_keys", {
       method: "POST",
       headers: {

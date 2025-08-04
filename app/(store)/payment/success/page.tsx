@@ -49,47 +49,78 @@ export default function SuccessPage() {
     //   return result;
     // }
 
-    const orderId = searchParams.get("order");
-    const acqResponseCode = searchParams.get("acq_response_code");
-    const amountCents = searchParams.get("amount_cents");
-    const currency = searchParams.get("currency");
     const success = searchParams.get("success");
-    const transactionId = searchParams.get("id");
-    const message = searchParams.get("data.message");
-    const sourcePan = searchParams.get("source_data.pan");
-    const sourceSubType = searchParams.get("source_data.sub_type");
+    const paymobOrderId = searchParams.get("order");
 
-    if (success === 'true') {
-      setPaymentDetails({
-        transactionId,
-        acqResponseCode,
-        amountCents,
-        currency,
-        message,
-        sourcePan,
-        sourceSubType,
-      });
+    const finalizeOrder = async (orderData: any) => {
+      try {
+        const response = await fetch("/api/finalize-order", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            orderId: `ORDER-${Date.now()}`,
+            clerkUserId: undefined, // You might need to get this from somewhere
+            customerEmail: orderData.customer.email,
+            customerName: `${orderData.customer.firstName} ${orderData.customer.lastName}`,
+            customerPhone: orderData.customer.phone,
+            shippingAddress: {
+              street: orderData.customer.address,
+              city: orderData.customer.city,
+              country: orderData.customer.country,
+              postalCode: orderData.customer.postalCode,
+            },
+            items: orderData.items.map((item: any) => ({
+              product: {
+                _ref: item.id,
+                _type: "reference" as const,
+              },
+              quantity: item.quantity,
+              price: item.price,
+            })),
+            totalAmount: orderData.amount / 100,
+            paymentStatus: "completed",
+            paymentMethod: "paymob",
+            paymobOrderId: orderData.paymobOrderId,
+            fileUrl: orderData.assetId,
+            orderStatus: "processing",
+          }),
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          setOrderDetails({
+            orderId: data.orderId,
+            status: "processing",
+            paymentMethod: "Online Payment",
+          });
+        } else {
+          console.error("Failed to finalize order:", data.error);
+        }
+      } catch (error) {
+        console.error("Error finalizing order:", error);
+      } finally {
+        setLoading(false);
+        clearBasket();
+        sessionStorage.removeItem("checkoutItems");
+        sessionStorage.removeItem("checkoutTotal");
+        sessionStorage.removeItem("cardOrderData");
+      }
+    };
+
+    if (success === 'true' && paymobOrderId) {
+      const storedOrderData = sessionStorage.getItem("cardOrderData");
+      if (storedOrderData) {
+        const orderData = JSON.parse(storedOrderData);
+        if (orderData.paymobOrderId.toString() === paymobOrderId) {
+          finalizeOrder(orderData);
+        }
+      }
+    } else {
+      setLoading(false);
     }
-
-    if (orderId) {
-      clearBasket();
-
-      setOrderDetails({
-        orderId,
-        status: "confirmed",
-      });
-    }
-
-    // if (zipedFile && orderId) {
-    //   uploadZipFile(zipedFile, orderId);
-    // }
-
-    // Clear sessionStorage
-    sessionStorage.removeItem("checkoutItems");
-    sessionStorage.removeItem("checkoutTotal");
-    setLoading(false);
-
-  }, [searchParams, clearBasket, zipedFile]);
+  }, [searchParams, clearBasket]);
 
   if (loading) {
     return (
