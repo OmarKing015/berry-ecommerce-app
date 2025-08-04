@@ -124,7 +124,6 @@ export async function POST(request: NextRequest) {
       success: true,
       paymentUrl,
       orderId: paymobOrderId,
-      sanityOrderId: sanityResult.success ? sanityResult.order?._id : null,
       paymentToken,
     })
    

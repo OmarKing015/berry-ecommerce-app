@@ -36,7 +36,7 @@ function BasketPage() {
       if (productIds.length > 0) {
         const { success, products } = await getProductsByIds(productIds);
         if (success && products) {
-          const newStockData = products.reduce((acc, product) => {
+          const newStockData = products.reduce((acc: { [x: string]: { stock: any } }, product: { _id: string | number; stock: any }) => {
             acc[product._id] = { stock: product.stock ?? 0 };
             return acc;
           }, {} as StockData);
@@ -189,7 +189,6 @@ function BasketPage() {
                   </p>
                 )}
                 </div>
-              </div>
             ))}
 
             {/* Clear Basket Button */}
