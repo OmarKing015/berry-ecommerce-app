@@ -25,48 +25,70 @@ export default function SuccessPage() {
   const searchParams = useSearchParams();
   const clearBasket = useBasketStore((state) => state.clearBasket);
   const [orderDetails, setOrderDetails] = useState<any>(null);
+  const [paymentDetails, setPaymentDetails] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const { zipedFile } = useAppContext();
   useEffect(() => {
-    const orderId = searchParams.get("order_id");
-    const paymentMethod = searchParams.get("payment_method");
 
-    async function uploadZipFile(file: Blob, orderId: string) {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("orderId", orderId);
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
+    // async function uploadZipFile(file: Blob, orderId: string | null) {
+    //   const formData = new FormData();
+    //   formData.append("file", file);
+    //   formData.append("orderId", orderId);
+    //   const response = await fetch("/api/upload", {
+    //     method: "POST",
+    //     body: formData,
+    //   });
+
+    //   console.log("Here are the results", response.json);
+
+    //   if (!response.ok) {
+    //     throw new Error("File upload failed");
+    //   }
+
+    //   const result = await response.json();
+    //   return result;
+    // }
+
+    const orderId = searchParams.get("order");
+    const acqResponseCode = searchParams.get("acq_response_code");
+    const amountCents = searchParams.get("amount_cents");
+    const currency = searchParams.get("currency");
+    const success = searchParams.get("success");
+    const transactionId = searchParams.get("id");
+    const message = searchParams.get("data.message");
+    const sourcePan = searchParams.get("source_data.pan");
+    const sourceSubType = searchParams.get("source_data.sub_type");
+
+    if (success === 'true') {
+      setPaymentDetails({
+        transactionId,
+        acqResponseCode,
+        amountCents,
+        currency,
+        message,
+        sourcePan,
+        sourceSubType,
       });
-
-      console.log("Here are the results", response.json);
-
-      if (!response.ok) {
-        throw new Error("File upload failed");
-      }
-
-      const result = await response.json();
-      return result;
     }
 
     if (orderId) {
-      if (zipedFile) {
-        uploadZipFile(zipedFile, orderId);
-      } // Clear the basket since order was placed
       clearBasket();
-
-      // Clear sessionStorage
-      sessionStorage.removeItem("checkoutItems");
-      sessionStorage.removeItem("checkoutTotal");
 
       setOrderDetails({
         orderId,
         status: "confirmed",
-        paymentMethod,
       });
     }
+
+    // if (zipedFile && orderId) {
+    //   uploadZipFile(zipedFile, orderId);
+    // }
+
+    // Clear sessionStorage
+    sessionStorage.removeItem("checkoutItems");
+    sessionStorage.removeItem("checkoutTotal");
     setLoading(false);
+
   }, [searchParams, clearBasket, zipedFile]);
 
   if (loading) {
