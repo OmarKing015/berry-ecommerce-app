@@ -1,16 +1,20 @@
-"use client"
+"use client";
 
-import AddToBasketButton from "@/components/AddToBasketButton"
-import Loader from "@/components/loader"
-import { imageUrl } from "@/lib/imageUrl"
-import useBasketStore from "@/store/store"
-import { SignInButton, useAuth, useUser } from "@clerk/nextjs"
-import Image from "next/image"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
-import { ShoppingCart, Package, CreditCard, ArrowRight, Trash2 } from "lucide-react"
-import { useAppContext } from "@/context/context"
-import { getProductsByIds } from "@/sanity/lib/products/getProductsByIds"
+import AddToBasketButton from "@/components/AddToBasketButton";
+import Loader from "@/components/loader";
+import { imageUrl } from "@/lib/imageUrl";
+import useBasketStore from "@/store/store";
+import { SignInButton, useAuth, useUser } from "@clerk/nextjs";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import {
+  ShoppingCart,
+  Package,
+  CreditCard,
+  ArrowRight,
+  Trash2,
+} from "lucide-react";
 
 interface StockData {
   [productId: string]: {
@@ -19,49 +23,28 @@ interface StockData {
 }
 
 function BasketPage() {
-  const groupedItems = useBasketStore((state) => state.getGroupedItems())
-  const clearBasket = useBasketStore((state) => state.clearBasket)
-  const { isSignedIn } = useAuth()
-  const router = useRouter()
-  const [isClient, setIsClient] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const groupedItems = useBasketStore((state) => state.getGroupedItems());
+  const clearBasket = useBasketStore((state) => state.clearBasket);
+  const { isSignedIn } = useAuth();
+  const router = useRouter();
+  const [isClient, setIsClient] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [stockData, setStockData] = useState<StockData>({});
   const [isCheckoutDisabled, setIsCheckoutDisabled] = useState(true);
 
   useEffect(() => {
     setIsClient(true);
-
-    const fetchStock = async () => {
-      const productIds = groupedItems.map((item) => item.product._id);
-      if (productIds.length > 0) {
-        const { success, products } = await getProductsByIds(productIds);
-        if (success && products) {
-          const newStockData = products.reduce((acc: { [x: string]: { stock: any } }, product: { _id: string | number; stock: any }) => {
-            acc[product._id] = { stock: product.stock ?? 0 };
-            return acc;
-          }, {} as StockData);
-          setStockData(newStockData);
-        }
+    groupedItems.map((item) => {
+      if (item.product.stock && item.product?.stock < item.quantity) {
+        setIsCheckoutDisabled(true);
+      } else {
+        setIsCheckoutDisabled(false);
       }
-    };
-
-    fetchStock();
+    });
   }, [groupedItems]);
 
-  useEffect(() => {
-    if (Object.keys(stockData).length > 0) {
-      const isDisabled = groupedItems.some(item => {
-        const stockInfo = stockData[item.product._id];
-        return !stockInfo || stockInfo.stock < item.quantity;
-      });
-      setIsCheckoutDisabled(isDisabled);
-    } else {
-      setIsCheckoutDisabled(groupedItems.length > 0);
-    }
-  }, [groupedItems, stockData]);
-
   if (!isClient) {
-    return <Loader />
+    return <Loader />;
   }
 
   if (groupedItems.length === 0) {
@@ -70,8 +53,12 @@ function BasketPage() {
         <div className="container mx-auto p-4 max-w-4xl">
           <div className="text-center py-16">
             <ShoppingCart className="h-24 w-24 text-gray-300 mx-auto mb-6" />
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">Your Basket is Empty</h1>
-            <p className="text-gray-600 text-lg mb-8">Add some products to get started!</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">
+              Your Basket is Empty
+            </h1>
+            <p className="text-gray-600 text-lg mb-8">
+              Add some products to get started!
+            </p>
             <button
               onClick={() => router.push("/")}
               className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
@@ -81,21 +68,24 @@ function BasketPage() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
-  const totalItems = groupedItems.reduce((total, item) => total + item.quantity, 0)
-  const totalPrice = useBasketStore.getState().getTotalPrice()
-  const shipping = 50 // Free shipping over 500 EGP
+  const totalItems = groupedItems.reduce(
+    (total, item) => total + item.quantity,
+    0
+  );
+  const totalPrice = useBasketStore.getState().getTotalPrice();
+  const shipping = 50; // Free shipping over 500 EGP
   // const tax = totalPrice * 0.14 // 14% tax
-  const finalTotal = totalPrice + shipping 
+  const finalTotal = totalPrice + shipping;
 
   const handleCheckout = async () => {
     // if (!isSignedIn) {
     //   return
     // }
 
-    setIsLoading(true)
+    setIsLoading(true);
 
     try {
       // Prepare cart data for Paymob
@@ -104,23 +94,25 @@ function BasketPage() {
         name: item.product.name || "Product",
         price: item.product.price || 0,
         quantity: item.quantity,
-        image: item.product.image ? imageUrl(item.product.image).url() : "/placeholder.svg?height=80&width=80",
+        image: item.product.image
+          ? imageUrl(item.product.image).url()
+          : "/placeholder.svg?height=80&width=80",
         size: item.size,
-      }))
+      }));
 
       // Store cart data in sessionStorage for the payment page
-      sessionStorage.setItem("checkoutItems", JSON.stringify(cartItems))
-      sessionStorage.setItem("checkoutTotal", finalTotal.toString())
+      sessionStorage.setItem("checkoutItems", JSON.stringify(cartItems));
+      sessionStorage.setItem("checkoutTotal", finalTotal.toString());
 
       // Navigate to payment page
-      router.push("/payment")
+      router.push("/payment");
     } catch (error) {
-      console.error("Checkout error:", error)
-      alert("Failed to proceed to checkout. Please try again.")
+      console.error("Checkout error:", error);
+      alert("Failed to proceed to checkout. Please try again.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -143,23 +135,32 @@ function BasketPage() {
                 <div className="flex items-center gap-4">
                   <div
                     className="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 cursor-pointer"
-                    onClick={() => router.push(`/product/${item.product.slug?.current}`)}
+                    onClick={() =>
+                      router.push(`/product/${item.product.slug?.current}`)
+                    }
                   >
                     {item.product.image ? (
                       <Image
-                        src={imageUrl(item.product.image).url() || "/placeholder.svg"}
+                        src={
+                          imageUrl(item.product.image).url() ||
+                          "/placeholder.svg"
+                        }
                         alt={item.product.name ?? "Product Image"}
                         className="w-full h-full object-cover rounded-lg"
                         width={96}
                         height={96}
                       />
-                    ) : (<div></div>)}
+                    ) : (
+                      <div></div>
+                    )}
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <h3
                       className="text-lg font-semibold text-gray-900 cursor-pointer hover:text-blue-600 transition-colors duration-200 truncate"
-                      onClick={() => router.push(`/product/${item.product.slug?.current}`)}
+                      onClick={() =>
+                        router.push(`/product/${item.product.slug?.current}`)
+                      }
                     >
                       {item.product.name}
                     </h3>
@@ -168,27 +169,54 @@ function BasketPage() {
                         + {extraCost.toFixed(2)} EGP (Customization)
                       </p>
                     )} */}
-                    {item.size && <p className="text-gray-600 mt-1">Size: {item.size}</p>}
+                    {item.size && (
+                      <p className="text-gray-600 mt-1">Size: {item.size}</p>
+                    )}
 
-                    {item?.product?.slug?.current ? (<><p className="text-gray-600 mt-1">{(item.product.price ?? 0).toFixed(2)} EGP each</p>
-                      <p className="text-lg font-semibold text-gray-900 mt-2">
-                        Total: {((item.product.price ?? 0)  * item.quantity).toFixed(2)}EGP
-                      </p></>) : (<><p className="text-gray-600 mt-1">{(item.product.price ?? 0).toFixed(2)} EGP each</p>
+                    {item?.product?.slug?.current ? (
+                      <>
+                        <p className="text-gray-600 mt-1">
+                          {(item.product.price ?? 0).toFixed(2)} EGP each
+                        </p>
                         <p className="text-lg font-semibold text-gray-900 mt-2">
-                          Total: {((item.product.price ?? 0) * item.quantity).toFixed(2)}EGP
-                        </p></>)}
+                          Total:{" "}
+                          {((item.product.price ?? 0) * item.quantity).toFixed(
+                            2
+                          )}
+                          EGP
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-gray-600 mt-1">
+                          {(item.product.price ?? 0).toFixed(2)} EGP each
+                        </p>
+                        <p className="text-lg font-semibold text-gray-900 mt-2">
+                          Total:{" "}
+                          {((item.product.price ?? 0) * item.quantity).toFixed(
+                            2
+                          )}
+                          EGP
+                        </p>
+                      </>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <AddToBasketButton selectedSize={item.size} product={item.product} />
+                    <AddToBasketButton
+                      selectedSize={item.size}
+                      product={item.product}
+                    />
                   </div>
                 </div>
-                {stockData[item.product._id] && stockData[item.product._id].stock < item.quantity && (
-                  <p className="text-red-600 text-sm mt-2">
-                    Only {stockData[item.product._id].stock} items available in stock.
-                  </p>
-                )}
-                </div>
+                {stockData[item.product._id] &&
+                  stockData[item.product._id].stock < item.quantity && (
+                    <p className="text-red-600 text-sm mt-2">
+                      Only {stockData[item.product._id].stock} items available
+                      in stock.
+                    </p>
+                  )}
+              </div>
             ))}
 
             {/* Clear Basket Button */}
@@ -196,7 +224,7 @@ function BasketPage() {
               <button
                 onClick={() => {
                   if (confirm("Are you sure you want to clear your basket?")) {
-                    clearBasket()
+                    clearBasket();
                   }
                 }}
                 className="flex items-center gap-2 text-red-600 hover:text-red-700 font-medium transition-colors duration-200"
@@ -289,7 +317,8 @@ function BasketPage() {
               </button>
               {isCheckoutDisabled && (
                 <p className="text-red-600 text-sm mt-2 text-center">
-                  Some items in your basket are out of stock or have insufficient quantity. Please adjust your basket to proceed.
+                  Some items in your basket are out of stock or have
+                  insufficient quantity. Please adjust your basket to proceed.
                 </p>
               )}
               <div className="mt-4 flex items-center justify-center space-x-4 text-xs text-gray-500">
@@ -307,7 +336,7 @@ function BasketPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default BasketPage
+export default BasketPage;
