@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
   const orderId = searchParams.get("id")
   const paymobTransactionId = searchParams.get("transactionId")
 
-  if (success === "true" && orderId) {
+  if (success) {
     // Redirect to success page with order details
     return NextResponse.redirect(new URL(`/payment/success?${searchParams.toString()}`, req.url))
   } else {
