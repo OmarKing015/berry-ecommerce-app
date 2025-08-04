@@ -15,13 +15,8 @@ export default async function Home() {
     return 0;
   });
   const categories = await getAllCategories();
-  const updatedCategories = categories.filter((category: {
-    name:string,
-    slug: {
-      current: string;
-    }
 
-  }) => category.slug?.current !== "custom-design");
+
   return (
     <div>
       <CustomizationBanner/>
