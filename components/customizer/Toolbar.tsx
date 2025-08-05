@@ -114,7 +114,7 @@ export default function Toolbar() {
     totalCost,
     setShirtImageUrl,
   } = useEditorStore();
-  const { setAssetId, setExtraCost, extraCost, setZipedFile } = useAppContext();
+  const { setAssetId, extraCost, setZipedFile } = useAppContext();
   const [selectedFont, setSelectedFont] = useState("Roboto");
   const [selectedFontColor, setSelectedFontColor] = useState("#000000");
   const [selectedSize, setSelectedSize] = useState("M");
@@ -171,9 +171,8 @@ export default function Toolbar() {
       const { totalCost: calculatedTotalCost, extraCost: calculatedExtraCost } =
         costEngine.calculate(canvas.getObjects());
       useEditorStore.getState().setTotalCost(calculatedTotalCost);
-      setExtraCost(calculatedExtraCost);
     }
-  }, [canvas, setExtraCost]);
+  }, [canvas]);
 
   const addText = () => {
     if (!canvas) return;
