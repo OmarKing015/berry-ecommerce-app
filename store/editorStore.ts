@@ -30,6 +30,20 @@ export interface EditorState {
   redo: () => void;
   canUndo: boolean;
   canRedo: boolean;
+
+  // New state for shared toolbar options
+  selectedFont: string;
+  setSelectedFont: (font: string) => void;
+  selectedFontColor: string;
+  setSelectedFontColor: (color: string) => void;
+  selectedSize: string;
+  setSelectedSize: (size: string) => void;
+  selectedColor: string;
+  setSelectedColor: (color: string) => void;
+  isArabic: boolean;
+  setIsArabic: (isArabic: boolean) => void;
+  text: string;
+  setText: (text: string) => void;
 }
 
 export const useEditorStore = create<EditorState>((set, get) => ({
@@ -65,6 +79,20 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   setSelectedColorSwatch: (colorSwatch: ColorSwatch) => set({ selectedColorSwatch: colorSwatch }),
   totalCost: 6.00, // Initial base cost
   setTotalCost: (cost) => set({ totalCost: cost }),
+
+  // New state implementation
+  selectedFont: "Inter",
+  setSelectedFont: (font) => set({ selectedFont: font }),
+  selectedFontColor: "#000000",
+  setSelectedFontColor: (color) => set({ selectedFontColor: color }),
+  selectedSize: "M",
+  setSelectedSize: (size) => set({ selectedSize: size }),
+  selectedColor: "#FFFFFF",
+  setSelectedColor: (color) => set({ selectedColor: color }),
+  isArabic: false,
+  setIsArabic: (isArabic) => set({ isArabic }),
+  text: "English",
+  setText: (text) => set({ text }),
   history: [],
   setHistory: (history) => set({ history, canUndo: get().historyIndex > 0, canRedo: get().historyIndex < history.length - 1 }),
   historyIndex: -1,
