@@ -1,224 +1,201 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useEffect, useRef } from "react"
+import { useState } from "react"
 import { motion } from "framer-motion"
 import { useEditorStore } from "../../../store/editorStore"
-import { fabric } from "fabric"
+import useBasketStore from "../../../store/store"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useToast } from "@/components/customizer/use-toast"
-import { ImagePlus, Star, Loader2, Upload, Sparkles } from "lucide-react"
+import { Loader2, Sparkles, ShoppingBag, Star } from "lucide-react"
+import JSZip from "jszip"
+import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs"
 
-interface TEMPLATE_LOGOS_TYPE {
-  _id: string
-  name: string
-  imageUrl: string
-}
+const SIZES = ["XS", "S", "M", "L", "XL", "XXL"]
 
-interface LogoPanelProps {
+interface CreatePanelProps {
   onClose?: () => void
 }
 
-export function LogoPanel({ onClose }: LogoPanelProps) {
-  const { canvas, addHighQualityImage } = useEditorStore()
+export function CreatePanel({ onClose }: CreatePanelProps) {
   const { toast } = useToast()
-  const [logos, setLogos] = useState<TEMPLATE_LOGOS_TYPE[]>([])
-  const [templateLogoLoading, setTemplateLogoLoading] = useState<{
-    [key: string]: boolean
-  }>({})
-  const [isUploadingCustomImage, setIsUploadingCustomImage] = useState(false)
-  const uploadInputRef = useRef<HTMLInputElement>(null)
+  const { canvas, totalCost, shirtImageUrl, shirtStyle, selectedColorSwatch } = useEditorStore()
+  const { addItem } = useBasketStore()
+  const [selectedSize, setSelectedSize] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
 
-  useEffect(() => {
-    const fetchLogos = async () => {
-      try {
-        const res = await fetch("/api/admin/logos")
-        const data = await res.json()
-        setLogos(data)
-      } catch (error) {
-        toast({
-          title: "Connection Error",
-          description: "Unable to load logos. Please try again.",
-          variant: "destructive",
-        })
-      }
+  const dataURLtoBlob = (dataURL: string): Blob => {
+    const arr = dataURL.split(",")
+    const mime = arr[0].match(/:(.*?);/)![1]
+    const bstr = atob(arr[1])
+    let n = bstr.length
+    const u8arr = new Uint8Array(n)
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n)
     }
-    fetchLogos()
-  }, [toast])
+    return new Blob([u8arr], { type: mime })
+  }
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!canvas || !e.target.files || !e.target.files[0]) return
-    const file = e.target.files[0]
-    if (!file.type.startsWith("image/")) {
+  const handleAddToBasket = async () => {
+    if (!selectedSize) {
       toast({
-        title: "Invalid File Type",
-        description: "Please upload a valid image file.",
+        title: "Size Required",
+        description: "Please select a size to create your masterpiece.",
+        variant: "destructive",
+      })
+      return
+    }
+    if (!canvas || !shirtImageUrl) {
+      toast({
+        title: "Design not ready",
+        description: "Please ensure you have selected a color and style.",
         variant: "destructive",
       })
       return
     }
 
-    addHighQualityImage(file)
-    setIsUploadingCustomImage(true)
-    fabric.Image.fromURL(
-      URL.createObjectURL(file),
-      (img: any) => {
-        img.scaleToWidth(150)
-        img.set({
-          left: 175,
-          top: 175,
-          cost: 5,
-          type: "logo",
-        })
-        canvas.add(img)
-        canvas.setActiveObject(img)
-        canvas.renderAll()
-        setIsUploadingCustomImage(false)
-
-        // Auto-close panel
-        if (onClose) {
-          setTimeout(onClose, 500)
-        }
-      },
-      { crossOrigin: "anonymous" },
-    )
-  }
-
-  const addTemplateLogo = async (logoUrl: string, logoId: string) => {
-    if (!canvas) return
-    setTemplateLogoLoading((prev) => ({ ...prev, [logoId]: true }))
+    setIsLoading(true)
     try {
-      const response = await fetch(logoUrl)
-      const blob = await response.blob()
-      const fileName = logoUrl.substring(logoUrl.lastIndexOf("/") + 1)
-      const file = new File([blob], fileName, { type: blob.type })
-      addHighQualityImage(file)
+      const zip = new JSZip()
+      const canvasDataUrl = canvas.toDataURL({ format: "png", quality: 1 })
+      zip.file("design.png", dataURLtoBlob(canvasDataUrl))
+      const zipBlob = await zip.generateAsync({ type: "blob" })
 
-      fabric.Image.fromURL(
-        logoUrl,
-        (img: any) => {
-          img.scaleToWidth(150)
-          img.set({
-            left: 175,
-            top: 175,
-            cost: 3,
-            type: "logo",
-          })
-          canvas.add(img)
-          canvas.setActiveObject(img)
-          canvas.renderAll()
-          setTemplateLogoLoading((prev) => ({ ...prev, [logoId]: false }))
+      const formData = new FormData()
+      formData.append("name", "Custom T-shirt")
+      formData.append("price", totalCost.toString())
+      formData.append("size", selectedSize)
+      formData.append("slug", `custom-tshirt-${Date.now()}`)
+      formData.append("file", zipBlob, `design-${Date.now()}.zip`)
+      const fullDesignFile = new File([canvasDataUrl], "product-image.png", {
+        type: "image/png",
+      })
+      formData.append("imageData", fullDesignFile)
 
-          // Auto-close panel
-          if (onClose) {
-            setTimeout(onClose, 500)
-          }
-        },
-        { crossOrigin: "anonymous" },
-      )
+      const response = await fetch("/api/custom-product", {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to create custom product.")
+      }
+
+      const newProduct = await response.json()
+      addItem(newProduct, selectedSize, 0)
+
+      toast({
+        title: "🎉 Masterpiece Created!",
+        description: "Your custom T-shirt has been added to your basket.",
+      })
+
+      // Auto-close panel
+      if (onClose) {
+        setTimeout(onClose, 1000)
+      }
     } catch (error) {
       toast({
-        title: "Logo Load Error",
-        description: "Failed to load template logo. Please try again.",
+        title: "Error",
+        description: "Failed to add item to basket. Please try again.",
         variant: "destructive",
       })
-      setTemplateLogoLoading((prev) => ({ ...prev, [logoId]: false }))
+    } finally {
+      setIsLoading(false)
     }
   }
 
   return (
     <div className="space-y-6">
-      {/* Upload Custom Logo */}
+      {/* Size Selection */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
         <div className="flex items-center gap-2">
-          <Upload className="h-5 w-5 text-green-500" />
-          <h3 className="text-lg font-bold text-gray-900">Upload Your Logo</h3>
+          <Star className="h-5 w-5 text-pink-500" />
+          <h3 className="text-lg font-bold text-gray-900">Choose Your Size</h3>
         </div>
 
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => uploadInputRef.current?.click()}
-          disabled={isUploadingCustomImage}
-          className="w-full p-6 rounded-2xl border-2 border-dashed border-green-300 bg-gradient-to-br from-green-50 to-emerald-50 hover:border-green-400 hover:from-green-100 hover:to-emerald-100 transition-all duration-300 disabled:opacity-50"
-        >
-          {isUploadingCustomImage ? (
-            <div className="flex flex-col items-center gap-3">
-              <Loader2 className="animate-spin h-8 w-8 text-green-500" />
-              <div className="text-green-700 font-semibold">Uploading...</div>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center gap-3">
-              <div className="p-3 rounded-full bg-green-500 text-white">
-                <ImagePlus className="h-6 w-6" />
-              </div>
-              <div className="text-green-700 font-semibold">Tap to Upload</div>
-              <div className="text-sm text-green-600">PNG, JPG, SVG supported</div>
-            </div>
-          )}
-        </motion.button>
-
-        <input type="file" accept="image/*" ref={uploadInputRef} onChange={handleImageUpload} className="hidden" />
+        <RadioGroup value={selectedSize ?? ""} onValueChange={setSelectedSize} className="grid grid-cols-3 gap-3">
+          {SIZES.map((size, index) => (
+            <motion.div
+              key={size}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: index * 0.05 }}
+              className="contents"
+            >
+              <RadioGroupItem value={size} id={`size-${size}`} className="sr-only" />
+              <Label
+                htmlFor={`size-${size}`}
+                className={`cursor-pointer rounded-2xl border-2 text-center py-4 font-bold text-lg transition-all duration-300 hover:scale-105 ${
+                  selectedSize === size
+                    ? "border-pink-500 bg-gradient-to-br from-pink-50 to-pink-100 text-pink-700 shadow-lg"
+                    : "border-gray-200 bg-white text-gray-700 hover:border-pink-300"
+                }`}
+              >
+                {size}
+              </Label>
+            </motion.div>
+          ))}
+        </RadioGroup>
       </motion.div>
 
-      {/* Template Logos */}
+      {/* Order Summary */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="space-y-4"
+        className="p-4 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200"
       >
-        <div className="flex items-center gap-2">
-          <Star className="h-5 w-5 text-yellow-500" />
-          <h3 className="text-lg font-bold text-gray-900">Template Logos</h3>
+        <h4 className="font-bold text-gray-900 mb-3">Order Summary</h4>
+        <div className="space-y-2 text-sm">
+          <div className="flex justify-between">
+            <span className="text-gray-600">Style:</span>
+            <span className="font-medium capitalize">{shirtStyle}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-600">Size:</span>
+            <span className="font-medium">{selectedSize || "Not selected"}</span>
+          </div>
+          <div className="flex justify-between border-t pt-2">
+            <span className="font-bold text-gray-900">Total:</span>
+            <span className="font-bold text-xl text-pink-600">{totalCost.toFixed(2)} EGP</span>
+          </div>
         </div>
+      </motion.div>
 
-        {logos?.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <Sparkles className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p>Loading awesome logos...</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-3 gap-4">
-            {logos?.map((logo, index) => (
-              <motion.div
-                key={logo._id}
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: index * 0.05 }}
-                className="relative"
-              >
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="w-full aspect-square border-2 border-gray-200 rounded-2xl p-2 hover:border-yellow-400 hover:shadow-lg transition-all duration-300 bg-white overflow-hidden"
-                  onClick={() => addTemplateLogo(logo.imageUrl, logo._id)}
-                  disabled={templateLogoLoading[logo._id]}
-                >
-                  <img
-                    src={logo.imageUrl || "/placeholder.svg"}
-                    alt={logo.name}
-                    className="w-full h-full object-contain rounded-xl"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement
-                      target.src = "/placeholder.svg"
-                    }}
-                  />
-                </motion.button>
+      {/* Create Button */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+        <SignedIn>
+          <Button
+            onClick={handleAddToBasket}
+            size="lg"
+            disabled={isLoading || !selectedSize}
+            className="w-full h-14 rounded-2xl bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-lg font-bold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50"
+          >
+            {isLoading ? (
+              <div className="flex items-center">
+                <Loader2 className="animate-spin h-5 w-5 mr-2" />
+                Creating Magic...
+              </div>
+            ) : (
+              <div className="flex items-center">
+                <ShoppingBag className="h-5 w-5 mr-2" />
+                Add to Basket
+              </div>
+            )}
+          </Button>
+        </SignedIn>
 
-                {templateLogoLoading[logo._id] && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-white/80 rounded-2xl">
-                    <Loader2 className="animate-spin h-6 w-6 text-yellow-500" />
-                  </div>
-                )}
-
-                <div className="text-center mt-2">
-                  <div className="text-xs font-medium text-gray-700 truncate">{logo.name}</div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        )}
+        <SignedOut>
+          <Button className="w-full h-14 rounded-2xl bg-gradient-to-r from-pink-500 to-purple-600 text-lg font-bold shadow-lg">
+            <SignInButton mode="modal">
+              <span className="flex items-center">
+                <Sparkles className="h-5 w-5 mr-2" />
+                Sign In to Create
+              </span>
+            </SignInButton>
+          </Button>
+        </SignedOut>
       </motion.div>
     </div>
   )
