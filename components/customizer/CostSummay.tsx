@@ -9,10 +9,12 @@ export default function CostSummary() {
 
   return (
     <>
-      {/* Mobile View: Simple total cost display */}
-      <div className="lg:hidden w-full flex justify-between items-center mt-4">
-        <p className="text-lg font-semibold">Total:</p>
-        <p className="text-2xl font-bold">{totalCost.toFixed(2)} EGP</p>
+      {/* Mobile View: A more structured, but simple, cost display */}
+      <div className="lg:hidden w-full mt-4 p-4 border-t bg-background">
+        <div className="flex justify-between items-center">
+            <p className="text-lg font-medium text-muted-foreground">Total Cost</p>
+            <p className="text-2xl font-bold">{totalCost.toFixed(2)} EGP</p>
+        </div>
       </div>
 
       {/* Desktop View: Detailed card, fixed position */}
