@@ -22,30 +22,14 @@ const TSHIRT_IMAGES = {
 
 
 export default function TshirtEditor() {
-  const {
-    shirtStyle,
-    setCanvas,
-    setTotalCost,
-    reset,
-    shirtImageUrl,
-  } = useEditorStore();
-  const isUpdating = useRef(false);
+  const { shirtStyle, reset, shirtImageUrl } = useEditorStore()
 
   useEffect(() => {
-    const initCanvas = new fabric.Canvas("canvas", {
-      height: 500,
-      width: 500,
-    });
-    setCanvas(initCanvas);
-
-    // The event listeners and history management are now handled within setCanvas in the store
-
     return () => {
-      initCanvas.dispose();
-      reset();
-    };
+      reset()
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [setCanvas, setTotalCost]);
+  }, [])
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] min-h-screen">
