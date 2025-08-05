@@ -32,7 +32,18 @@ const Footer = () => {
                   Terms & Conditions
                 </Link>
               </li>
+              <li>
+                <Link href="/privacy-policy" className="text-gray-400 hover:text-white">
+                  Privacy Policy
+                </Link>
+              </li>
             </ul>
+          </div>
+          <div>
+            <h3 className="font-bold text-lg mb-4">Contact Us</h3>
+            <p className="text-gray-400">Email: yebrahim086@gmail.com</p>
+            <p className="text-gray-400">Phone Number: +201204167144</p>
+            <p className="text-gray-400">Address: Victoria Alexandria Egypt</p>
           </div>
         </div>
         <div className="text-center text-gray-500 mt-8 pt-8 border-t border-gray-700">
