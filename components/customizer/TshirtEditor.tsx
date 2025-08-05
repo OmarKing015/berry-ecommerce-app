@@ -47,7 +47,7 @@ export default function TshirtEditor() {
                 className="absolute inset-0"
               >
                 <Image
-                  src={shirtImageUrl || TSHIRT_IMAGES[shirtStyle]}
+                  src={shirtImageUrl || slim}
                   data-ai-hint={`${shirtStyle} t-shirt`}
                   alt={`${shirtStyle} t-shirt`}
                   fill
