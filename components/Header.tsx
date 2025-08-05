@@ -201,7 +201,7 @@ function Header() {
             </Link>{" "}
             
             {/* Design Control */}{" "}
-            <Protect fallback={<OrganizationSwitcher/>} role="admin">
+            <Protect role="admin">
             <DropdownMenu>
               <DropdownMenuTrigger>
                 <p className="relative flex items-center space-x-2 bg-black hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200">
@@ -238,10 +238,9 @@ function Header() {
             <ClerkLoaded>
               {" "}
               {user ? (
-                // <UserButton />
-                <OrganizationSwitcher/>
+                <UserButton />
               ) : (
-                <SignInButton />
+                <SignInButton mode="modal" />
               )}{" "}
             </ClerkLoaded>{" "}
             {/* Mobile Menu Toggle */}{" "}
