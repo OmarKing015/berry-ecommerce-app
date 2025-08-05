@@ -1,6 +1,6 @@
 "use client";
 import type React from "react";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { fabric } from "fabric";
 import {
   Trash2,
@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/tooltip";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import { useAppContext } from "@/context/context";
 import { costEngine } from "@/lib/costEngine";
 import TshirtStylePanel from "./panels/TshirtStylePanel";
 import TextStylePanel from "./panels/TextStylePanel";
@@ -39,17 +38,7 @@ export default function Toolbar() {
     setSelectedColor,
   } = useEditorStore();
 
-  const { setExtraCost } = useAppContext();
   const uploadInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (canvas) {
-      const { totalCost: calculatedTotalCost, extraCost: calculatedExtraCost } =
-        costEngine.calculate(canvas.getObjects());
-      useEditorStore.getState().setTotalCost(calculatedTotalCost);
-      setExtraCost(calculatedExtraCost);
-    }
-  }, [canvas, setExtraCost]);
 
   const deleteActiveObject = () => {
     if (!canvas) return;

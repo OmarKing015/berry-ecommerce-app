@@ -18,7 +18,7 @@ async function BlackFridayBanner() {
           </div>
 
           {/* Content */}
-          <div className="relative container mx-auto">
+          <div className="relative">
             <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
               {/* Left Content */}
               <div className="flex-1 text-center lg:text-left">

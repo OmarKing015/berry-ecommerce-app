@@ -5,7 +5,6 @@ import { useToast } from "@/components/customizer/use-toast";
 import { useEditorStore } from "@/store/editorStore";
 import useBasketStore from "@/store/store";
 import { getProductBySlug } from "@/sanity/lib/products/getProductBySlug";
-import { useAppContext } from "@/context/context";
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 import { useState } from "react";
@@ -13,9 +12,8 @@ import JSZip from "jszip";
 
 export default function ActionsPanel() {
   const { toast } = useToast();
-  const { canvas, totalCost, shirtStyle } = useEditorStore();
+  const { canvas, totalCost, shirtStyle, extraCost } = useEditorStore();
   const { addItem } = useBasketStore();
-  const { setZipedFile, extraCost } = useAppContext();
   const [isProcessing, setIsProcessing] = useState(false);
 
   const orderNow = async () => {

@@ -19,6 +19,8 @@ export interface EditorState {
   setSelectedColorSwatch: (colorSwatch: ColorSwatch) => void;
   totalCost: number;
   setTotalCost: (cost: number) => void;
+  extraCost: number;
+  setExtraCost: (cost: number) => void;
 
   history: string[];
   setHistory: (history: string[]) => void;
@@ -63,9 +65,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       'object:modified': get().saveCanvasState,
       'object:removed': get().saveCanvasState,
       'after:render': () => {
-        const { totalCost } = costEngine.calculate(canvas.getObjects());
+        const { totalCost, extraCost } = costEngine.calculate(canvas.getObjects());
         if (totalCost !== get().totalCost) {
-          set({ totalCost: totalCost });
+          set({ totalCost: totalCost, extraCost: extraCost });
         }
       },
     });
@@ -79,6 +81,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   setSelectedColorSwatch: (colorSwatch: ColorSwatch) => set({ selectedColorSwatch: colorSwatch }),
   totalCost: 6.00, // Initial base cost
   setTotalCost: (cost) => set({ totalCost: cost }),
+  extraCost: 0,
+  setExtraCost: (cost) => set({ extraCost: cost }),
 
   // New state implementation
   selectedFont: "Inter",
