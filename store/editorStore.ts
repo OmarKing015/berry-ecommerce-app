@@ -14,6 +14,7 @@ export interface EditorState {
   canvas: fabric.Canvas | null
   setCanvas: (canvas: fabric.Canvas) => void
   shirtStyle: "slim" | "oversized"
+  setShirtStyle: (style: "slim" | "oversized") => void
   toggleShirtStyle: () => void
   shirtImageUrl: string | null
   setShirtImageUrl: (url: string) => void
@@ -107,6 +108,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     })
   },
 
+  setShirtStyle: (style) => set({ shirtStyle: style }),
   toggleShirtStyle: () =>
     set((state) => ({
       shirtStyle: state.shirtStyle === "slim" ? "oversized" : "slim",
