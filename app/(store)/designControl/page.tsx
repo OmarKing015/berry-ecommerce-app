@@ -414,7 +414,7 @@ export default function DesignControlPage() {
                             className="object-contain aspect-square rounded"
                           />
                         </div>
-                        <h4 className="font-medium text-sm">{swatch.name}</h4>
+                        <h4 className="font-medium text-sm">{swatch.name} <strong>{swatch.style}</strong> </h4>
                         <Button
                           size="sm"
                           variant="destructive"
