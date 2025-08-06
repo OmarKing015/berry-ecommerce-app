@@ -32,10 +32,10 @@ export default function TshirtEditor() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-muted/20">
+    <div className="flex flex-col h-screen bg-muted/20">
       <Toolbar />
-      <div className="flex flex-col items-center justify-center p-4 md:p-8 relative h-full">
-        <Card className="relative w-full max-w-[500px]    aspect-square bg-transparent overflow-hidden  rounded-2xl">
+      <div className="flex-grow flex items-center justify-center p-4 md:p-8 relative">
+        <Card className="relative w-full max-w-[500px] aspect-square bg-transparent overflow-hidden rounded-2xl">
           <AnimatePresence mode="wait">
             <motion.div
               key={shirtStyle}
@@ -60,8 +60,8 @@ export default function TshirtEditor() {
             <CanvasWrapper />
           </div>
         </Card>
-        <FooterActions />
       </div>
+      <FooterActions />
     </div>
   );
 }

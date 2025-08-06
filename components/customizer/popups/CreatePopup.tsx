@@ -24,7 +24,7 @@ const CreatePopup = ({ onClose }: CreatePopupProps) => {
       initial={{ opacity: 0, x: 100 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 100 }}
-      className="absolute top-0 right-16 h-full w-80 bg-background/90 backdrop-blur-lg border-l border-border/50 z-20 p-6 flex flex-col"
+      className="fixed top-0 right-0 h-full w-80 bg-background/90 backdrop-blur-lg border-l border-border/50 z-20 p-6 flex flex-col"
     >
       <div className="flex-grow overflow-y-auto space-y-4">
         <h2 className="text-xl font-bold mb-4">Generate with AI</h2>

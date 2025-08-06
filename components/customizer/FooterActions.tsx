@@ -5,7 +5,7 @@ import { useEditorStore } from "@/store/editorStore";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Sparkles, Loader2, Undo, Redo } from "lucide-react";
 import { motion } from "framer-motion";
 import CostSummary from "./CostSummay";
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
@@ -13,7 +13,7 @@ import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 const SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
 
 const FooterActions = () => {
-  const { addToBasket } = useEditorStore();
+  const { addToBasket, undo, redo, canUndo, canRedo } = useEditorStore();
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -25,9 +25,17 @@ const FooterActions = () => {
   };
 
   return (
-    <div className="absolute bottom-4 right-4 left-4 lg:left-auto bg-background/80 backdrop-blur-md border border-border/50 rounded-lg shadow-lg p-4 flex flex-col lg:flex-row items-center gap-4">
+    <div className="w-full bg-background/80 backdrop-blur-md border-t border-border/50 shadow-lg p-4 flex flex-col lg:flex-row items-center gap-4">
       <div className="flex-grow w-full lg:w-auto">
         <CostSummary />
+      </div>
+      <div className="flex items-center gap-2">
+        <Button variant="outline" onClick={undo} disabled={!canUndo}>
+          <Undo className="h-4 w-4" />
+        </Button>
+        <Button variant="outline" onClick={redo} disabled={!canRedo}>
+          <Redo className="h-4 w-4" />
+        </Button>
       </div>
       <div className="flex items-center gap-4">
         <Label className="text-sm font-medium">Size:</Label>
