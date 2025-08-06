@@ -10,7 +10,7 @@ import { useEditorStore } from "../../store/editorStore";
 
 import CanvasWrapper from "./CanvasWraper";
 import Toolbar from "./Toolbar";
-import CostSummary from "./CostSummay";
+import FooterActions from "./FooterActions";
 import { Card } from "../ui/card";
 import slim from "@/public/public/slimMock.png";
 import oversize from "@/public/public/oversizeMock.png"
@@ -32,9 +32,9 @@ export default function TshirtEditor() {
   }, [])
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] min-h-screen">
+    <div className="min-h-screen bg-muted/20">
       <Toolbar />
-      <div className="flex flex-col items-center justify-center p-4 md:p-8 bg-muted/20 relative">
+      <div className="flex flex-col items-center justify-center p-4 md:p-8 relative h-full">
         <Card className="relative w-full max-w-[500px]    aspect-square bg-transparent overflow-hidden  rounded-2xl">
           <AnimatePresence mode="wait">
             <motion.div
@@ -60,7 +60,7 @@ export default function TshirtEditor() {
             <CanvasWrapper />
           </div>
         </Card>
-        <CostSummary />
+        <FooterActions />
       </div>
     </div>
   );
