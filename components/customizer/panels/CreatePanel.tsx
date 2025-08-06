@@ -123,9 +123,9 @@ export function CreatePanel({ onClose }: CreatePanelProps) {
               transition={{ delay: index * 0.05 }}
               className="contents"
             >
-              <RadioGroupItem value={size} id={`size-${size}`} className="sr-only" />
+              <RadioGroupItem value={size} id={`mobile-size-${size}`} className="sr-only" />
               <Label
-                htmlFor={`size-${size}`}
+                htmlFor={`mobile-size-${size}`}
                 className={`cursor-pointer rounded-2xl border-2 text-center py-4 font-bold text-lg transition-all duration-300 hover:scale-105 ${
                   selectedSize === size
                     ? "border-pink-500 bg-gradient-to-br from-pink-50 to-pink-100 text-pink-700 shadow-lg"
