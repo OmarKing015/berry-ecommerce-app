@@ -706,7 +706,7 @@ export default function Toolbar() {
       <motion.aside
         initial={{ opacity: 0, x: -50 }}
         animate={{ opacity: 1, x: 0 }}
-        className="w-full lg:w-80 bg-gradient-to-br from-background via-background/95 to-background/90 backdrop-blur-xl border-r border-border/50 p-6 flex flex-col gap-6 items-center justify-center"
+        className="w-full lg:w-80 h-full bg-gradient-to-br from-background via-background/95 to-background/90 backdrop-blur-xl border-r border-border/50 p-6 flex flex-col gap-6 items-center justify-center"
       >
         <div className="relative">
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary/20 border-t-primary" />
@@ -1420,11 +1420,11 @@ export default function Toolbar() {
                   >
                     <RadioGroupItem
                       value={size}
-                      id={`desktop-size-${size}`}
+                      id={`size-${size}`}
                       className="sr-only"
                     />
                     <Label
-                      htmlFor={`desktop-size-${size}`}
+                      htmlFor={`size-${size}`}
                       className={`cursor-pointer rounded-lg border-2 transition-all duration-300 flex items-center justify-center py-2 text-sm font-semibold hover:scale-105 min-h-[2.5rem] ${
                         selectedSize === size
                           ? "border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/25"
