@@ -14,6 +14,10 @@ import {
   Zap,
   Heart,
   Star,
+  ChevronDown,
+  ImageIcon,
+  X,
+  Menu,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEditorStore } from "../../store/editorStore";
@@ -47,7 +51,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { ChevronDown, ImageIcon } from "lucide-react";
+import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 interface TEMPLATE_LOGOS_TYPE {
   _id: string;
@@ -163,22 +168,14 @@ export default function Toolbar() {
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const [colorSwatches, setColorSwatches] = useState<ColorSwatch[]>([]);
-  const [selectedStyle, setSelectedStyle] = useState<"slim" | "oversized">(
-    "slim"
-  );
-  const [imageLoading, setImageLoading] = useState<{ [key: string]: boolean }>(
-    {}
-  );
-  const [templateLogoLoading, setTemplateLogoLoading] = useState<{
-    [key: string]: boolean;
-  }>({});
+  const [selectedStyle, setSelectedStyle] = useState<"slim" | "oversized">("slim");
+  const [imageLoading, setImageLoading] = useState<{ [key: string]: boolean }>({});
+  const [templateLogoLoading, setTemplateLogoLoading] = useState<{ [key: string]: boolean }>({});
   const [isUploadingCustomImage, setIsUploadingCustomImage] = useState(false);
   const [isFetchingInitialData, setIsFetchingInitialData] = useState(true);
-
-  // Add this state for popover controls
-  const [logoPopoverOpen, setLogoPopoverOpen] = useState(false);
-  const [colorPopoverOpen, setColorPopoverOpen] = useState(false);
-  const [customColorValue, setCustomColorValue] = useState("#000000");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeMobileTab, setActiveMobileTab] = useState<string | null>(null);
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -369,7 +366,7 @@ export default function Toolbar() {
       });
     });
   };
-  // Helper function to generate individual element images
+
   const generateElementImages = async (): Promise<
     { name: string; blob: Blob }[]
   > => {
@@ -377,18 +374,13 @@ export default function Toolbar() {
 
     const elements: { name: string; blob: Blob }[] = [];
     const objects = canvas.getObjects();
-    console.log(`Found ${objects.length} objects on canvas`);
 
     for (let i = 0; i < objects.length; i++) {
       const obj = objects[i];
-      console.log(`Processing object ${i}:`, obj.type, obj);
-
       try {
-        // Get object bounds
         const bounds = obj.getBoundingRect();
-        const padding = 20; // Add some padding around the object
+        const padding = 20;
 
-        // Create a temporary canvas with proper dimensions
         const tempCanvasElement = document.createElement("canvas");
         tempCanvasElement.width = bounds.width + padding * 2;
         tempCanvasElement.height = bounds.height + padding * 2;
@@ -399,7 +391,6 @@ export default function Toolbar() {
           backgroundColor: "transparent",
         });
 
-        // Clone the object
         const clonedObj = await new Promise<fabric.Object>(
           (resolve, reject) => {
             obj.clone((cloned: fabric.Object) => {
@@ -412,38 +403,24 @@ export default function Toolbar() {
           }
         );
 
-        // Position the cloned object in the center of the temp canvas
         clonedObj.set({
           left: padding,
           top: padding,
         });
 
-        // Add the object to temp canvas
         tempCanvas.add(clonedObj);
-
-        // Wait for rendering to complete
         await waitForCanvasRender(tempCanvas);
 
-        // Generate image with white background for better visibility
         const dataURL = tempCanvas.toDataURL({
           format: "png",
           quality: 1,
-          multiplier: 2, // Higher resolution
+          multiplier: 2,
           enableRetinaScaling: false,
         });
 
-        console.log(
-          `Generated dataURL for object ${i}:`,
-          dataURL.substring(0, 100) + "..."
-        );
-
         const blob = dataURLtoBlob(dataURL);
+        let elementName = `${obj.type || "element"}_${i + 1}`;
 
-        // @ts-ignore
-        const elementType = obj.type || "element";
-        let elementName = `${elementType}_${i + 1}`;
-
-        // For text objects, use the actual text as name
         if (obj.type === "i-text" || obj.type === "text") {
           // @ts-ignore
           const textContent = obj.text || "text";
@@ -457,27 +434,24 @@ export default function Toolbar() {
           blob,
         });
 
-        // Clean up temp canvas
         tempCanvas.dispose();
       } catch (error) {
         console.error(`Error processing object ${i}:`, error);
       }
     }
 
-    console.log(`Generated ${elements.length} element images`);
     return elements;
   };
+
   const generateFullDesign = async (
     imageUrl: string,
     canvas: fabric.Canvas
   ): Promise<Blob> => {
     return new Promise((resolve, reject) => {
       try {
-        // Get the actual canvas dimensions from the user's canvas
         const canvasWidth = canvas.getWidth();
         const canvasHeight = canvas.getHeight();
 
-        // Use the same dimensions as the user's canvas for consistency
         const tempCanvas = new fabric.StaticCanvas(null, {
           width: canvasWidth,
           height: canvasHeight,
@@ -492,15 +466,10 @@ export default function Toolbar() {
             }
 
             try {
-              // Get the actual image dimensions
               const imgWidth = bgImg.width || canvasWidth;
               const imgHeight = bgImg.height || canvasHeight;
-
-              // Calculate scale to fit the canvas while maintaining aspect ratio
               const scaleX = canvasWidth / imgWidth;
               const scaleY = canvasHeight / imgHeight;
-
-              // Use the smaller scale to ensure the entire image fits
               const scale = Math.min(scaleX, scaleY);
 
               tempCanvas.setBackgroundImage(
@@ -509,7 +478,6 @@ export default function Toolbar() {
                 {
                   scaleX: scale,
                   scaleY: scale,
-                  // Center the image if it doesn't fill the entire canvas
                   left: (canvasWidth - imgWidth * scale) / 2,
                   top: (canvasHeight - imgHeight * scale) / 2,
                 }
@@ -543,11 +511,10 @@ export default function Toolbar() {
 
                     tempCanvas.renderAll();
 
-                    // Generate image with higher quality but maintain actual canvas proportions
                     const dataURL = tempCanvas.toDataURL({
                       format: "png",
                       quality: 1,
-                      multiplier: 2, // This creates a 2x resolution image for better quality
+                      multiplier: 2,
                       enableRetinaScaling: true,
                     });
 
@@ -574,7 +541,6 @@ export default function Toolbar() {
     });
   };
 
-  // Also update the design info to reflect actual canvas dimensions
   const handleAddToBasket = async () => {
     if (!selectedSize) {
       toast({
@@ -626,7 +592,6 @@ export default function Toolbar() {
         });
       }
 
-      // Get actual canvas dimensions for the design info
       const actualCanvasWidth = canvas.getWidth();
       const actualCanvasHeight = canvas.getHeight();
 
@@ -701,6 +666,7 @@ export default function Toolbar() {
       setIsLoading(false);
     }
   };
+
   if (isFetchingInitialData) {
     return (
       <motion.aside
@@ -724,736 +690,406 @@ export default function Toolbar() {
     );
   }
 
-  return (
-    <TooltipProvider>
-      <motion.aside
-        initial={{ opacity: 0, x: -50 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        className="w-full lg:w-80 min-w-0 max-w-80 bg-gradient-to-br from-background via-background/95 to-background/90 backdrop-blur-xl border-r border-border/50 flex flex-col overflow-hidden"
-      >
-        {/* Scrollable Content Container */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 space-y-6">
-          {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-center space-y-2 flex-shrink-0"
-          >
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
-              Design Studio
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Unleash your creativity
-            </p>
-          </motion.div>
+  // Mobile Toolbar Icons
+  const MobileToolbar = () => (
+    <div className="lg:hidden fixed bottom-4 left-0 right-0 flex justify-center z-20">
+      <div className="bg-background/90 backdrop-blur-lg border border-border rounded-full shadow-xl p-2 flex items-center gap-2">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="rounded-full h-10 w-10"
+            >
+              {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>{mobileMenuOpen ? "Close Menu" : "Open Menu"}</p>
+          </TooltipContent>
+        </Tooltip>
 
-          {/* Style Selection */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="space-y-4 flex-shrink-0"
-          >
-            <div className="flex items-center gap-2">
-              <Zap className="h-4 w-4 text-primary" />
-              <h2 className="font-semibold text-sm text-foreground">Style</h2>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <Button
-                variant={selectedStyle === "slim" ? "default" : "outline"}
-                onClick={() => setSelectedStyle("slim")}
-                className="relative overflow-hidden group transition-all duration-300 h-10"
-              >
-                <span className="relative z-10">Slim Fit</span>
-                {selectedStyle === "slim" && (
-                  <motion.div
-                    layoutId="style-indicator"
-                    className="absolute inset-0 bg-gradient-to-r from-primary to-primary/80"
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                  />
-                )}
-              </Button>
-              <Button
-                variant={selectedStyle === "oversized" ? "default" : "outline"}
-                onClick={() => setSelectedStyle("oversized")}
-                className="relative overflow-hidden group transition-all duration-300 h-10"
-              >
-                <span className="relative z-10">Oversized</span>
-                {selectedStyle === "oversized" && (
-                  <motion.div
-                    layoutId="style-indicator"
-                    className="absolute inset-0 bg-gradient-to-r from-primary to-primary/80"
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                  />
-                )}
-              </Button>
-            </div>
-          </motion.div>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setActiveMobileTab("text")}
+              className={`rounded-full h-10 w-10 ${activeMobileTab === "text" ? "bg-primary/10 text-primary" : ""}`}
+            >
+              <Type size={18} />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>Add Text</p>
+          </TooltipContent>
+        </Tooltip>
 
-          {/* Color Selection */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="space-y-4 flex-shrink-0"
-          >
-            <div className="flex items-center gap-2">
-              <Palette className="h-4 w-4 text-primary" />
-              <h2 className="font-semibold text-sm text-foreground">Colors</h2>
-            </div>
-            <div className="flex grid-cols-4 gap-3">
-              <AnimatePresence mode="wait">
-                {filteredColorSwatches.map((swatch, index) => (
-                  <motion.div
-                    key={swatch._id}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.8 }}
-                    transition={{ delay: index * 0.05 }}
-                    className="relative group"
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setActiveMobileTab("logo")}
+              className={`rounded-full h-10 w-10 ${activeMobileTab === "logo" ? "bg-primary/10 text-primary" : ""}`}
+            >
+              <ImagePlus size={18} />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>Add Logo</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={deleteActiveObject}
+              className="rounded-full h-10 w-10 text-red-500 hover:bg-red-500/10"
+            >
+              <Trash2 size={18} />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>Delete Selected</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setActiveMobileTab("colors")}
+              className={`rounded-full h-10 w-10 ${activeMobileTab === "colors" ? "bg-primary/10 text-primary" : ""}`}
+            >
+              <Palette size={18} />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>Colors</p>
+          </TooltipContent>
+        </Tooltip>
+      </div>
+    </div>
+  );
+
+  // Mobile Drawer Content
+  const MobileDrawerContent = () => (
+    <DrawerContent className="max-h-[80vh]">
+      <div className="p-4 overflow-y-auto">
+        {activeMobileTab === "text" && (
+          <div className="space-y-4">
+            <h3 className="font-semibold text-lg flex items-center gap-2">
+              <Type size={18} /> Text Options
+            </h3>
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label htmlFor="mobile-text-input" className="text-sm font-medium">
+                  Text Content
+                </Label>
+                <input
+                  id="mobile-text-input"
+                  type="text"
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-border bg-background/50 backdrop-blur-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300 text-sm"
+                  placeholder="Enter your creative text..."
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-2 rounded-xl bg-muted/30">
+                <Label htmlFor="mobile-language-toggle" className="text-xs font-medium">
+                  English
+                </Label>
+                <Switch
+                  id="mobile-language-toggle"
+                  checked={isArabic}
+                  onCheckedChange={setIsArabic}
+                  className="data-[state=checked]:bg-primary scale-75"
+                />
+                <Label htmlFor="mobile-language-toggle" className="text-xs font-medium">
+                  العربية
+                </Label>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="mobile-font-select" className="text-sm font-medium">
+                  Font Family
+                </Label>
+                <Select value={selectedFont} onValueChange={changeFont}>
+                  <SelectTrigger
+                    id="mobile-font-select"
+                    className="rounded-xl border-border bg-background/50 backdrop-blur-sm h-9 text-sm"
                   >
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.95 }}
-                          className={`w-12 h-12 rounded-xl border-2 transition-all duration-300 ${
-                            selectedColor === swatch.hexCode
-                              ? "ring-4 ring-primary/50 border-primary shadow-lg shadow-primary/25"
-                              : "border-border hover:border-primary/50 hover:shadow-md"
+                    <SelectValue placeholder="Choose Font" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-border bg-background/95 backdrop-blur-xl">
+                    {(isArabic ? FONTS.arabic : FONTS.english).map((font) => (
+                      <SelectItem
+                        key={font}
+                        value={font}
+                        className="rounded-lg text-sm"
+                      >
+                        <span style={{ fontFamily: font }} className="font-medium">
+                          {isArabic ? "عربي" : "Aa"}
+                        </span>
+                        <span className="ml-2 text-muted-foreground text-xs">
+                          {font}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Font Color</Label>
+                <div className="grid grid-cols-4 gap-2">
+                  {FONT_COLORS.map((color) => (
+                    <button
+                      key={color.value}
+                      className={`w-full h-10 rounded-lg border-2 transition-all ${
+                        selectedFontColor === color.value
+                          ? "ring-2 ring-primary/50 border-primary shadow-lg"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                      style={{ backgroundColor: color.value }}
+                      onClick={() => changeFontColor(color.value)}
+                    >
+                      {selectedFontColor === color.value && (
+                        <div className="w-full h-full rounded-lg flex items-center justify-center">
+                          <div
+                            className={`w-2 h-2 rounded-full ${
+                              color.value === "#FFFFFF" ? "bg-gray-800" : "bg-white"
+                            }`}
+                          />
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <Button
+                onClick={addText}
+                className="w-full py-2 rounded-xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300 text-sm h-9"
+              >
+                <Type className="mr-2 h-3 w-3" />
+                Add Text to Design
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {activeMobileTab === "logo" && (
+          <div className="space-y-4">
+            <h3 className="font-semibold text-lg flex items-center gap-2">
+              <ImagePlus size={18} /> Logo Options
+            </h3>
+            <div className="space-y-3">
+              <Button
+                variant="outline"
+                onClick={() => uploadInputRef.current?.click()}
+                disabled={isUploadingCustomImage}
+                className="w-full py-2 rounded-xl border-dashed border-2 hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 text-sm h-9"
+              >
+                {isUploadingCustomImage ? (
+                  <div className="flex items-center">
+                    <Loader2 className="animate-spin h-3 w-3 mr-2" />
+                    Uploading...
+                  </div>
+                ) : (
+                  <>
+                    <ImagePlus className="mr-2 h-3 w-3" />
+                    Upload Custom Logo
+                  </>
+                )}
+              </Button>
+
+              <input
+                type="file"
+                accept="image/*"
+                ref={uploadInputRef}
+                onChange={handleImageUpload}
+                className="hidden"
+              />
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <Star className="h-3 w-3 text-primary" />
+                  Template Logos
+                </Label>
+                <div className="grid grid-cols-3 gap-3">
+                  {logos?.map((logo) => (
+                    <button
+                      key={logo._id}
+                      className="w-full aspect-square border-2 border-border rounded-lg p-1 hover:border-primary/50 hover:shadow-lg transition-all duration-300 bg-background/50 backdrop-blur-sm overflow-hidden"
+                      onClick={() => addTemplateLogo(logo.imageUrl, logo._id)}
+                      disabled={templateLogoLoading[logo._id]}
+                    >
+                      <img
+                        src={logo.imageUrl || "/placeholder.svg"}
+                        alt={logo.name}
+                        className="rounded"
+                      />
+                      {templateLogoLoading[logo._id] && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm rounded-lg">
+                          <Loader2 className="animate-spin h-3 w-3 text-primary" />
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeMobileTab === "colors" && (
+          <div className="space-y-4">
+            <h3 className="font-semibold text-lg flex items-center gap-2">
+              <Palette size={18} /> Color Options
+            </h3>
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Zap className="h-4 w-4 text-primary" />
+                <h2 className="font-semibold text-sm text-foreground">Style</h2>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  variant={selectedStyle === "slim" ? "default" : "outline"}
+                  onClick={() => setSelectedStyle("slim")}
+                  className="h-10"
+                >
+                  Slim Fit
+                </Button>
+                <Button
+                  variant={selectedStyle === "oversized" ? "default" : "outline"}
+                  onClick={() => setSelectedStyle("oversized")}
+                  className="h-10"
+                >
+                  Oversized
+                </Button>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Palette className="h-4 w-4 text-primary" />
+                <h2 className="font-semibold text-sm text-foreground">Colors</h2>
+              </div>
+              <div className="grid grid-cols-4 gap-3">
+                {filteredColorSwatches.map((swatch) => (
+                  <button
+                    key={swatch._id}
+                    className={`w-full h-12 rounded-xl border-2 transition-all ${
+                      selectedColor === swatch.hexCode
+                        ? "ring-2 ring-primary/50 border-primary shadow-lg"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                    style={{ backgroundColor: swatch.hexCode }}
+                    onClick={() => {
+                      if (imageLoading[swatch._id]) return;
+                      setImageLoading((prev) => ({ ...prev, [swatch._id]: true }));
+                      const img = new Image();
+                      img.onload = () => {
+                        updateShirtColor(swatch.hexCode);
+                        setShirtImageUrl(swatch.imageUrl);
+                        setImageLoading((prev) => ({ ...prev, [swatch._id]: false }));
+                      };
+                      img.onerror = () => {
+                        toast({
+                          title: "Image Load Error",
+                          description: `Failed to load ${swatch.name} color`,
+                          variant: "destructive",
+                        });
+                        setImageLoading((prev) => ({ ...prev, [swatch._id]: false }));
+                      };
+                      img.src = swatch.imageUrl;
+                    }}
+                    disabled={imageLoading[swatch._id]}
+                  >
+                    {selectedColor === swatch.hexCode && (
+                      <div className="w-full h-full rounded-xl flex items-center justify-center">
+                        <div
+                          className={`w-3 h-3 rounded-full ${
+                            swatch.hexCode === "#FFFFFF" ? "bg-gray-800" : "bg-white"
                           }`}
-                          style={{ backgroundColor: swatch.hexCode }}
-                          onClick={() => {
-                            if (imageLoading[swatch._id]) return;
-                            setImageLoading((prev) => ({
-                              ...prev,
-                              [swatch._id]: true,
-                            }));
-                            const img = new Image();
-                            img.onload = () => {
-                              updateShirtColor(swatch.hexCode);
-                              setShirtImageUrl(swatch.imageUrl);
-                              setImageLoading((prev) => ({
-                                ...prev,
-                                [swatch._id]: false,
-                              }));
-                            };
-                            img.onerror = () => {
-                              toast({
-                                title: "Image Load Error",
-                                description: `Failed to load ${swatch.name} color`,
-                                variant: "destructive",
-                              });
-                              setImageLoading((prev) => ({
-                                ...prev,
-                                [swatch._id]: false,
-                              }));
-                            };
-                            img.src = swatch.imageUrl;
-                          }}
-                          disabled={imageLoading[swatch._id]}
-                        >
-                          {selectedColor === swatch.hexCode && (
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              className="w-full h-full rounded-xl flex items-center justify-center"
-                            >
-                              <div
-                                className={`w-3 h-3 rounded-full ${
-                                  swatch.hexCode === "#FFFFFF"
-                                    ? "bg-gray-800"
-                                    : "bg-white"
-                                }`}
-                              />
-                            </motion.div>
-                          )}
-                        </motion.button>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom">
-                        <p className="font-medium">{swatch.name}</p>
-                      </TooltipContent>
-                    </Tooltip>
+                        />
+                      </div>
+                    )}
                     {imageLoading[swatch._id] && (
                       <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm rounded-xl">
                         <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary/30 border-t-primary" />
                       </div>
                     )}
-                  </motion.div>
+                  </button>
                 ))}
-              </AnimatePresence>
-            </div>
-          </motion.div>
-
-          <Separator className="bg-gradient-to-r from-transparent via-border to-transparent flex-shrink-0" />
-
-          {/* Customize Section */}
-          <fieldset
-            disabled={!shirtImageUrl}
-            className="space-y-6 flex-shrink-0"
-          >
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="space-y-4"
-            >
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-primary" />
-                <h2 className="font-semibold text-sm text-foreground">
-                  Customize
-                </h2>
               </div>
-
-              {!shirtImageUrl && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="p-4 rounded-xl bg-muted/50 border border-dashed border-muted-foreground/30"
-                >
-                  <p className="text-sm text-muted-foreground text-center">
-                    Select a color above to start designing your masterpiece
-                  </p>
-                </motion.div>
-              )}
-
-              <Tabs defaultValue="text" className="w-full">
-                <TabsList className="grid grid-cols-2 bg-muted/50 p-1 rounded-xl h-10">
-                  <TabsTrigger
-                    value="text"
-                    className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs"
-                  >
-                    <Type className="h-3 w-3 mr-1" />
-                    Text
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="logo"
-                    className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs"
-                  >
-                    <ImagePlus className="h-3 w-3 mr-1" />
-                    Logo
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="text" className="space-y-4 mt-4">
-                  <div className="space-y-3">
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="text-input"
-                        className="text-sm font-medium"
-                      >
-                        Text Content
-                      </Label>
-                      <motion.input
-                        whileFocus={{ scale: 1.02 }}
-                        id="text-input"
-                        type="text"
-                        value={text}
-                        onChange={(e) => setText(e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl border border-border bg-background/50 backdrop-blur-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300 text-sm"
-                        placeholder="Enter your creative text..."
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between p-2 rounded-xl bg-muted/30">
-                      <Label
-                        htmlFor="language-toggle"
-                        className="text-xs font-medium"
-                      >
-                        English
-                      </Label>
-                      <Switch
-                        id="language-toggle"
-                        checked={isArabic}
-                        onCheckedChange={setIsArabic}
-                        className="data-[state=checked]:bg-primary scale-75"
-                      />
-                      <Label
-                        htmlFor="language-toggle"
-                        className="text-xs font-medium"
-                      >
-                        العربية
-                      </Label>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="font-select"
-                        className="text-sm font-medium"
-                      >
-                        Font Family
-                      </Label>
-                      <Select value={selectedFont} onValueChange={changeFont}>
-                        <SelectTrigger
-                          id="font-select"
-                          className="rounded-xl border-border bg-background/50 backdrop-blur-sm h-9 text-sm"
-                        >
-                          <SelectValue placeholder="Choose Font" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-xl border-border bg-background/95 backdrop-blur-xl">
-                          {(isArabic ? FONTS.arabic : FONTS.english).map(
-                            (font) => (
-                              <SelectItem
-                                key={font}
-                                value={font}
-                                className="rounded-lg text-sm"
-                              >
-                                <span
-                                  style={{ fontFamily: font }}
-                                  className="font-medium"
-                                >
-                                  {isArabic ? "عربي" : "Aa"}
-                                </span>
-                                <span className="ml-2 text-muted-foreground text-xs">
-                                  {font}
-                                </span>
-                              </SelectItem>
-                            )
-                          )}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Enhanced Font Color Picker with Popover */}
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">Font Color</Label>
-                      <Popover
-                        open={colorPopoverOpen}
-                        onOpenChange={setColorPopoverOpen}
-                      >
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="w-full justify-between rounded-xl border-border bg-background/50 backdrop-blur-sm h-10 px-3"
-                          >
-                            <div className="flex items-center gap-2">
-                              <div
-                                className="w-4 h-4 rounded border border-border"
-                                style={{ backgroundColor: selectedFontColor }}
-                              />
-                              <span className="text-sm">
-                                {FONT_COLORS.find(
-                                  (c) => c.value === selectedFontColor
-                                )?.name || "Custom"}
-                              </span>
-                            </div>
-                            <ChevronDown className="h-4 w-4 opacity-50" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-64 p-4 rounded-xl border-border bg-background/95 backdrop-blur-xl">
-                          <div className="space-y-4">
-                            <div>
-                              <Label className="text-sm font-medium mb-2 block">
-                                Preset Colors
-                              </Label>
-                              <div className="grid grid-cols-4 gap-2">
-                                {FONT_COLORS.map((color, index) => (
-                                  <Tooltip key={color.value}>
-                                    <TooltipTrigger asChild>
-                                      <motion.button
-                                        whileHover={{ scale: 1.1 }}
-                                        whileTap={{ scale: 0.9 }}
-                                        className={`w-10 h-10 rounded-lg border-2 transition-all duration-300 ${
-                                          selectedFontColor === color.value
-                                            ? `ring-2 ${color.ring} border-current shadow-lg`
-                                            : "border-border hover:border-primary/50"
-                                        }`}
-                                        style={{ backgroundColor: color.value }}
-                                        onClick={() => {
-                                          changeFontColor(color.value);
-                                          setCustomColorValue(color.value);
-                                          setColorPopoverOpen(false);
-                                        }}
-                                      >
-                                        {selectedFontColor === color.value && (
-                                          <motion.div
-                                            initial={{ scale: 0 }}
-                                            animate={{ scale: 1 }}
-                                            className="w-full h-full rounded-lg flex items-center justify-center"
-                                          >
-                                            <div
-                                              className={`w-2 h-2 rounded-full ${
-                                                color.value === "#FFFFFF"
-                                                  ? "bg-gray-800"
-                                                  : "bg-white"
-                                              }`}
-                                            />
-                                          </motion.div>
-                                        )}
-                                      </motion.button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p className="font-medium">
-                                        {color.name}
-                                      </p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                ))}
-                              </div>
-                            </div>
-
-                            <Separator />
-
-                            <div>
-                              <Label className="text-sm font-medium mb-2 block">
-                                Custom Color
-                              </Label>
-                              <div className="flex gap-2">
-                                <input
-                                  type="color"
-                                  value={customColorValue}
-                                  onChange={(e) => {
-                                    setCustomColorValue(e.target.value);
-                                    changeFontColor(e.target.value);
-                                  }}
-                                  className="w-12 h-10 rounded-lg border border-border cursor-pointer bg-transparent"
-                                />
-                                <input
-                                  type="text"
-                                  value={customColorValue}
-                                  onChange={(e) => {
-                                    if (
-                                      /^#[0-9A-F]{6}$/i.test(e.target.value) ||
-                                      e.target.value === ""
-                                    ) {
-                                      setCustomColorValue(e.target.value);
-                                      if (
-                                        /^#[0-9A-F]{6}$/i.test(e.target.value)
-                                      ) {
-                                        changeFontColor(e.target.value);
-                                      }
-                                    }
-                                  }}
-                                  placeholder="#000000"
-                                  className="flex-1 px-3 py-2 rounded-lg border border-border bg-background/50 text-sm font-mono"
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <Button
-                        onClick={addText}
-                        className="w-full py-2 rounded-xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300 text-sm h-9"
-                      >
-                        <Type className="mr-2 h-3 w-3" />
-                        Add Text to Design
-                      </Button>
-                    </motion.div>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="logo" className="space-y-4 mt-4">
-                  <div className="space-y-3">
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <Button
-                        variant="outline"
-                        onClick={() => uploadInputRef.current?.click()}
-                        disabled={isUploadingCustomImage}
-                        className="w-full py-2 rounded-xl border-dashed border-2 hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 text-sm h-9"
-                      >
-                        {isUploadingCustomImage ? (
-                          <div className="flex items-center">
-                            <Loader2 className="animate-spin h-3 w-3 mr-2" />
-                            Uploading...
-                          </div>
-                        ) : (
-                          <>
-                            <ImagePlus className="mr-2 h-3 w-3" />
-                            Upload Custom Logo
-                          </>
-                        )}
-                      </Button>
-                    </motion.div>
-
-                    <input
-                      type="file"
-                      accept="image/*"
-                      ref={uploadInputRef}
-                      onChange={handleImageUpload}
-                      className="hidden"
-                    />
-
-                    {/* Enhanced Template Logos with Popover */}
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium flex items-center gap-2">
-                        <Star className="h-3 w-3 text-primary" />
-                        Template Logos
-                      </Label>
-
-                      <Popover
-                        open={logoPopoverOpen}
-                        onOpenChange={setLogoPopoverOpen}
-                      >
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="w-full justify-between rounded-xl border-border bg-background/50 backdrop-blur-sm h-10 px-3"
-                          >
-                            <div className="flex items-center gap-2">
-                              <ImageIcon className="h-4 w-4" />
-                              <span className="text-sm">
-                                Choose Template Logo
-                              </span>
-                            </div>
-                            <ChevronDown className="h-4 w-4 opacity-50" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-80 p-4 rounded-xl border-border bg-background/95 backdrop-blur-xl">
-                          <div className="space-y-3">
-                            <div className="flex items-center gap-2 mb-3">
-                              <Star className="h-4 w-4 text-primary" />
-                              <h3 className="font-semibold text-sm">
-                                Select a Logo Template
-                              </h3>
-                            </div>
-
-                            <div className="grid grid-cols-4 gap-3 max-h-60 overflow-y-auto">
-                              {logos?.map((logo, index) => (
-                                <motion.div
-                                  key={logo._id}
-                                  initial={{ opacity: 0, scale: 0.8 }}
-                                  animate={{ opacity: 1, scale: 1 }}
-                                  transition={{ delay: index * 0.05 }}
-                                  className="relative group"
-                                >
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <motion.button
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        className="w-full aspect-square border-2 border-border rounded-lg p-1 hover:border-primary/50 hover:shadow-lg transition-all duration-300 bg-background/50 backdrop-blur-sm overflow-hidden"
-                                        onClick={() => {
-                                          addTemplateLogo(
-                                            logo.imageUrl,
-                                            logo._id
-                                          );
-                                          setLogoPopoverOpen(false);
-                                        }}
-                                        disabled={templateLogoLoading[logo._id]}
-                                      >
-                                        <img
-                                          src={
-                                            logo.imageUrl || "/placeholder.svg"
-                                          }
-                                          alt={logo.name}
-                                          className=" rounded"
-                                          onError={(e) => {
-                                            const target =
-                                              e.target as HTMLImageElement;
-                                            target.src = "/placeholder.svg";
-                                          }}
-                                        />
-                                      </motion.button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p className="font-medium">{logo.name}</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                  {templateLogoLoading[logo._id] && (
-                                    <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm rounded-lg">
-                                      <Loader2 className="animate-spin h-3 w-3 text-primary" />
-                                    </div>
-                                  )}
-                                </motion.div>
-                              ))}
-                            </div>
-
-                            {logos?.length === 0 && (
-                              <div className="text-center py-8 text-muted-foreground">
-                                <ImageIcon className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                                <p className="text-sm">
-                                  No template logos available
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  </div>
-                </TabsContent>
-                {/* <TabsContent value="logo" className="space-y-4 mt-4">
-                  <div className="space-y-3">
-                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                      <Button
-                        variant="outline"
-                        onClick={() => uploadInputRef.current?.click()}
-                        disabled={isUploadingCustomImage}
-                        className="w-full py-2 rounded-xl border-dashed border-2 hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 text-sm h-9"
-                      >
-                        {isUploadingCustomImage ? (
-                          <div className="flex items-center">
-                            <Loader2 className="animate-spin h-3 w-3 mr-2" />
-                            Uploading...
-                          </div>
-                        ) : (
-                          <>
-                            <ImagePlus className="mr-2 h-3 w-3" />
-                            Upload Custom Logo
-                          </>
-                        )}
-                      </Button>
-                    </motion.div>
-
-                    <input
-                      type="file"
-                      accept="image/*"
-                      ref={uploadInputRef}
-                      onChange={handleImageUpload}
-                      className="hidden"
-                    />
-
-
-                  </div>
-                </TabsContent> */}
-              </Tabs>
-
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Button
-                  variant="destructive"
-                  onClick={deleteActiveObject}
-                  className="w-full py-2 rounded-xl bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl transition-all duration-300 text-sm h-9"
-                >
-                  <Trash2 className="mr-2 h-3 w-3" />
-                  Delete Selected
-                </Button>
-              </motion.div>
-            </motion.div>
-          </fieldset>
-
-          <Separator className="bg-gradient-to-r from-transparent via-border to-transparent flex-shrink-0" />
-
-          {/* History Controls */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="space-y-4 flex-shrink-0"
-          >
-            <div className="flex items-center gap-2">
-              <Heart className="h-4 w-4 text-primary" />
-              <h2 className="font-semibold text-sm text-foreground">History</h2>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Button
-                      variant="outline"
-                      onClick={undo}
-                      disabled={!canUndo || !shirtImageUrl}
-                      className="w-full py-2 rounded-xl border-border hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 disabled:opacity-50 bg-transparent h-9"
-                    >
-                      <Undo className="h-3 w-3" />
-                    </Button>
-                  </motion.div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Undo Last Action</p>
-                </TooltipContent>
-              </Tooltip>
+          </div>
+        )}
 
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Button
-                      variant="outline"
-                      onClick={redo}
-                      disabled={!canRedo || !shirtImageUrl}
-                      className="w-full py-2 rounded-xl border-border hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 disabled:opacity-50 bg-transparent h-9"
-                    >
-                      <Redo className="h-3 w-3" />
-                    </Button>
-                  </motion.div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Redo Last Action</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-          </motion.div>
-
-          <Separator className="bg-gradient-to-r from-transparent via-border to-transparent flex-shrink-0" />
-
-          {/* Size Selection */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="space-y-3 flex-shrink-0"
-          >
-            <Label className="text-sm font-medium">Select Size</Label>
-            <div className="flex-col grid-cols-3 gap-2 min-h-[2.5rem]">
-              <RadioGroup
-                value={selectedSize ?? ""}
-                onValueChange={setSelectedSize}
-                className="contents"
-              >
-                {SIZES.map((size, index) => (
-                  <motion.div
+        {mobileMenuOpen && (
+          <div className="space-y-4">
+            <h3 className="font-semibold text-lg">Design Options</h3>
+            
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Select Size</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {SIZES.map((size) => (
+                  <button
                     key={size}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: index * 0.05 }}
-                    className="contents"
+                    onClick={() => setSelectedSize(size)}
+                    className={`py-2 rounded-lg border-2 transition-all ${
+                      selectedSize === size
+                        ? "border-primary bg-primary text-primary-foreground shadow-lg"
+                        : "border-border hover:border-primary/50"
+                    }`}
                   >
-                    <RadioGroupItem
-                      value={size}
-                      id={`size-${size}`}
-                      className="sr-only"
-                    />
-                    <Label
-                      htmlFor={`size-${size}`}
-                      className={`cursor-pointer rounded-lg border-2 transition-all duration-300 flex items-center justify-center py-2 text-sm font-semibold hover:scale-105 min-h-[2.5rem] ${
-                        selectedSize === size
-                          ? "border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/25"
-                          : "border-border hover:border-primary/50 hover:bg-primary/5"
-                      }`}
-                    >
-                      {size}
-                    </Label>
-                  </motion.div>
+                    {size}
+                  </button>
                 ))}
-              </RadioGroup>
+              </div>
             </div>
-          </motion.div>
-        </div>
 
-        {/* Fixed Bottom Action Button */}
-        <div className="flex-shrink-0 p-6 pt-4 border-t border-border/50 bg-gradient-to-t from-background/95 to-transparent backdrop-blur-sm">
-          <SignedIn>
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">History</Label>
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={undo}
+                  disabled={!canUndo || !shirtImageUrl}
+                  className="flex-1"
+                >
+                  <Undo className="h-3 w-3 mr-2" />
+                  Undo
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={redo}
+                  disabled={!canRedo || !shirtImageUrl}
+                  className="flex-1"
+                >
+                  <Redo className="h-3 w-3 mr-2" />
+                  Redo
+                </Button>
+              </div>
+            </div>
+
+            <SignedIn>
               <Button
                 onClick={handleAddToBasket}
                 size="lg"
                 disabled={isLoading || !selectedSize}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 shadow-xl hover:shadow-2xl transition-all duration-500 text-base font-semibold disabled:opacity-50 disabled:cursor-not-allowed h-12"
+                className="w-full"
               >
                 {isLoading ? (
                   <div className="flex items-center">
                     <Loader2 className="animate-spin h-4 w-4 mr-2" />
-                    Creating Masterpiece...
+                    Creating...
                   </div>
                 ) : (
                   <div className="flex items-center">
@@ -1462,12 +1098,10 @@ export default function Toolbar() {
                   </div>
                 )}
               </Button>
-            </motion.div>
-          </SignedIn>
+            </SignedIn>
 
-          <SignedOut>
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button className="w-full py-3 rounded-xl bg-gradient-to-r from-primary to-primary/80 shadow-xl hover:shadow-2xl transition-all duration-300 text-base font-semibold h-12">
+            <SignedOut>
+              <Button className="w-full">
                 <SignInButton mode="modal">
                   <span className="flex items-center">
                     <Sparkles className="h-4 w-4 mr-2" />
@@ -1475,10 +1109,474 @@ export default function Toolbar() {
                   </span>
                 </SignInButton>
               </Button>
-            </motion.div>
-          </SignedOut>
-        </div>
-      </motion.aside>
+            </SignedOut>
+          </div>
+        )}
+      </div>
+    </DrawerContent>
+  );
+
+  // Desktop Toolbar
+  const DesktopToolbar = () => (
+    <motion.aside
+      initial={{ opacity: 0, x: -50 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className="hidden lg:flex lg:w-80 min-w-0 max-w-80 bg-gradient-to-br from-background via-background/95 to-background/90 backdrop-blur-xl border-r border-border/50 flex flex-col overflow-hidden"
+    >
+      {/* Scrollable Content Container */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 space-y-6">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="text-center space-y-2 flex-shrink-0"
+        >
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
+            Design Studio
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Unleash your creativity
+          </p>
+        </motion.div>
+
+        {/* Style Selection */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="space-y-4 flex-shrink-0"
+        >
+          <div className="flex items-center gap-2">
+            <Zap className="h-4 w-4 text-primary" />
+            <h2 className="font-semibold text-sm text-foreground">Style</h2>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              variant={selectedStyle === "slim" ? "default" : "outline"}
+              onClick={() => setSelectedStyle("slim")}
+              className="h-10"
+            >
+              Slim Fit
+            </Button>
+            <Button
+              variant={selectedStyle === "oversized" ? "default" : "outline"}
+              onClick={() => setSelectedStyle("oversized")}
+              className="h-10"
+            >
+              Oversized
+            </Button>
+          </div>
+        </motion.div>
+
+        {/* Color Selection */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="space-y-4 flex-shrink-0"
+        >
+          <div className="flex items-center gap-2">
+            <Palette className="h-4 w-4 text-primary" />
+            <h2 className="font-semibold text-sm text-foreground">Colors</h2>
+          </div>
+          <div className="grid grid-cols-4 gap-3">
+            {filteredColorSwatches.map((swatch) => (
+              <Tooltip key={swatch._id}>
+                <TooltipTrigger asChild>
+                  <button
+                    className={`w-full h-12 rounded-xl border-2 transition-all ${
+                      selectedColor === swatch.hexCode
+                        ? "ring-2 ring-primary/50 border-primary shadow-lg"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                    style={{ backgroundColor: swatch.hexCode }}
+                    onClick={() => {
+                      if (imageLoading[swatch._id]) return;
+                      setImageLoading((prev) => ({ ...prev, [swatch._id]: true }));
+                      const img = new Image();
+                      img.onload = () => {
+                        updateShirtColor(swatch.hexCode);
+                        setShirtImageUrl(swatch.imageUrl);
+                        setImageLoading((prev) => ({ ...prev, [swatch._id]: false }));
+                      };
+                      img.onerror = () => {
+                        toast({
+                          title: "Image Load Error",
+                          description: `Failed to load ${swatch.name} color`,
+                          variant: "destructive",
+                        });
+                        setImageLoading((prev) => ({ ...prev, [swatch._id]: false }));
+                      };
+                      img.src = swatch.imageUrl;
+                    }}
+                    disabled={imageLoading[swatch._id]}
+                  >
+                    {selectedColor === swatch.hexCode && (
+                      <div className="w-full h-full rounded-xl flex items-center justify-center">
+                        <div
+                          className={`w-3 h-3 rounded-full ${
+                            swatch.hexCode === "#FFFFFF" ? "bg-gray-800" : "bg-white"
+                          }`}
+                        />
+                      </div>
+                    )}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="font-medium">{swatch.name}</p>
+                </TooltipContent>
+              </Tooltip>
+            ))}
+          </div>
+        </motion.div>
+
+        <Separator className="bg-gradient-to-r from-transparent via-border to-transparent flex-shrink-0" />
+
+        {/* Customize Section */}
+        <fieldset
+          disabled={!shirtImageUrl}
+          className="space-y-6 flex-shrink-0"
+        >
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="space-y-4"
+          >
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-primary" />
+              <h2 className="font-semibold text-sm text-foreground">
+                Customize
+              </h2>
+            </div>
+
+            {!shirtImageUrl && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="p-4 rounded-xl bg-muted/50 border border-dashed border-muted-foreground/30"
+              >
+                <p className="text-sm text-muted-foreground text-center">
+                  Select a color above to start designing
+                </p>
+              </motion.div>
+            )}
+
+            <Tabs defaultValue="text" className="w-full">
+              <TabsList className="grid grid-cols-2 bg-muted/50 p-1 rounded-xl h-10">
+                <TabsTrigger
+                  value="text"
+                  className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs"
+                >
+                  <Type className="h-3 w-3 mr-1" />
+                  Text
+                </TabsTrigger>
+                <TabsTrigger
+                  value="logo"
+                  className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs"
+                >
+                  <ImagePlus className="h-3 w-3 mr-1" />
+                  Logo
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="text" className="space-y-4 mt-4">
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="text-input" className="text-sm font-medium">
+                      Text Content
+                    </Label>
+                    <input
+                      id="text-input"
+                      type="text"
+                      value={text}
+                      onChange={(e) => setText(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl border border-border bg-background/50 backdrop-blur-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300 text-sm"
+                      placeholder="Enter your text..."
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-2 rounded-xl bg-muted/30">
+                    <Label htmlFor="language-toggle" className="text-xs font-medium">
+                      English
+                    </Label>
+                    <Switch
+                      id="language-toggle"
+                      checked={isArabic}
+                      onCheckedChange={setIsArabic}
+                      className="data-[state=checked]:bg-primary scale-75"
+                    />
+                    <Label htmlFor="language-toggle" className="text-xs font-medium">
+                      العربية
+                    </Label>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="font-select" className="text-sm font-medium">
+                      Font Family
+                    </Label>
+                    <Select value={selectedFont} onValueChange={changeFont}>
+                      <SelectTrigger
+                        id="font-select"
+                        className="rounded-xl border-border bg-background/50 backdrop-blur-sm h-9 text-sm"
+                      >
+                        <SelectValue placeholder="Choose Font" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border-border bg-background/95 backdrop-blur-xl">
+                        {(isArabic ? FONTS.arabic : FONTS.english).map((font) => (
+                          <SelectItem
+                            key={font}
+                            value={font}
+                            className="rounded-lg text-sm"
+                          >
+                            <span style={{ fontFamily: font }} className="font-medium">
+                              {isArabic ? "عربي" : "Aa"}
+                            </span>
+                            <span className="ml-2 text-muted-foreground text-xs">
+                              {font}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Font Color</Label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {FONT_COLORS.map((color) => (
+                        <Tooltip key={color.value}>
+                          <TooltipTrigger asChild>
+                            <button
+                              className={`w-full h-10 rounded-lg border-2 transition-all ${
+                                selectedFontColor === color.value
+                                  ? `ring-2 ${color.ring} border-current shadow-lg`
+                                  : "border-border hover:border-primary/50"
+                              }`}
+                              style={{ backgroundColor: color.value }}
+                              onClick={() => changeFontColor(color.value)}
+                            >
+                              {selectedFontColor === color.value && (
+                                <div className="w-full h-full rounded-lg flex items-center justify-center">
+                                  <div
+                                    className={`w-2 h-2 rounded-full ${
+                                      color.value === "#FFFFFF" ? "bg-gray-800" : "bg-white"
+                                    }`}
+                                  />
+                                </div>
+                              )}
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="font-medium">{color.name}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={addText}
+                    className="w-full py-2 rounded-xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300 text-sm h-9"
+                  >
+                    <Type className="mr-2 h-3 w-3" />
+                    Add Text to Design
+                  </Button>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="logo" className="space-y-4 mt-4">
+                <div className="space-y-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => uploadInputRef.current?.click()}
+                    disabled={isUploadingCustomImage}
+                    className="w-full py-2 rounded-xl border-dashed border-2 hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 text-sm h-9"
+                  >
+                    {isUploadingCustomImage ? (
+                      <div className="flex items-center">
+                        <Loader2 className="animate-spin h-3 w-3 mr-2" />
+                        Uploading...
+                      </div>
+                    ) : (
+                      <>
+                        <ImagePlus className="mr-2 h-3 w-3" />
+                        Upload Custom Logo
+                      </>
+                    )}
+                  </Button>
+
+                  <input
+                    type="file"
+                    accept="image/*"
+                    ref={uploadInputRef}
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium flex items-center gap-2">
+                      <Star className="h-3 w-3 text-primary" />
+                      Template Logos
+                    </Label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {logos?.map((logo) => (
+                        <Tooltip key={logo._id}>
+                          <TooltipTrigger asChild>
+                            <button
+                              className="w-full aspect-square border-2 border-border rounded-lg p-1 hover:border-primary/50 hover:shadow-lg transition-all duration-300 bg-background/50 backdrop-blur-sm overflow-hidden"
+                              onClick={() => addTemplateLogo(logo.imageUrl, logo._id)}
+                              disabled={templateLogoLoading[logo._id]}
+                            >
+                              <img
+                                src={logo.imageUrl || "/placeholder.svg"}
+                                alt={logo.name}
+                                className="rounded"
+                              />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="font-medium">{logo.name}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
+
+            <Button
+              variant="destructive"
+              onClick={deleteActiveObject}
+              className="w-full py-2 rounded-xl bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl transition-all duration-300 text-sm h-9"
+            >
+              <Trash2 className="mr-2 h-3 w-3" />
+              Delete Selected
+            </Button>
+          </motion.div>
+        </fieldset>
+
+        <Separator className="bg-gradient-to-r from-transparent via-border to-transparent flex-shrink-0" />
+
+        {/* History Controls */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="space-y-4 flex-shrink-0"
+        >
+          <div className="flex items-center gap-2">
+            <Heart className="h-4 w-4 text-primary" />
+            <h2 className="font-semibold text-sm text-foreground">History</h2>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              variant="outline"
+              onClick={undo}
+              disabled={!canUndo || !shirtImageUrl}
+              className="w-full py-2 rounded-xl border-border hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 disabled:opacity-50 bg-transparent h-9"
+            >
+              <Undo className="h-3 w-3" />
+            </Button>
+            <Button
+              variant="outline"
+              onClick={redo}
+              disabled={!canRedo || !shirtImageUrl}
+              className="w-full py-2 rounded-xl border-border hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 disabled:opacity-50 bg-transparent h-9"
+            >
+              <Redo className="h-3 w-3" />
+            </Button>
+          </div>
+        </motion.div>
+
+        <Separator className="bg-gradient-to-r from-transparent via-border to-transparent flex-shrink-0" />
+
+        {/* Size Selection */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="space-y-3 flex-shrink-0"
+        >
+          <Label className="text-sm font-medium">Select Size</Label>
+          <div className="grid grid-cols-3 gap-2">
+            {SIZES.map((size) => (
+              <button
+                key={size}
+                onClick={() => setSelectedSize(size)}
+                className={`py-2 rounded-lg border-2 transition-all ${
+                  selectedSize === size
+                    ? "border-primary bg-primary text-primary-foreground shadow-lg"
+                    : "border-border hover:border-primary/50"
+                }`}
+              >
+                {size}
+              </button>
+            ))}
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Fixed Bottom Action Button */}
+      <div className="flex-shrink-0 p-6 pt-4 border-t border-border/50 bg-gradient-to-t from-background/95 to-transparent backdrop-blur-sm">
+        <SignedIn>
+          <Button
+            onClick={handleAddToBasket}
+            size="lg"
+            disabled={isLoading || !selectedSize}
+            className="w-full"
+          >
+            {isLoading ? (
+              <div className="flex items-center">
+                <Loader2 className="animate-spin h-4 w-4 mr-2" />
+                Creating Masterpiece...
+              </div>
+            ) : (
+              <div className="flex items-center">
+                <Sparkles className="h-4 w-4 mr-2" />
+                Add to Basket
+              </div>
+            )}
+          </Button>
+        </SignedIn>
+
+        <SignedOut>
+          <Button className="w-full">
+            <SignInButton mode="modal">
+              <span className="flex items-center">
+                <Sparkles className="h-4 w-4 mr-2" />
+                Sign In to Create
+              </span>
+            </SignInButton>
+          </Button>
+        </SignedOut>
+      </div>
+    </motion.aside>
+  );
+
+  return (
+    <TooltipProvider>
+      {isDesktop ? (
+        <DesktopToolbar />
+      ) : (
+        <>
+          <MobileToolbar />
+          <Drawer
+            open={activeMobileTab !== null || mobileMenuOpen}
+            onOpenChange={(open: any) => {
+              if (!open) {
+                setActiveMobileTab(null);
+                setMobileMenuOpen(false);
+              }
+            }}
+          >
+            <MobileDrawerContent />
+          </Drawer>
+        </>
+      )}
     </TooltipProvider>
   );
 }
