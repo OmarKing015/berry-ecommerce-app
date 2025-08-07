@@ -1,17 +1,17 @@
-import ClientSideTshirtEditor from "@/components/customizer/ClientSideTshirtEditor"
-import type { Metadata } from "next"
-
-export const metadata: Metadata = {
-  title: "Design Studio | Create Your Perfect T-Shirt",
-  description:
-    "Unleash your creativity with our advanced T-shirt design studio. Create custom designs with text, logos, and unlimited possibilities.",
-  keywords: ["custom t-shirt", "design studio", "personalized clothing", "creative design"],
-}
+import { headers } from "next/headers"
+import { redirect } from "next/navigation"
 
 export default function DesignPage() {
-  return (
-    <main className="min-h-screen">
-      <ClientSideTshirtEditor />
-    </main>
-  )
+  const headersList = headers()
+  const userAgent = headersList.get("user-agent")
+
+  const isMobile = /Mobi|Android/i.test(userAgent || "")
+
+  if (isMobile) {
+    redirect("/customize/mobile")
+  } else {
+    redirect("/customize/desktop")
+  }
+
+  return null
 }

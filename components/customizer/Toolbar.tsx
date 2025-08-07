@@ -1420,11 +1420,11 @@ export default function Toolbar() {
                   >
                     <RadioGroupItem
                       value={size}
-                      id={`size-${size}`}
+                      id={`desktop-size-${size}`}
                       className="sr-only"
                     />
                     <Label
-                      htmlFor={`size-${size}`}
+                      htmlFor={`desktop-size-${size}`}
                       className={`cursor-pointer rounded-lg border-2 transition-all duration-300 flex items-center justify-center py-2 text-sm font-semibold hover:scale-105 min-h-[2.5rem] ${
                         selectedSize === size
                           ? "border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/25"

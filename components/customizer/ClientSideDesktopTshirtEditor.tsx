@@ -4,7 +4,7 @@ import dynamic from "next/dynamic"
 import { motion } from "framer-motion"
 import { Sparkles, Palette, Zap } from "lucide-react"
 
-const TshirtEditor = dynamic(() => import("@/components/customizer/TshirtEditor"), {
+const DesktopTshirtEditor = dynamic(() => import("@/components/customizer/DesktopTshirtEditor"), {
   ssr: false,
   loading: () => (
     <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/20 flex items-center justify-center">
@@ -123,6 +123,6 @@ const TshirtEditor = dynamic(() => import("@/components/customizer/TshirtEditor"
   ),
 })
 
-export default function ClientSideTshirtEditor() {
-  return <TshirtEditor />
+export default function ClientSideDesktopTshirtEditor() {
+  return <DesktopTshirtEditor />
 }
