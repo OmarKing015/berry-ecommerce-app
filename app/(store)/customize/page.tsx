@@ -1,17 +1,17 @@
-import { GetServerSideProps } from "next";
+import ClientSideTshirtEditor from "@/components/customizer/ClientSideTshirtEditor"
+import type { Metadata } from "next"
 
-export const getServerSideProps: GetServerSideProps = async ({ req }) => {
-  const userAgent = req.headers["user-agent"] || "";
-  const isMobile = /mobile/i.test(userAgent);
-
-  return {
-    redirect: {
-      destination: isMobile ? "/customize/mobile" : "/customize/desktop",
-      permanent: false,
-    },
-  };
-};
+export const metadata: Metadata = {
+  title: "Design Studio | Create Your Perfect T-Shirt",
+  description:
+    "Unleash your creativity with our advanced T-shirt design studio. Create custom designs with text, logos, and unlimited possibilities.",
+  keywords: ["custom t-shirt", "design studio", "personalized clothing", "creative design"],
+}
 
 export default function DesignPage() {
-  return null;
+  return (
+    <main className="min-h-screen">
+      <ClientSideTshirtEditor />
+    </main>
+  )
 }
