@@ -1,4 +1,4 @@
-import ProductsGrid from "@/components/ProductsGrid"
+import ProducGrid from "@/components/ProductsGrid"
 import { getAllCategories } from "@/sanity/lib/products/getAllCategories"
 import { getProductsByCategory } from "@/sanity/lib/products/getProductsByCategory"
 import { ArrowLeft, Tag } from "lucide-react"
@@ -68,7 +68,7 @@ async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {products.length > 0 ? (
-          <ProductGris products={products}/>
+          <ProductGrid products={products}/>
         ) : (
           // Empty State
           <div className="bg-white rounded-lg shadow-sm border p-12 text-center">
