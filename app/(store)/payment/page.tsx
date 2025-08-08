@@ -98,7 +98,7 @@ export default function PaymentPage() {
     0
   );
 
-  const shipping = paymentMethod === "cod" ? 25 : 15.99; // COD has higher shipping fee
+  const shipping = 90; // COD has higher shipping fee
   // const tax = subtotal * 0.14 // 14% tax
   const codFee = paymentMethod === "cod" ? 10 : 0; // COD processing fee
   const total = subtotal + shipping + codFee;

@@ -76,7 +76,7 @@ function BasketPage() {
     0
   );
   const totalPrice = useBasketStore.getState().getTotalPrice();
-  const shipping = 50; // Free shipping over 500 EGP
+  const shipping = 90;
   // const tax = totalPrice * 0.14 // 14% tax
   const finalTotal = totalPrice + shipping;
 
