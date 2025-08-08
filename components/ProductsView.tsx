@@ -2,6 +2,7 @@ import type { Category, Product } from "@/sanity.types"
 import ProductGrid from "./ProductGrid"
 import { CatogerySelectorComponent } from "./ui/category-selector"
 import { Package } from "lucide-react"
+import { imageUrl } from "@/lib/imageUrl"
 
 interface ProductsViewProps {
   products: Product[]
@@ -9,6 +10,34 @@ interface ProductsViewProps {
 }
 
 const ProductsView = ({ products, categories }: ProductsViewProps) => {
+  const categoryImageMap = new Map<string, string>()
+
+  for (const product of products) {
+    if (product.categories) {
+      for (const categoryRef of product.categories) {
+        if (categoryRef._ref && !categoryImageMap.has(categoryRef._ref)) {
+          if (product.image) {
+            const url = imageUrl(product.image).url()
+            categoryImageMap.set(categoryRef._ref, url)
+          }
+        }
+      }
+    }
+  }
+
+  const transformedCategories = categories
+    .map(category => {
+      const image = categoryImageMap.get(category._id)
+      if (!image) return null
+
+      return {
+        name: category.title || "",
+        href: `/categories/${category.slug?.current || ""}`,
+        imageUrl: image,
+      }
+    })
+    .filter((c): c is NonNullable<typeof c> => c !== null)
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4 max-w-7xl">
@@ -25,7 +54,7 @@ const ProductsView = ({ products, categories }: ProductsViewProps) => {
               <h3 className="font-medium text-gray-900">Filter by Category</h3>
             </div>
             <div className="w-full sm:w-[300px]">
-              <CatogerySelectorComponent categories={categories} />
+              <CatogerySelectorComponent categories={transformedCategories} />
             </div>
           </div>
 
