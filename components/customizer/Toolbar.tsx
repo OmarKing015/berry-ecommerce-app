@@ -270,43 +270,67 @@ const ColorGrid = React.memo(({
 });
 ColorGrid.displayName = "ColorGrid";
 
-// Memoized Logo Grid Component
-const LogoGrid = React.memo(({ 
-  logos, 
-  onLogoSelect, 
-  loading = {} 
+const LogoGrid = React.memo(({
+  logos,
+  onLogoSelect,
+  loading = {},
+  onNextPage,
+  onPrevPage,
+  currentPage,
+  totalPages,
+  isLoading
 }: {
   logos: TEMPLATE_LOGOS_TYPE[];
   onLogoSelect: (logoUrl: string, logoId: string) => void;
   loading?: { [key: string]: boolean };
+  onNextPage: () => void;
+  onPrevPage: () => void;
+  currentPage: number;
+  totalPages: number;
+  isLoading: boolean;
 }) => {
   return (
-    <div className="grid grid-cols-4 gap-2">
-      {logos.map((logo) => (
-        <Tooltip key={logo._id}>
-          <TooltipTrigger asChild>
-            <button
-              className="w-full aspect-square border-2 border-border rounded-lg p-1 hover:border-primary/50 hover:shadow-lg transition-all duration-300 bg-background/50 backdrop-blur-sm overflow-hidden relative"
-              onClick={() => onLogoSelect(logo.imageUrl, logo._id)}
-              disabled={loading[logo._id]}
-            >
-              <img
-                src={logo.imageUrl || "/placeholder.svg"}
-                alt={logo.name}
-                className="rounded w-full h-full object-cover"
-              />
-              {loading[logo._id] && (
-                <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm rounded-lg">
-                  <Loader2 className="animate-spin h-3 w-3 text-primary" />
-                </div>
-              )}
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p className="font-medium">{logo.name}</p>
-          </TooltipContent>
-        </Tooltip>
-      ))}
+    <div>
+      <div className="grid grid-cols-4 gap-2 min-h-[220px]">
+        {isLoading && logos.length === 0 ? (
+          <div className="col-span-4 flex items-center justify-center">
+            <Loader2 className="animate-spin h-6 w-6 text-primary" />
+          </div>
+        ) : logos.map((logo) => (
+          <Tooltip key={logo._id}>
+            <TooltipTrigger asChild>
+              <button
+                className="w-full aspect-square border-2 border-border rounded-lg p-1 hover:border-primary/50 hover:shadow-lg transition-all duration-300 bg-background/50 backdrop-blur-sm overflow-hidden relative"
+                onClick={() => onLogoSelect(logo.imageUrl, logo._id)}
+                disabled={loading[logo._id]}
+              >
+                <img
+                  src={logo.imageUrl || "/placeholder.svg"}
+                  alt={logo.name}
+                  className="rounded w-full h-full object-cover"
+                />
+                {loading[logo._id] && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm rounded-lg">
+                    <Loader2 className="animate-spin h-3 w-3 text-primary" />
+                  </div>
+                )}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="font-medium">{logo.name}</p>
+            </TooltipContent>
+          </Tooltip>
+        ))}
+      </div>
+      <div className="flex items-center justify-between mt-4">
+        <Button onClick={onPrevPage} disabled={currentPage <= 1 || isLoading}>
+          Prev
+        </Button>
+        <span className="text-sm">{`Page ${currentPage} of ${totalPages}`}</span>
+        <Button onClick={onNextPage} disabled={currentPage >= totalPages || isLoading}>
+          Next
+        </Button>
+      </div>
     </div>
   );
 });
@@ -341,6 +365,9 @@ export default function Toolbar() {
   const [logos, setLogos] = useState<TEMPLATE_LOGOS_TYPE[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const uploadInputRef = useRef<HTMLInputElement>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [logosLoading, setLogosLoading] = useState(false);
   const { toast } = useToast();
   const [colorSwatches, setColorSwatches] = useState<ColorSwatch[]>([]);
   const [selectedStyle, setSelectedStyle] = useState<"slim" | "oversized">("slim");
@@ -351,6 +378,7 @@ export default function Toolbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isMobile = typeof window !== "undefined" && window.innerWidth < 1024;
   const [activeMobileTab, setActiveMobileTab] = useState<string | null>(null);
+  const [isLogoPanelOpen, setIsLogoPanelOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 1024px)");
 
   // Memoize filtered color swatches
@@ -365,31 +393,45 @@ export default function Toolbar() {
     [isArabic]
   );
 
-  // Initial data fetch - only once
+  const fetchLogos = useCallback(async (page: number) => {
+    setLogosLoading(true);
+    try {
+      const response = await fetch(`/api/admin/logos?page=${page}&limit=10`);
+      const data = await response.json();
+      setLogos(data.logos);
+      setTotalPages(data.totalPages);
+      setCurrentPage(data.currentPage);
+    } catch (error) {
+      toast({
+        title: "Error fetching logos",
+        description: "Could not fetch logos. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLogosLoading(false);
+    }
+  }, [toast]);
+
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchInitialData = async () => {
+      setIsFetchingInitialData(true);
       try {
-        const [swatchesRes, logosRes] = await Promise.all([
-          fetch("/api/admin/color-swatches"),
-          fetch("/api/admin/logos"),
-        ]);
+        const swatchesRes = await fetch("/api/admin/color-swatches");
         const swatchesData = await swatchesRes.json();
-        const logoData = await logosRes.json();
         setColorSwatches(swatchesData);
-        setLogos(logoData);
+        await fetchLogos(1);
       } catch (error) {
         toast({
           title: "Connection Error",
-          description:
-            "Unable to load design assets. Please refresh and try again.",
+          description: "Unable to load initial design assets. Please refresh.",
           variant: "destructive",
         });
       } finally {
         setIsFetchingInitialData(false);
       }
     };
-    fetchData();
-  }, [toast]);
+    fetchInitialData();
+  }, [fetchLogos, toast]);
 
   // Cost calculation effect - memoized
   useEffect(() => {
@@ -418,7 +460,8 @@ export default function Toolbar() {
     canvas.add(textObject);
     canvas.setActiveObject(textObject);
     canvas.renderAll();
-  }, [canvas, text, selectedFontColor, selectedFont]);
+    if (isMobile) setIsLogoPanelOpen(false);
+  }, [canvas, text, selectedFontColor, selectedFont, isMobile]);
 
   const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (!canvas || !e.target.files || !e.target.files[0]) return;
@@ -479,6 +522,7 @@ export default function Toolbar() {
           canvas.setActiveObject(img);
           canvas.renderAll();
           setTemplateLogoLoading((prev) => ({ ...prev, [logoId]: false }));
+          if (isMobile) setIsLogoPanelOpen(false);
         },
         { crossOrigin: "anonymous" }
       );
@@ -490,7 +534,7 @@ export default function Toolbar() {
       });
       setTemplateLogoLoading((prev) => ({ ...prev, [logoId]: false }));
     }
-  }, [canvas, addHighQualityImage, toast]);
+  }, [canvas, addHighQualityImage, toast, isMobile]);
 
   const deleteActiveObject = useCallback(() => {
     if (!canvas) return;
@@ -975,7 +1019,7 @@ return (
             </DialogContent>
           </Dialog>
 
-          <Dialog>
+          <Dialog open={isLogoPanelOpen} onOpenChange={setIsLogoPanelOpen}>
             <DialogTrigger asChild>
               <Button size="icon" variant="ghost">
                 <Palette className="h-5 w-5" />
@@ -1117,6 +1161,11 @@ return (
                       logos={logos}
                       onLogoSelect={addTemplateLogo}
                       loading={templateLogoLoading}
+                      onNextPage={() => fetchLogos(currentPage + 1)}
+                      onPrevPage={() => fetchLogos(currentPage - 1)}
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      isLoading={logosLoading}
                     />
                   </div>
                 </div>
@@ -1463,6 +1512,11 @@ return (
                       logos={logos}
                       onLogoSelect={addTemplateLogo}
                       loading={templateLogoLoading}
+                      onNextPage={() => fetchLogos(currentPage + 1)}
+                      onPrevPage={() => fetchLogos(currentPage - 1)}
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      isLoading={logosLoading}
                     />
                   </div>
                 </div>
