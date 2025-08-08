@@ -1,4 +1,4 @@
-import ProducGrid from "@/components/ProductsGrid"
+import ProducGrid from "@/components/ProductGrid"
 import { getAllCategories } from "@/sanity/lib/products/getAllCategories"
 import { getProductsByCategory } from "@/sanity/lib/products/getProductsByCategory"
 import { ArrowLeft, Tag } from "lucide-react"
