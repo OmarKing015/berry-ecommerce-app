@@ -954,7 +954,6 @@ return (
             </Button>
           </div>
         </motion.div>
-
         {/* Color Selection - using memoized ColorGrid */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -1193,6 +1192,42 @@ return (
         </motion.div>
             </DialogContent>
           </Dialog>
+
+          <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="space-y-4 flex-shrink-0"
+        >
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              variant="outline"
+              onClick={undo}
+              disabled={!canUndo || !shirtImageUrl}
+              className="w-full py-2 rounded-xl border-border hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 disabled:opacity-50 bg-transparent h-9"
+            >
+              <Undo className="h-3 w-3" />
+            </Button>
+            <Button
+              variant="outline"
+              onClick={redo}
+              disabled={!canRedo || !shirtImageUrl}
+              className="w-full py-2 rounded-xl border-border hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 disabled:opacity-50 bg-transparent h-9"
+            >
+              <Redo className="h-3 w-3" />
+            </Button>
+         
+            </div>
+
+        </motion.div>
+        <Button
+              variant="destructive"
+              onClick={deleteActiveObject}
+              className="py-2 rounded-xl border-border hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 disabled:opacity-50  h-9"
+            >
+              <Trash2 className="mx-auto h-3 w-3" />
+              
+            </Button>
         </div>
       ) : (
      <motion.aside
