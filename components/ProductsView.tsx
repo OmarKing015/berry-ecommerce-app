@@ -25,18 +25,7 @@ const ProductsView = ({ products, categories }: ProductsViewProps) => {
     }
   }
 
-  const transformedCategories = categories
-    .map(category => {
-      const image = categoryImageMap.get(category._id)
-      if (!image) return null
-
-      return {
-        name: category.title || "",
-        href: `/categories/${category.slug?.current || ""}`,
-        imageUrl: image,
-      }
-    })
-    .filter((c): c is NonNullable<typeof c> => c !== null)
+  const transformedCategories = categories.filter((c): c is NonNullable<typeof c> => c !== null)
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -53,7 +42,7 @@ const ProductsView = ({ products, categories }: ProductsViewProps) => {
               <Package className="h-5 w-5 text-gray-600" />
               <h3 className="font-medium text-gray-900">Filter by Category</h3>
             </div>
-            <div className="w-full sm:w-[300px]">
+            <div className="w-full">
               <CatogerySelectorComponent categories={transformedCategories} />
             </div>
           </div>

@@ -4,13 +4,10 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { X } from "lucide-react";
+import { Category } from "@/sanity.types";
+import { imageUrl } from "@/lib/imageUrl";
 
 // Interface for a single category, as per the user's specification
-interface Category {
-  name: string;
-  imageUrl: string;
-  href: string;
-}
 
 // Interface for the component's props
 interface CategorySelectorProps {
@@ -33,22 +30,25 @@ export const CategorySelector = ({ categories }: CategorySelectorProps) => {
           Shop by Category
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {categories.map((category) => (
-            <Link href={category.href} key={category.name}>
+          {categories.filter((category) =>  !category.title?.includes("Custom")).map((category) => (
+            <Link href={`/categories/${category.slug?.current}`} key={category.title}>
               <div className="group block bg-white rounded-xl shadow-sm hover:shadow-xl transition-shadow duration-300 ease-in-out overflow-hidden transform hover:-translate-y-1">
                 <div className="relative w-full h-56">
-                  <Image
-                    src={category.imageUrl}
-                    alt={`Image for ${category.name}`}
-                    layout="fill"
-                    objectFit="cover"
-                    className="transition-transform duration-300 ease-in-out group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-black bg-opacity-20 group-hover:bg-opacity-10 transition-all duration-300"></div>
+                  {category.image && <Image
+                    src={imageUrl(category.image)?.url()}
+                    alt={`Image for ${category.title}`}
+                    // layout="fill"
+                    // objectFit="cover"
+                    className="object-contain transition-transform duration-300 group-hover:scale-105"
+
+                    fill
+                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"                  />}
+                  
+                  {/* <div className="absolute inset-0 bg-black bg-opacity-20 group-hover:bg-opacity-10 transition-all duration-300"></div> */}
                 </div>
                 <div className="p-5">
                   <h3 className="text-xl font-bold text-gray-900 capitalize text-center">
-                    {category.name}
+                    {category.title}
                   </h3>
                 </div>
               </div>

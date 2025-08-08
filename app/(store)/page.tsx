@@ -4,15 +4,25 @@ import { Button } from "@/components/ui/button";
 import { Product } from "@/sanity.types";
 import { getAllCategories } from "@/sanity/lib/products/getAllCategories";
 import { getAllProducts } from "@/sanity/lib/products/getAllProducts";
-import Image from "next/image";
 
 export default async function Home() {
   const products: Product[] = await getAllProducts();
   const updatedProducts = products.filter(product => !product.slug?.current?.includes("custom"));
   
   updatedProducts.sort((a, b) => {
-    if (a.name && b.name) return a.name.localeCompare(b.name);
-    return 0;
+    const aStartsWithArrival = a.slug?.current?.startsWith("top") ? -1 : 0;
+    const bStartsWithArrival = b.slug?.current?.startsWith("top") ? -1 : 0;
+
+    if (aStartsWithArrival !== bStartsWithArrival) {
+ return aStartsWithArrival - bStartsWithArrival;
+    }
+    
+    const aEndsWithDown = a.slug?.current?.startsWith("bottom") ? 1 : 0;
+    const bEndsWithDown = b.slug?.current?.startsWith("bottom") ? 1 : 0;
+    if (aEndsWithDown !== bEndsWithDown) {
+      return aEndsWithDown - bEndsWithDown;
+    }
+    return a.slug?.current?.localeCompare(b.slug?.current ?? "") ?? 0;
   });
   const categories = await getAllCategories();
 
