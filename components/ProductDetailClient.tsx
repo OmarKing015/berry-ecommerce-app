@@ -71,8 +71,9 @@ export default function ProductDetailClient({
                   <span className="text-5xl font-bold text-gray-900">
                     {(product.price ?? 0).toFixed(2)} EGP
                   </span>
+                  Instead of
                   <span className="text-sm text-gray-500 line-through">
-                    Instead of {(product.price + 150).toFixed(2)} EGP
+                     {(product.price + 150).toFixed(2)} EGP
                   </span>
                 </div>
 

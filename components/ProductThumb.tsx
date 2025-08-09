@@ -1,11 +1,11 @@
-import { imageUrl } from "@/lib/imageUrl"
-import type { Product } from "@/sanity.types"
-import Image from "next/image"
-import Link from "next/link"
-import { Star, ShoppingCart } from "lucide-react"
+import { imageUrl } from "@/lib/imageUrl";
+import type { Product } from "@/sanity.types";
+import Image from "next/image";
+import Link from "next/link";
+import { Star, ShoppingCart } from "lucide-react";
 
 function ProductThumb({ product }: { product: Product }) {
-  const isOutOfStock = product.stock != null && product.stock <= 0
+  const isOutOfStock = product.stock != null && product.stock <= 0;
 
   return (
     <Link
@@ -49,7 +49,10 @@ function ProductThumb({ product }: { product: Product }) {
           {/* Star Rating */}
           <div className="flex items-center gap-1">
             {[...Array(5)].map((_, i) => (
-              <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+              <Star
+                key={i}
+                className="h-3 w-3 fill-yellow-400 text-yellow-400"
+              />
             ))}
             <span className="text-xs text-gray-500 ml-1">(4.8)</span>
           </div>
@@ -57,19 +60,27 @@ function ProductThumb({ product }: { product: Product }) {
 
         <div className="mt-3 flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-xl font-bold text-gray-900">{product.price?.toFixed(2)} EGP</p>
+            <p className="text-xl font-bold text-gray-900">
+              {product.price?.toFixed(2)} EGP
+            </p>
+            Instead of
+            <span className="text-sm text-gray-500 line-through">
+              {product.price && (product.price + 150).toFixed(2)} EGP
+            </span>
             {product.stock != null && !isOutOfStock && (
               <p className="text-xs text-green-600">{product.stock} in stock</p>
             )}
           </div>
 
           {!isOutOfStock && (
-            <div className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">Available</div>
+            <div className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">
+              Available
+            </div>
           )}
         </div>
       </div>
     </Link>
-  )
+  );
 }
 
-export default ProductThumb
+export default ProductThumb;
