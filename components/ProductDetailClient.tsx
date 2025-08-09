@@ -1,29 +1,29 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { notFound, redirect } from "next/navigation"
-import { getProductBySlug } from "@/sanity/lib/products/getProductBySlug"
-import { imageUrl } from "@/lib/imageUrl"
-import Image from "next/image"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Label } from "@/components/ui/label"
-import AddToBasketButton from "@/components/AddToBasketButton"
-import { Product } from "@/sanity.types"
-import { Loader } from "lucide-react"
-import { useAppContext } from "@/context/context"
+import { useState, useEffect } from "react";
+import { notFound, redirect } from "next/navigation";
+import { getProductBySlug } from "@/sanity/lib/products/getProductBySlug";
+import { imageUrl } from "@/lib/imageUrl";
+import Image from "next/image";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import AddToBasketButton from "@/components/AddToBasketButton";
+import { Product } from "@/sanity.types";
+import { Loader } from "lucide-react";
+import { useAppContext } from "@/context/context";
 
 interface ProductDetailClientProps {
   product: Product;
 }
 
-
-
-export default function ProductDetailClient({ product }: ProductDetailClientProps) {
-  const [selectedSize, setSelectedSize] = useState<string>("")
-  const isOutOfStock = product.stock != null && product.stock <= 0
-  const {extraCost, setExtraCost} = useAppContext()
+export default function ProductDetailClient({
+  product,
+}: ProductDetailClientProps) {
+  const [selectedSize, setSelectedSize] = useState<string>("");
+  const isOutOfStock = product.stock != null && product.stock <= 0;
+  const { extraCost, setExtraCost } = useAppContext();
 
   if (!product.price) {
     return notFound();
@@ -51,7 +51,9 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                   />
                 )}
                 {isOutOfStock && (
-                  <Badge className="absolute top-4 left-4 text-sm px-3 py-1 bg-red-500 text-white">Out of Stock</Badge>
+                  <Badge className="absolute top-4 left-4 text-sm px-3 py-1 bg-red-500 text-white">
+                    Out of Stock
+                  </Badge>
                 )}
               </div>
             </div>
@@ -59,37 +61,67 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
             {/* Product Details */}
             <div className="flex flex-col justify-between space-y-6">
               <div>
-                <h1 className="text-4xl font-extrabold text-gray-900 mb-2">{product.name}</h1>
-                <p className="text-gray-600 text-lg mb-4">{product.description}</p>
+                <h1 className="text-4xl font-extrabold text-gray-900 mb-2">
+                  {product.name}
+                </h1>
+                <p className="text-gray-600 text-lg mb-4">
+                  {product.description}
+                </p>
                 <div className="flex items-baseline gap-2 mb-6">
-                  <span className="text-5xl font-bold text-gray-900">{(product.price ?? 0).toFixed(2)} EGP</span>
+                  <span className="text-5xl font-bold text-gray-900">
+                    {(product.price ?? 0).toFixed(2)} EGP
+                  </span>
+                  <span className="text-sm text-gray-500 line-through">
+                    Instead of {(product.price + 150).toFixed(2)} EGP
+                  </span>
                 </div>
 
                 {/* Size Selection */}
                 <div className="mb-6">
-                  <h2 className="text-lg font-semibold text-gray-800 mb-3">Select Size</h2>
+                  <h2 className="text-lg font-semibold text-gray-800 mb-3">
+                    Select Size
+                  </h2>
                   {product.size && (
-                  <RadioGroup value={selectedSize} onValueChange={setSelectedSize} className="flex flex-wrap gap-3">
-                    {product.size?.map((size) => (
-                      <div key={size} className="flex items-center space-x-2">
-                        <RadioGroupItem value={size} id={`size-${size}`} disabled={isOutOfStock} />
-                        <Label htmlFor={`size-${size}`}>{size}</Label>
-                      </div>
-                    ))}
-                  </RadioGroup>)}
+                    <RadioGroup
+                      value={selectedSize}
+                      onValueChange={setSelectedSize}
+                      className="flex flex-wrap gap-3"
+                    >
+                      {product.size?.map((size) => (
+                        <div key={size} className="flex items-center space-x-2">
+                          <RadioGroupItem
+                            value={size}
+                            id={`size-${size}`}
+                            disabled={isOutOfStock}
+                          />
+                          <Label htmlFor={`size-${size}`}>{size}</Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  )}
                 </div>
               </div>
 
-              <div className="flex flex-col gap-4">
-                <AddToBasketButton product={product} selectedSize={selectedSize}  disabled={isOutOfStock || !selectedSize} />
-                <Button variant="outline" className="w-full py-3 text-lg">
-                  Add to Wishlist
-                </Button>
-              </div>
+              {product.size && !selectedSize ? (
+                <p
+                  className="`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-semibold transition-all duration-200
+          bg-gray-300 text-gray-500 cursor-not-allowed"
+                >
+                  Please choose a size first.
+                </p>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  <AddToBasketButton
+                    product={product}
+                    selectedSize={selectedSize}
+                    disabled={isOutOfStock || (!!product.size && !selectedSize)}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
