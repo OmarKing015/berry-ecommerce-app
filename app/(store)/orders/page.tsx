@@ -25,7 +25,7 @@ async function OrdersPage() {
   const { userId } = await auth();
 
   if (!userId) {
-    redirect("/sign-in");
+    redirect("/");
   }
 
   const orders = await getMyOrders(userId);
