@@ -41,17 +41,47 @@ export const productType = defineType({
       validation: (Rule) => Rule.required().min(0),
     }),
     defineField({
-      name: "size",
-      title: "Size",
+      name: "sizes",
+      title: "Sizes",
       type: "array",
-      validation: (Rule) => Rule.required().min(0),
-      of: [{ type: "string" }],
+      of: [
+        {
+          type: "object",
+          fields: [
+            {
+              name: "size",
+              title: "Size",
+              type: "string",
+            },
+            {
+              name: "stock",
+              title: "Stock",
+              type: "number",
+              validation: (Rule) => Rule.required().min(0),
+            },
+          ],
+          preview: {
+            select: {
+              title: "size",
+              subtitle: "stock",
+            },
+            prepare(selection) {
+              const { title, subtitle } = selection;
+              return {
+                title: title || "No size set",
+                subtitle: `Stock: ${subtitle || 0}`,
+              };
+            },
+          },
+        },
+      ],
     }),
     defineField({
       name: "stock",
-      title: "Stock",
+      title: "Total Stock",
       type: "number",
-      validation: (Rule) => Rule.required().min(0),
+      description: "The total stock of all sizes. This is automatically calculated.",
+      readOnly: true,
     }),
     defineField({
       name: "categories",

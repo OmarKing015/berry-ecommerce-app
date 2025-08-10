@@ -36,13 +36,7 @@ import { useRouter } from "next/navigation";
 import { useAppContext } from "@/context/context";
 import useBasketStore from "@/store/store";
 
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  image: string;
-}
+import { BasketItem } from "@/store/store";
 
 interface PaymentFormData {
   firstName: string;
@@ -70,74 +64,16 @@ export default function PaymentPage() {
     postalCode: "",
   });
 
-  const [orderDetails, setOrderDetails] = useState({
-    orderId: "",
-    customerEmail: "",
-    customerName: "",
-    customerPhone: "",
-    shippingAddress: {
-      street: "",
-      city: "",
-      country: "EG",
-      postalCode: "",
-    },
-    items: [] as CartItem[],
-    totalAmount: 0,
-    paymentStatus: "pending" as const,
-    paymentMethod: "paymob" as "paymob" | "cod",
-    orderStatus: "pending" as const,
-    paymobOrderId: "",
-    paymobTransactionId: "",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  });
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const { items: cartItems, getTotalPrice, clearBasket } = useBasketStore();
+  const { assetId } = useAppContext();
 
   const subtotal = cartItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+    (sum, item) => sum + (item.product.price ?? 0) * item.quantity,
     0
   );
-
-  const shipping = 90; // COD has higher shipping fee
-  // const tax = subtotal * 0.14 // 14% tax
-  const codFee = paymentMethod === "cod" ? 10 : 0; // COD processing fee
+  const shipping = 90;
+  const codFee = paymentMethod === "cod" ? 10 : 0;
   const total = subtotal + shipping + codFee;
-  const { assetId } = useAppContext();
-  const { clearBasket } = useBasketStore();
-
-  useEffect(() => {
-    // Get cart data from sessionStorage
-    const storedItems = sessionStorage.getItem("checkoutItems");
-    const storedTotal = sessionStorage.getItem("checkoutTotal");
-
-    if (storedItems) {
-      setCartItems(JSON.parse(storedItems));
-    }
-
-    if (storedTotal) {
-      console.log("Stored total:", storedTotal);
-    }
-  }, []);
-
-  useEffect(() => {
-    // Update order details whenever form data or cart items change
-    setOrderDetails((prev) => ({
-      ...prev,
-      customerEmail: formData.email,
-      customerName: `${formData.firstName} ${formData.lastName}`.trim(),
-      customerPhone: formData.phone,
-      shippingAddress: {
-        street: formData.address,
-        city: formData.city,
-        country: formData.country,
-        postalCode: formData.postalCode,
-      },
-      items: cartItems,
-      totalAmount: total,
-      paymentMethod: "paymob" as "paymob" | "cod",
-      updatedAt: new Date().toISOString(),
-    }));
-  }, [formData, cartItems, total, paymentMethod]);
 
   const handleInputChange = (field: keyof PaymentFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -158,7 +94,13 @@ export default function PaymentPage() {
           body: JSON.stringify({
             amount: Math.round(total * 100), // Convert to cents
             currency: "EGP",
-            items: cartItems,
+            items: cartItems.map(item => ({
+              id: item.product._id,
+              name: item.product.name,
+              price: item.product.price,
+              quantity: item.quantity,
+              size: item.size,
+            })),
             customer: formData,
             paymentMethod: "cod",
             assetId: assetId,

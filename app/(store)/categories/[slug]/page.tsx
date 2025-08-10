@@ -1,26 +1,56 @@
-import ProductGrid  from "@/components/ProductGrid"
-import { getAllCategories } from "@/sanity/lib/products/getAllCategories"
-import { getProductsByCategory } from "@/sanity/lib/products/getProductsByCategory"
-import { ArrowLeft, Tag } from "lucide-react"
-import Link from "next/link"
+"use client";
 
-async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params
-  const products = await getProductsByCategory(slug)
-  const categories = await getAllCategories()
+import { useState, useEffect } from "react";
+import ProductGrid from "@/components/ProductGrid";
+import { getAllCategories } from "@/sanity/lib/products/getAllCategories";
+import { getProductsByCategory } from "@/sanity/lib/products/getProductsByCategory";
+import { ArrowLeft, Tag } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Product } from "@/sanity.types";
 
-  // Format category name for display
+function CategoryPage({ params }: { params: { slug: string } }) {
+  const { slug } = params;
+  const [products, setProducts] = useState<Product[]>([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+
   const categoryName = slug
     .split("-")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ")
+    .join(" ");
+
+  async function fetchInitialProducts() {
+    const { products: initialProducts, totalProducts } =
+      await getProductsByCategory({ categorySlug: slug, page: 1, limit: 10 });
+    setProducts(initialProducts);
+    setHasMore(initialProducts.length < totalProducts);
+    setIsLoading(false);
+  }
+
+  useEffect(() => {
+    fetchInitialProducts();
+  }, [slug]);
+
+  const loadMoreProducts = async () => {
+    const nextPage = page + 1;
+    const { products: newProducts, totalProducts } =
+      await getProductsByCategory({
+        categorySlug: slug,
+        page: nextPage,
+        limit: 10,
+      });
+
+    setProducts((prevProducts) => [...prevProducts, ...newProducts]);
+    setPage(nextPage);
+    setHasMore([...products, ...newProducts].length < totalProducts);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header Section */}
       <div className="bg-white border-b">
         <div className="container mx-auto px-4 py-6 max-w-7xl">
-          {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
             <Link href="/" className="hover:text-blue-600 transition-colors duration-200">
               Home
@@ -32,18 +62,12 @@ async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
             <span>/</span>
             <span className="text-gray-900 font-medium">{categoryName}</span>
           </div>
-
-          {/* Category Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link
-                href="/"
-                className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
-              >
+              <Link href="/" className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors duration-200">
                 <ArrowLeft className="h-4 w-4" />
                 <span className="hidden sm:inline">Back to Categories</span>
               </Link>
-
               <div className="flex items-center gap-3">
                 <div className="bg-blue-100 p-2 rounded-lg">
                   <Tag className="h-6 w-6 text-blue-600" />
@@ -54,8 +78,6 @@ async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
                 </div>
               </div>
             </div>
-
-            {/* Product Count */}
             <div className="hidden sm:block bg-gray-100 px-4 py-2 rounded-lg">
               <span className="text-sm text-gray-600">
                 {products.length} {products.length === 1 ? "product" : "products"}
@@ -64,13 +86,19 @@ async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
           </div>
         </div>
       </div>
-
-      {/* Main Content */}
       <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {products.length > 0 ? (
-          <ProductGrid products={products}/>
+        {isLoading ? (
+          <p>Loading...</p>
+        ) : products.length > 0 ? (
+          <>
+            <ProductGrid products={products} />
+            {hasMore && (
+              <div className="flex justify-center mt-8">
+                <Button onClick={loadMoreProducts}>Load More</Button>
+              </div>
+            )}
+          </>
         ) : (
-          // Empty State
           <div className="bg-white rounded-lg shadow-sm border p-12 text-center">
             <div className="max-w-md mx-auto">
               <div className="bg-gray-100 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
@@ -81,16 +109,10 @@ async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
                 We couldn&apos;t find any products in the {categoryName.toLowerCase()} category at the moment.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Link
-                  href="/"
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
-                >
+                <Link href="/" className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200">
                   Browse All Categories
                 </Link>
-                <Link
-                  href="/"
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
-                >
+                <Link href="/" className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors duration-200">
                   Back to Home
                 </Link>
               </div>
@@ -99,7 +121,7 @@ async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
         )}
       </div>
     </div>
-  )
+  );
 }
 
-export default CategoryPage
+export default CategoryPage;

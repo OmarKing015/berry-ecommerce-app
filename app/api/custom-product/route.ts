@@ -117,7 +117,7 @@ export async function POST(req: Request) {
           _key: customCategory._id,
         },
       ],
-      size: [size],
+      sizes: [{ size, stock: 999 }],
     }
 
     // 6. Create the product in Sanity

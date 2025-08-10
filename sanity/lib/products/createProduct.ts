@@ -29,7 +29,10 @@ export interface ProductData {
     current: string
     _type: "slug"
   }
-  size: string[];
+  sizes?: Array<{
+    size: string;
+    stock: number;
+  }>;
 }
 
 export async function createProduct(productData: ProductData) {

@@ -1,98 +1,69 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { MongoClient, Binary } from "mongodb";
-import type { ColorSwatch } from "@/lib/models";
-
-const uri = process.env.MONGODB_API_KEY || "";
+import { backendClient } from "@/sanity/lib/backendClient";
+import { imageUrl } from "@/lib/imageUrl";
 
 export async function GET() {
-    try {
-        const client = new MongoClient(uri);
-        await client.connect();
-        const db = client.db('ZSHIRT');
-        const swatches = await db.collection<ColorSwatch>("colorSwatches").find({}).sort({ createdAt: -1 }).toArray();
-        await client.close();
+  try {
+    const swatches = await backendClient.fetch(
+      `*[_type == "colorSwatch"] | order(_createdAt desc)`
+    );
 
-        const formattedSwatches = swatches?.map((swatch) => ({
-            _id: swatch._id?.toString(),
-            name: swatch.name,
-            imageUrl: `/api/admin/color-swatches/${swatch._id}/image`,
-            createdAt: swatch.createdAt.toISOString(),
-            style: swatch.style,
-            hexCode: swatch.hexCode,
-        }));
+    const formattedSwatches = swatches?.map((swatch: any) => ({
+      _id: swatch._id,
+      name: swatch.name,
+      hexCode: swatch.hexCode,
+      category: swatch.category,
+      imageUrl: swatch.image ? imageUrl(swatch.image).url() : null,
+      createdAt: swatch._createdAt,
+    }));
 
-        return NextResponse.json(formattedSwatches);
-    } catch (error) {
-        console.error("Error fetching color swatches:", error);
-        return NextResponse.json({ error: "Failed to fetch color swatches" }, { status: 500 });
-    }
+    return NextResponse.json(formattedSwatches);
+  } catch (error) {
+    console.error("Error fetching color swatches:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch color swatches" },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(request: NextRequest) {
-    try {
-        const contentType = request.headers.get("content-type") || "";
-        const client = new MongoClient(uri);
-        await client.connect();
-        const db = client.db('ZSHIRT');
-        const collection = db.collection<ColorSwatch>('colorSwatches');
+  try {
+    const formData = await request.formData();
+    const file = formData.get("file") as File;
+    const name = formData.get("name") as string;
+    const hexCode = formData.get("hexCode") as string;
+    const category = formData.get("category") as "slim" | "oversized";
 
-        let name: string, hexCode: string, buffer: Buffer, imageContentType: string, fileName: string, style: "slim" | "oversized";
-
-        if (contentType.includes("application/json")) {
-            const body = await request.json();
-            name = body.name;
-            hexCode = body.hexCode;
-            const imageUrl = body.imageUrl;
-            style = body.style;
-
-            if (!name || !hexCode || !imageUrl || !style) {
-                return NextResponse.json({ error: "Missing required fields: name, hexCode, imageUrl, and style" }, { status: 400 });
-            }
-
-            const response = await fetch(imageUrl);
-            if (!response.ok) {
-                return NextResponse.json({ error: "Failed to fetch image from URL" }, { status: 400 });
-            }
-            const arrayBuffer = await response.arrayBuffer();
-            buffer = Buffer.from(arrayBuffer);
-            imageContentType = response.headers.get("content-type") || "image/png";
-            fileName = new URL(imageUrl).pathname.split('/').pop() || 'image.png';
-
-        } else if (contentType.includes("multipart/form-data")) {
-            const formData = await request.formData();
-            const file = formData.get("file") as File;
-            name = formData.get("name") as string;
-            hexCode = formData.get("hexCode") as string;
-            style = formData.get("style") as "slim" | "oversized";
-
-            if (!file || !name || !hexCode || !style) {
-                return NextResponse.json({ error: "Missing required fields: file, name, hexCode, and style" }, { status: 400 });
-            }
-
-            const arrayBuffer = await file.arrayBuffer();
-            buffer = Buffer.from(arrayBuffer);
-            imageContentType = file.type;
-            fileName = file.name;
-        } else {
-            await client.close();
-            return NextResponse.json({ error: "Unsupported content type" }, { status: 415 });
-        }
-
-        const result = await collection.insertOne({
-            name,
-            hexCode,
-            fileData: new Binary(buffer),
-            contentType: imageContentType,
-            fileName,
-            createdAt: new Date(),
-            style,
-        } as any);
-        await client.close();
-
-        return NextResponse.json({ success: true, insertedId: result.insertedId }, { status: 201 });
-
-    } catch (error) {
-        console.error("Error uploading color swatch:", error);
-        return NextResponse.json({ error: "Failed to upload color swatch" }, { status: 500 });
+    if (!file || !name || !hexCode || !category) {
+      return NextResponse.json(
+        { error: "Missing required fields: file, name, hexCode, and category" },
+        { status: 400 }
+      );
     }
+
+    const imageAsset = await backendClient.assets.upload("image", file);
+
+    const result = await backendClient.create({
+      _type: "colorSwatch",
+      name,
+      hexCode,
+      category,
+      image: {
+        _type: "image",
+        asset: {
+          _type: "reference",
+          _ref: imageAsset._id,
+        },
+      },
+    });
+
+    return NextResponse.json({ success: true, insertedId: result._id }, { status: 201 });
+  } catch (error) {
+    console.error("Error uploading color swatch:", error);
+    return NextResponse.json(
+      { error: "Failed to upload color swatch" },
+      { status: 500 }
+    );
+  }
 }
