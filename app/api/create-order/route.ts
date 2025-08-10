@@ -30,7 +30,7 @@ let total = amount * 100
       body: JSON.stringify({
         amount : amount ,  // in EGP
         currency:"EGP",
-        payment_methods: [12 , "card", 2298577], // adjust to your enabled methods
+        payment_methods: [12 , "card", 2298577 , 4609540], // adjust to your enabled methods
         items: items.map((item: any) => ({
           name: item.name,
           amount: item.price,

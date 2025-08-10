@@ -98,7 +98,7 @@ export default function PaymentPage() {
     0
   );
 
-  const shipping = 90; // COD has higher shipping fee
+  // const shipping = 90; // COD has higher shipping fee
   // const tax = subtotal * 0.14 // 14% tax
   const codFee = paymentMethod === "cod" ? 10 : 0; // COD processing fee
   const total = subtotal + codFee;
@@ -133,7 +133,7 @@ export default function PaymentPage() {
         postalCode: formData.postalCode,
       },
       items: cartItems,
-      totalAmount: total,
+      totalAmount: total ,
       paymentMethod: "paymob" as "paymob" | "cod",
       updatedAt: new Date().toISOString(),
     }));
@@ -158,12 +158,12 @@ export default function PaymentPage() {
           body: JSON.stringify({
             amount: Math.round(total * 100), // Convert to cents
             currency: "EGP",
-            items: cartItems.map((item) => ({
-              name: item.name,
+            items: cartItems.map(item => ({
+ name: item.name,
               price: Math.round(item.price * 100), // Convert item price to cents
-              description: item.name, // Or a more detailed description if available
-              quantity: item.quantity,
-            })),
+ description: item.name, // Or a more detailed description if available
+ quantity: item.quantity
+ })),
             customer: formData,
             paymentMethod: "cod",
             assetId: assetId,
@@ -188,25 +188,25 @@ export default function PaymentPage() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            amount: Math.round(total * 100),
+            amount: Math.round(total * 100), 
             currency: "EGP",
-            items: cartItems.map((item) => ({
-              name: item.name,
+            items: cartItems.map(item => ({
+ name: item.name,
               price: Math.round(item.price * 100), // Convert item price to cents
-              description: item.name, // Or a more detailed description if available
-              quantity: item.quantity,
-            })),
+ description: item.name, // Or a more detailed description if available
+ quantity: item.quantity
+ })),
             customer: formData,
             assetId: assetId,
           }),
         });
-        console.log("Total amount : " + total + "items :" + cartItems);
+      console.log("Total amount : "+total + "items :" + cartItems);
         const data = await response.json();
-
+      
         if (data.success && data.checkoutUrl) {
           // Redirect to Unified Checkout
           window.location.href = data.checkoutUrl;
-        } else {
+        }  else {
           throw new Error(data.error || "Payment initialization failed");
         }
       }
