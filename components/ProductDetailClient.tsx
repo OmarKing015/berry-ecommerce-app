@@ -97,7 +97,7 @@ export default function ProductDetailClient({
                         >
 
                           <RadioGroupItem
-                            value={sizeObj?.size}
+                            value={sizeObj?.size || ""}
                             id={`size-${sizeObj?.size}`}
                             disabled={sizeObj?.stock === 0}
                           />

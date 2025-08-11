@@ -54,6 +54,8 @@ import {
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
+import { ColorSwatches } from "@/sanity.types";
+import { imageUrl } from "@/lib/imageUrl";
 
 interface TEMPLATE_LOGOS_TYPE {
   _id: string;
@@ -132,14 +134,7 @@ const FONTS = {
   ],
 };
 
-interface ColorSwatch {
-  _id: string;
-  name: string;
-  hexCode: string;
-  imageUrl: string;
-  createdAt: string;
-  style: "slim" | "oversized";
-}
+
 
 // Add MobileControlButton component
 const MobileControlButton = ({ icon, label, onClick, active = false }: {
@@ -211,7 +206,7 @@ const ColorGrid = React.memo(({
   loading = {},
   showTooltip = true 
 }: {
-  colors: Array<{ _id?: string; value?: string; hexCode?: string; name: string; ring?: string }>;
+  colors: Array<{ _id?: string; value?: string; colorHexCode?: any; colorName?: string; ring?: string }>;
   selectedColor: string;
   onColorSelect: (color: string, id?: string) => void;
   loading?: { [key: string]: boolean };
@@ -220,8 +215,8 @@ const ColorGrid = React.memo(({
   return (
     <div className="grid grid-cols-4 gap-2">
       {colors.map((color) => {
-        const colorValue = color.value || color.hexCode || "#000000";
-        const colorId = color._id || color.value || color.hexCode;
+        const colorValue = color.value || color.colorHexCode || "#000000";
+        const colorId = color._id || color.value || color.colorHexCode;
         const isSelected = selectedColor === colorValue;
         const isLoading = loading[colorId || "#"];
         
@@ -260,7 +255,7 @@ const ColorGrid = React.memo(({
               {button}
             </TooltipTrigger>
             <TooltipContent>
-              <p className="font-medium">{color.name}</p>
+              <p className="font-medium">{color.colorName}</p>
             </TooltipContent>
           </Tooltip>
         ) : button;
@@ -369,8 +364,8 @@ export default function Toolbar() {
   const [totalPages, setTotalPages] = useState(1);
   const [logosLoading, setLogosLoading] = useState(false);
   const { toast } = useToast();
-  const [colorSwatches, setColorSwatches] = useState<ColorSwatch[]>([]);
-  const [selectedStyle, setSelectedStyle] = useState<"slim" | "oversized">("slim");
+  const [colorSwatches, setColorSwatches] = useState<ColorSwatches[]>([]);
+  const [selectedStyle, setSelectedStyle] = useState<"slimFit" | "oversizedFit" | "boxFit">("slimFit");
   const [imageLoading, setImageLoading] = useState<{ [key: string]: boolean }>({});
   const [templateLogoLoading, setTemplateLogoLoading] = useState<{ [key: string]: boolean }>({});
   const [isUploadingCustomImage, setIsUploadingCustomImage] = useState(false);
@@ -383,7 +378,7 @@ export default function Toolbar() {
 
   // Memoize filtered color swatches
   const filteredColorSwatches = useMemo(
-    () => colorSwatches.filter((swatch) => swatch.style === selectedStyle),
+    () => colorSwatches.filter((swatch) => swatch.fitStyle === selectedStyle),
     [colorSwatches, selectedStyle]
   );
 
@@ -587,18 +582,18 @@ export default function Toolbar() {
       const img = new Image();
       img.onload = () => {
         updateShirtColor(color);
-        setShirtImageUrl(swatch.imageUrl);
+        setShirtImageUrl(imageUrl(swatch.image ||"/placeholder.svg" ).url() || "/placeholder.svg");
         setImageLoading((prev) => ({ ...prev, [swatchId]: false }));
       };
       img.onerror = () => {
         toast({
           title: "Image Load Error",
-          description: `Failed to load ${swatch.name} color`,
+          description: `Failed to load ${swatch.colorName} color`,
           variant: "destructive",
         });
         setImageLoading((prev) => ({ ...prev, [swatchId]: false }));
       };
-      img.src = swatch.imageUrl;
+      img.src = imageUrl(swatch.image ||"/placeholder.svg" ).url() || "/placeholder.svg";
     }
   }, [imageLoading, colorSwatches, updateShirtColor, setShirtImageUrl, toast]);
 
@@ -983,18 +978,25 @@ return (
           </div>
           <div className="grid grid-cols-2 gap-3">
             <Button
-              variant={selectedStyle === "slim" ? "default" : "outline"}
-              onClick={() => setSelectedStyle("slim")}
+              variant={selectedStyle === "slimFit" ? "default" : "outline"}
+              onClick={() => setSelectedStyle("slimFit")}
               className="h-10"
             >
               Slim Fit
             </Button>
             <Button
-              variant={selectedStyle === "oversized" ? "default" : "outline"}
-              onClick={() => setSelectedStyle("oversized")}
+              variant={selectedStyle === "oversizedFit" ? "default" : "outline"}
+              onClick={() => setSelectedStyle("oversizedFit")}
               className="h-10"
             >
               Oversized
+            </Button>
+            <Button
+              variant={selectedStyle === "boxFit" ? "default" : "outline"}
+              onClick={() => setSelectedStyle("boxFit")}
+              className="h-10"
+            >
+              Box Fit
             </Button>
           </div>
         </motion.div>
@@ -1313,19 +1315,26 @@ return (
             <h2 className="font-semibold text-sm text-foreground">Style</h2>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <Button
-              variant={selectedStyle === "slim" ? "default" : "outline"}
-              onClick={() => setSelectedStyle("slim")}
+          <Button
+              variant={selectedStyle === "slimFit" ? "default" : "outline"}
+              onClick={() => setSelectedStyle("slimFit")}
               className="h-10"
             >
               Slim Fit
             </Button>
             <Button
-              variant={selectedStyle === "oversized" ? "default" : "outline"}
-              onClick={() => setSelectedStyle("oversized")}
+              variant={selectedStyle === "oversizedFit" ? "default" : "outline"}
+              onClick={() => setSelectedStyle("oversizedFit")}
               className="h-10"
             >
               Oversized
+            </Button>
+            <Button
+              variant={selectedStyle === "boxFit" ? "default" : "outline"}
+              onClick={() => setSelectedStyle("boxFit")}
+              className="h-10"
+            >
+              Box Fit
             </Button>
           </div>
         </motion.div>

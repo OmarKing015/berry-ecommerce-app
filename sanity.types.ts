@@ -13,6 +13,50 @@
  */
 
 // Source: schema.json
+export type ColorSwatches = {
+  _id: string;
+  _type: "colorSwatches";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  colorName?: string;
+  colorHexCode?: Color;
+  image?: {
+    asset?: {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+    };
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    _type: "image";
+  };
+  fitStyle?: "slimFit" | "oversizedFit" | "boxyFit";
+};
+
+export type TempleteLogos = {
+  _id: string;
+  _type: "templeteLogos";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  logoName?: string;
+  image?: {
+    asset?: {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+    };
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    _type: "image";
+  };
+};
+
 export type Order = {
   _id: string;
   _type: "order";
@@ -109,8 +153,8 @@ export type Product = {
   };
   price?: number;
   sizes?: Array<{
-    size: string;
-    stock: number;
+    size?: string;
+    stock?: number;
     _key: string;
   }>;
   categories?: Array<{
@@ -135,6 +179,39 @@ export type Sale = {
   validFrom?: string;
   validUntil?: string;
   isActive?: boolean;
+};
+
+export type Color = {
+  _type: "color";
+  hex?: string;
+  alpha?: number;
+  hsl?: HslaColor;
+  hsv?: HsvaColor;
+  rgb?: RgbaColor;
+};
+
+export type RgbaColor = {
+  _type: "rgbaColor";
+  r?: number;
+  g?: number;
+  b?: number;
+  a?: number;
+};
+
+export type HsvaColor = {
+  _type: "hsvaColor";
+  h?: number;
+  s?: number;
+  v?: number;
+  a?: number;
+};
+
+export type HslaColor = {
+  _type: "hslaColor";
+  h?: number;
+  s?: number;
+  l?: number;
+  a?: number;
 };
 
 export type SanityImagePaletteSwatch = {
@@ -255,8 +332,39 @@ export type SanityAssetSourceData = {
   url?: string;
 };
 
-export type AllSanitySchemaTypes = Order | Category | Product | Sale | SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityImageHotspot | SanityImageCrop | SanityFileAsset | SanityImageAsset | SanityImageMetadata | Geopoint | Slug | SanityAssetSourceData;
+export type AllSanitySchemaTypes = ColorSwatches | TempleteLogos | Order | Category | Product | Sale | Color | RgbaColor | HsvaColor | HslaColor | SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityImageHotspot | SanityImageCrop | SanityFileAsset | SanityImageAsset | SanityImageMetadata | Geopoint | Slug | SanityAssetSourceData;
 export declare const internalGroqTypeReferenceTo: unique symbol;
+// Source: ./sanity/lib/customizationTools/getAllColorSwatches.ts
+// Variable: All_COLORSWATCHES_QUERY
+// Query: *[_type == "colorSwatches"] | order(name asc)
+export type All_COLORSWATCHES_QUERYResult = Array<{
+  _id: string;
+  _type: "colorSwatches";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  colorName?: string;
+  colorHexCode?: Color;
+  image?: {
+    asset?: {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+    };
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    _type: "image";
+  };
+  fitStyle?: "boxyFit" | "oversizedFit" | "slimFit";
+}>;
+
+// Source: ./sanity/lib/customizationTools/getAllLogos.ts
+// Variable: All_LOGOS_QUERY
+// Query: *[_type == "logo"] | order(name asc)
+export type All_LOGOS_QUERYResult = Array<never>;
+
 // Source: ./sanity/lib/orders/getMyOrders.ts
 // Variable: MY_ORERS_QUERY
 // Query: *[_type == "order" && clerkUserId == $userId] | order(createdAt desc) {        _id,        orderId,        customerName,        totalAmount,        paymentStatus,        paymentMethod,        orderStatus,        createdAt,        items[] {          quantity,          price,          product-> {            _id,            name,            image          }        }      }
@@ -480,6 +588,8 @@ export type ACTIVE_SALE_BY_COUPON_QUERYResult = {
 import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
+    "\n        *[_type == \"colorSwatches\"] | order(name asc)\n        ": All_COLORSWATCHES_QUERYResult;
+    "\n        *[_type == \"logo\"] | order(name asc)\n        ": All_LOGOS_QUERYResult;
     "*[_type == \"order\" && clerkUserId == $userId] | order(createdAt desc) {\n        _id,\n        orderId,\n        customerName,\n        totalAmount,\n        paymentStatus,\n        paymentMethod,\n        orderStatus,\n        createdAt,\n        items[] {\n          quantity,\n          price,\n          product-> {\n            _id,\n            name,\n            image\n          }\n        }\n      }": MY_ORERS_QUERYResult;
     "\n    *[_type == \"order\" && orderId == $orderId][0]\n  ": GET_ORDER_BY_ORDER_ID_QUERYResult;
     "\n        *[_type == \"category\"] | order(name asc) \n        ": ALL_CATEGORIES_QUERYResult;
