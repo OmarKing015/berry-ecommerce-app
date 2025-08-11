@@ -108,8 +108,11 @@ export type Product = {
     _type: "file";
   };
   price?: number;
-  size?: Array<string>;
-  stock?: number;
+  sizes?: Array<{
+    size: string;
+    stock: number;
+    _key: string;
+  }>;
   categories?: Array<{
     _ref: string;
     _type: "reference";
@@ -392,8 +395,11 @@ export type All_PRODUCTS_QUERYResult = Array<{
     _type: "file";
   };
   price?: number;
-  size?: Array<string>;
-  stock?: number;
+  sizes?: Array<{
+    size?: string;
+    stock?: number;
+    _key: string;
+  }>;
   categories?: Array<{
     _ref: string;
     _type: "reference";
@@ -438,8 +444,11 @@ export type PRODUCTS_BY_CATEGORY_QUERYResult = Array<{
     _type: "file";
   };
   price?: number;
-  size?: Array<string>;
-  stock?: number;
+  sizes?: Array<{
+    size?: string;
+    stock?: number;
+    _key: string;
+  }>;
   categories?: Array<{
     _ref: string;
     _type: "reference";

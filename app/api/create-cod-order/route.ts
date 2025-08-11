@@ -45,6 +45,7 @@ export async function POST(request: NextRequest) {
         },
         quantity: item.quantity,
         price: item.price,
+        size: item.size,
       })),
       totalAmount: amount / 100, // Convert back from cents
       paymentStatus: "pending" as const, // COD starts as pending

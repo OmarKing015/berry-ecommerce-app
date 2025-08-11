@@ -100,8 +100,7 @@ export default function PaymentPage() {
 
   // const shipping = 90; // COD has higher shipping fee
   // const tax = subtotal * 0.14 // 14% tax
-  const codFee = paymentMethod === "cod" ? 10 : 0; // COD processing fee
-  const total = subtotal + codFee;
+  const total = subtotal;
   const { assetId } = useAppContext();
   const { clearBasket } = useBasketStore();
 
@@ -465,12 +464,7 @@ export default function PaymentPage() {
                     <span>Tax (14%)</span>
                     <span>{tax.toFixed(2)} EGP</span>
                   </div> */}
-                  {paymentMethod === "cod" && (
-                    <div className="flex justify-between">
-                      <span>COD Fee</span>
-                      <span>{codFee.toFixed(2)} EGP</span>
-                    </div>
-                  )}
+               
                   <Separator />
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>

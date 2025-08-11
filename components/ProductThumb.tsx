@@ -5,8 +5,7 @@ import Link from "next/link";
 import { Star, ShoppingCart } from "lucide-react";
 
 function ProductThumb({ product }: { product: Product }) {
-  const isOutOfStock = product.stock != null && product.stock <= 0;
-
+  const isOutOfStock = product?.sizes?.map((s:any)=>s.stock)?.reduce((acc:number,curr:number)=>acc+curr,0) === 0
   return (
     <Link
       href={`/product/${product?.slug?.current}`}
@@ -67,9 +66,6 @@ function ProductThumb({ product }: { product: Product }) {
             <span className="text-sm text-gray-500 line-through">
               {product.price && (product.price + 150).toFixed(2)} EGP
             </span>
-            {product.stock != null && !isOutOfStock && (
-              <p className="text-xs text-green-600">{product.stock} in stock</p>
-            )}
           </div>
 
           {!isOutOfStock && (

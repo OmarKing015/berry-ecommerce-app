@@ -29,16 +29,17 @@ function AddToBasketButton({ product, disabled, selectedSize , extraCost }: AddT
       </div>
     )
   }
-
   const handleAddItem = async () => {
     setIsAdding(true)
      addItem(product, selectedSize,0)
     // Small delay for visual feedback
     setTimeout(() => setIsAdding(false), 200)
   }
+  const isOutOfStock = product?.sizes?.map((s:any)=>s.stock)?.reduce((acc:number,curr:number)=>acc+curr,0) === 0 
+  const selectedSizeStock = product.sizes?.find(({ size }) => size === selectedSize)?.stock ?? 0
+  const isDisabled = disabled || isOutOfStock 
+  const isSelectedSizeOutOfStock = itemCount >= selectedSizeStock
 
-  const isOutOfStock = product?.stock !== undefined && itemCount >= product.stock
-  const isDisabled = disabled || isOutOfStock
 
   // If no items in basket, show "Add to Basket" button
   if (itemCount === 0) {
@@ -49,7 +50,7 @@ function AddToBasketButton({ product, disabled, selectedSize , extraCost }: AddT
         className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-semibold transition-all duration-200 ${
           isDisabled
             ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-            : "bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transform hover:scale-[1.02]"
+            : "bg-blue-600 hover:bg-blue-700  text-white shadow-md hover:shadow-lg transform hover:scale-[1.02]"
         } ${isAdding ? "scale-95" : ""}`}
       >
         <ShoppingCart className="h-4 w-4" />
@@ -79,9 +80,9 @@ function AddToBasketButton({ product, disabled, selectedSize , extraCost }: AddT
         {/* Increase Button */}
         <button
           onClick={handleAddItem}
-          disabled={isOutOfStock}
+ disabled={isSelectedSizeOutOfStock}
           className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 shadow-sm ${
-            isOutOfStock
+ isSelectedSizeOutOfStock
               ? "bg-gray-200 border border-gray-200 cursor-not-allowed"
               : "bg-blue-600 hover:bg-blue-700 border border-blue-600"
           } ${isAdding ? "scale-95" : ""}`}
@@ -91,12 +92,10 @@ function AddToBasketButton({ product, disabled, selectedSize , extraCost }: AddT
       </div>
 
       {/* Stock Warning */}
-      {product?.stock !== undefined && (
+      {product?.sizes !== undefined && (
         <div className="mt-2 text-center">
-          {isOutOfStock ? (
-            <p className="text-xs text-red-600 font-medium">Maximum stock reached</p>
-          ) : (
-            <p className="text-xs text-gray-500">{product.stock - itemCount} more available</p>
+          {isOutOfStock && (
+            <p className="text-xs text-red-600 font-medium">Selected Size Maximum stock reached</p>
           )}
         </div>
       )}

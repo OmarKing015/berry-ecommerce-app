@@ -91,6 +91,7 @@ let total = amount * 100
         },
         quantity: item.quantity,
         price: item.price,
+        size: item.size,
       })),
       totalAmount: amount,
       paymentStatus: "pending" as const,

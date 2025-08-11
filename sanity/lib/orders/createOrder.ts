@@ -24,6 +24,7 @@ export interface OrderData {
     }
     quantity: number
     price: number
+    size: string // Added size to the items
   }>
   totalAmount: number
   paymentStatus: "pending" | "completed" | "failed"
@@ -66,10 +67,11 @@ export async function createOrder(orderData: OrderData) {
       // uploadZipFile(zipFile)
       // Deduct stock for each item in the order
       const stockUpdateItems = orderData.items.map((item) => {
-        console.log(`Preparing item for stock update: Product _ref (expected productId) = ${item.product._ref}, Quantity = ${item.quantity}`)
+        console.log(`Preparing item for stock update: Product _ref (expected productId) = ${item.product._ref}, Quantity = ${item.quantity}, Size = ${item.size}`)
         return {
           productId: item.product._ref, // Use _ref as productId
           quantity: item.quantity,
+          size: item.size,
         }
       })
       console.log("Calling updateMultipleProductsStock with items:", JSON.stringify(stockUpdateItems, null, 2))

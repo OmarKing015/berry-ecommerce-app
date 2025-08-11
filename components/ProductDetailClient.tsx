@@ -22,9 +22,11 @@ export default function ProductDetailClient({
   product,
 }: ProductDetailClientProps) {
   const [selectedSize, setSelectedSize] = useState<string>("");
-  const isOutOfStock = product.stock != null && product.stock <= 0;
   const { extraCost, setExtraCost } = useAppContext();
-
+  const isOutOfStock =
+    product?.sizes
+      ?.map((s: any) => s.stock)
+      ?.reduce((acc: number, curr: number) => acc + curr, 0) === 0;
   if (!product.price) {
     return notFound();
   }
@@ -73,7 +75,7 @@ export default function ProductDetailClient({
                   </span>
                   Instead of
                   <span className="text-sm text-gray-500 line-through">
-                     {(product.price + 150).toFixed(2)} EGP
+                    {(product.price + 150).toFixed(2)} EGP
                   </span>
                 </div>
 
@@ -82,20 +84,30 @@ export default function ProductDetailClient({
                   <h2 className="text-lg font-semibold text-gray-800 mb-3">
                     Select Size
                   </h2>
-                  {product.size && (
+                  {product.sizes && (
                     <RadioGroup
                       value={selectedSize}
                       onValueChange={setSelectedSize}
                       className="flex flex-wrap gap-3"
                     >
-                      {product.size?.map((size) => (
-                        <div key={size} className="flex items-center space-x-2">
+                      {product.sizes?.map((sizeObj) => (
+                        <div
+                          key={sizeObj.size}
+                          className="flex items-center space-x-2"
+                        >
+
                           <RadioGroupItem
-                            value={size}
-                            id={`size-${size}`}
-                            disabled={isOutOfStock}
+                            value={sizeObj?.size}
+                            id={`size-${sizeObj?.size}`}
+                            disabled={sizeObj?.stock === 0}
                           />
-                          <Label htmlFor={`size-${size}`}>{size}</Label>
+                          
+                            {sizeObj?.size}
+                            {sizeObj?.stock === 0 && (
+                              <span className="text-sm text-gray-500">
+                                Out of Stock
+                              </span>
+                            )}
                         </div>
                       ))}
                     </RadioGroup>
@@ -103,7 +115,7 @@ export default function ProductDetailClient({
                 </div>
               </div>
 
-              {product.size && !selectedSize ? (
+              {product.sizes && !selectedSize ? (
                 <p
                   className="`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-semibold transition-all duration-200
           bg-gray-300 text-gray-500 cursor-not-allowed"
@@ -115,7 +127,6 @@ export default function ProductDetailClient({
                   <AddToBasketButton
                     product={product}
                     selectedSize={selectedSize}
-                    disabled={isOutOfStock || (!!product.size && !selectedSize)}
                   />
                 </div>
               )}

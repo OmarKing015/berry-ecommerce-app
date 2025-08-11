@@ -59,8 +59,7 @@ export const CategorySelector = ({ categories }: CategorySelectorProps) => {
                       <Image
                         src={imageUrl(category.image)?.url()}
                         alt={`Image for ${category.title}`}
-                        // layout="fill"
-                        // objectFit="cover"
+                       
                         className="object-contain transition-transform duration-300 group-hover:scale-105"
                         fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

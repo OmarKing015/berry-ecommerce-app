@@ -34,13 +34,13 @@ function BasketPage() {
 
   useEffect(() => {
     setIsClient(true);
-    groupedItems.map((item) => {
-      if (item.product.stock && item.product?.stock < item.quantity) {
-        setIsCheckoutDisabled(true);
-      } else {
-        setIsCheckoutDisabled(false);
-      }
-    });
+    // groupedItems.map((item) => {
+    //   if (item.size && (item.product?.sizes?.find(({size}) => size === item.size)  || item.product?.sizes?.find(({size}) => size === item.size)?.stock < item.quantity)) {
+    //     setIsCheckoutDisabled(true);
+    //   } else {
+    //     setIsCheckoutDisabled(false);
+    //   }
+    // });
   }, [groupedItems]);
 
   if (!isClient) {
@@ -275,7 +275,7 @@ function BasketPage() {
                 </div>
               )} */}
 
-              {/* {isSignedIn ? (
+              {isSignedIn ? (
                 <button
                   onClick={handleCheckout}
                   disabled={isLoading}
@@ -296,7 +296,7 @@ function BasketPage() {
                 </button>
               ) : (
                 <SignInButton />
-              )} */}
+              )}
               <button
                 onClick={handleCheckout}
                 disabled={isLoading || isCheckoutDisabled}
