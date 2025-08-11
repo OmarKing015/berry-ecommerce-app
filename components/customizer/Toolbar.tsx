@@ -268,7 +268,7 @@ const ColorGrid = React.memo(({
   selectedColor, 
   onColorSelect, 
   loading = {},
- showTooltip = true,
+  showTooltip = true 
 }: {
   colors: ColorSwatches[];
   selectedColor: string;
@@ -280,11 +280,9 @@ const ColorGrid = React.memo(({
     <div className="grid grid-cols-4 gap-2">
       {colors.map((color) => {
         const colorValue = color.colorHexCode?.hex || "#000000";
- if (!colorValue) return null; // Skip if colorHexCode.hex is null/undefined
         const colorId = color._id;
         const isSelected = selectedColor === colorValue;
         const isLoading = loading[colorId || "#"];
-
         
         const button = (
           <button
@@ -416,7 +414,7 @@ export default function Toolbar() {
 
   // Memoize expensive operations
   
-  const [selectedFont, setSelectedFont] = useState<string>("Inter");
+  const [selectedFont, setSelectedFont] = useState("Inter");
   const [selectedFontColor, setSelectedFontColor] = useState("#000000");
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -444,7 +442,7 @@ export default function Toolbar() {
 
   // Memoize filtered color swatches
   const filteredColorSwatches = useMemo(
-    () =>(Array.isArray(colorSwatches)?colorSwatches:[] ).filter((swatch) => swatch.fitStyle === selectedStyle),
+    () => colorSwatches.filter((swatch) => swatch.fitStyle === selectedStyle),
     [colorSwatches, selectedStyle]
   );
 
