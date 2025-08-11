@@ -54,7 +54,7 @@ import {
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
-import { ColorSwatches } from "@/sanity.types";
+import { ColorSwatches, TempleteLogos } from "@/sanity.types";
 import { imageUrl } from "@/lib/imageUrl";
 
 interface TEMPLATE_LOGOS_TYPE {
@@ -199,15 +199,14 @@ const TextInput = React.memo(({ value, onChange, placeholder, disabled }: {
 TextInput.displayName = "TextInput";
 
 // Memoized Color Grid Component
-const ColorGrid = React.memo(({ 
+const ColorTextGrid = React.memo(({ 
   colors, 
   selectedColor, 
   onColorSelect, 
   loading = {},
   showTooltip = true 
 }: {
-  colors: Array<{ _id?: string; value?: string; colorHexCode?: any; colorName?: string; ring?: string }>;
-  selectedColor: string;
+  colors: Array<{ _id?: string; value?: string; colorHexCode?: any; colorName?: string; ring?: string }>;  selectedColor: string;
   onColorSelect: (color: string, id?: string) => void;
   loading?: { [key: string]: boolean };
   showTooltip?: boolean;
@@ -215,8 +214,8 @@ const ColorGrid = React.memo(({
   return (
     <div className="grid grid-cols-4 gap-2">
       {colors.map((color) => {
-        const colorValue = color.value || color.colorHexCode || "#000000";
-        const colorId = color._id || color.value || color.colorHexCode;
+        const colorValue = color.value || "#000000";
+        const colorId = color._id;
         const isSelected = selectedColor === colorValue;
         const isLoading = loading[colorId || "#"];
         
@@ -225,7 +224,7 @@ const ColorGrid = React.memo(({
             key={colorId}
             className={`w-full h-10 rounded-lg border-2 transition-all relative ${
               isSelected
-                ? color.ring ? `ring-2 ${color.ring} border-current shadow-lg` : "ring-2 ring-primary/50 border-primary shadow-lg"
+                ? color.colorHexCode?.hex ? `ring-2 ${color.colorHexCode?.hex} border-current shadow-lg` : "ring-2 ring-primary/50 border-primary shadow-lg"
                 : "border-border hover:border-primary/50"
             }`}
             style={{ backgroundColor: colorValue }}
@@ -237,6 +236,73 @@ const ColorGrid = React.memo(({
                 <div
                   className={`w-2 h-2 rounded-full ${
                     colorValue === "#FFFFFF" ? "bg-gray-800" : "bg-white"
+                  }`}
+                />
+              </div>
+            )}
+            {isLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm rounded-lg">
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary/30 border-t-primary" />
+              </div>
+            )}
+          </button>
+        );
+
+        return showTooltip ? (
+          <Tooltip key={colorId}>
+            <TooltipTrigger asChild>
+              {button}
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="font-medium">{color.colorName}</p>
+            </TooltipContent>
+          </Tooltip>
+        ) : button;
+      })}
+    </div>
+  );
+});
+ColorTextGrid.displayName = "ColorTextGrid";
+const ColorGrid = React.memo(({ 
+  colors, 
+  selectedColor, 
+  onColorSelect, 
+  loading = {},
+ showTooltip = true,
+}: {
+  colors: ColorSwatches[];
+  selectedColor: string;
+  onColorSelect: (color: string, id?: string) => void;
+  loading?: { [key: string]: boolean };
+  showTooltip?: boolean;
+}) => {
+  return (
+    <div className="grid grid-cols-4 gap-2">
+      {colors.map((color) => {
+        const colorValue = color.colorHexCode?.hex || "#000000";
+ if (!colorValue) return null; // Skip if colorHexCode.hex is null/undefined
+        const colorId = color._id;
+        const isSelected = selectedColor === colorValue;
+        const isLoading = loading[colorId || "#"];
+
+        
+        const button = (
+          <button
+            key={colorId}
+            className={`w-full h-10 rounded-lg border-2 transition-all relative ${
+              isSelected
+                ? color.colorHexCode?.hex ? `ring-2 ${color.colorHexCode?.hex} border-current shadow-lg` : "ring-2 ring-primary/50 border-primary shadow-lg"
+                : "border-border hover:border-primary/50"
+            }`}
+            style={{ backgroundColor: color.colorHexCode?.hex }}
+            onClick={() => onColorSelect(color.colorHexCode?.hex || "#000000", colorId)}
+            disabled={isLoading}
+          >
+            {isSelected && (
+              <div className="w-full h-full rounded-lg flex items-center justify-center">
+                <div
+                  className={`w-2 h-2 rounded-full ${
+                    colorValue === "#000000" ? "bg-gray-800" : "bg-white"
                   }`}
                 />
               </div>
@@ -275,7 +341,7 @@ const LogoGrid = React.memo(({
   totalPages,
   isLoading
 }: {
-  logos: TEMPLATE_LOGOS_TYPE[];
+  logos: TempleteLogos[];
   onLogoSelect: (logoUrl: string, logoId: string) => void;
   loading?: { [key: string]: boolean };
   onNextPage: () => void;
@@ -296,12 +362,12 @@ const LogoGrid = React.memo(({
             <TooltipTrigger asChild>
               <button
                 className="w-full aspect-square border-2 border-border rounded-lg p-1 hover:border-primary/50 hover:shadow-lg transition-all duration-300 bg-background/50 backdrop-blur-sm overflow-hidden relative"
-                onClick={() => onLogoSelect(logo.imageUrl, logo._id)}
+                onClick={() => onLogoSelect(imageUrl(logo.image ||"/placeholder.svg" ).url(), logo._id)}
                 disabled={loading[logo._id]}
               >
                 <img
-                  src={logo.imageUrl || "/placeholder.svg"}
-                  alt={logo.name}
+                  src={imageUrl(logo.image ||"/placeholder.svg" ).url() || "/placeholder.svg"}
+                  alt={logo?.logoName}
                   className="rounded w-full h-full object-cover"
                 />
                 {loading[logo._id] && (
@@ -312,7 +378,7 @@ const LogoGrid = React.memo(({
               </button>
             </TooltipTrigger>
             <TooltipContent>
-              <p className="font-medium">{logo.name}</p>
+              <p className="font-medium">{logo?.logoName}</p>
             </TooltipContent>
           </Tooltip>
         ))}
@@ -350,14 +416,14 @@ export default function Toolbar() {
 
   // Memoize expensive operations
   
-  const [selectedFont, setSelectedFont] = useState("Inter");
+  const [selectedFont, setSelectedFont] = useState<string>("Inter");
   const [selectedFontColor, setSelectedFontColor] = useState("#000000");
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedColor, setSelectedColor] = useState("#FFFFFF");
   const [isArabic, setIsArabic] = useState(false);
   const [text, setText] = useState("Your Text Here");
-  const [logos, setLogos] = useState<TEMPLATE_LOGOS_TYPE[]>([]);
+  const [logos, setLogos] = useState<TempleteLogos[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -378,7 +444,7 @@ export default function Toolbar() {
 
   // Memoize filtered color swatches
   const filteredColorSwatches = useMemo(
-    () => colorSwatches.filter((swatch) => swatch.fitStyle === selectedStyle),
+    () =>(Array.isArray(colorSwatches)?colorSwatches:[] ).filter((swatch) => swatch.fitStyle === selectedStyle),
     [colorSwatches, selectedStyle]
   );
 
@@ -1108,7 +1174,7 @@ return (
 
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Font Color</Label>
-                    <ColorGrid
+                    <ColorTextGrid
                       colors={FONT_COLORS}
                       selectedColor={selectedFontColor}
                       onColorSelect={(color) => changeFontColor(color)}
@@ -1466,7 +1532,7 @@ return (
 
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Font Color</Label>
-                    <ColorGrid
+                    <ColorTextGrid
                       colors={FONT_COLORS}
                       selectedColor={selectedFontColor}
                       onColorSelect={(color) => changeFontColor(color)}

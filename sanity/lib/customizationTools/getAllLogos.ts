@@ -3,7 +3,7 @@ import { sanityFetch } from "../live";
 
 export const getAllLogos = async () => {
   const All_LOGOS_QUERY   = defineQuery(`
-        *[_type == "logo"] | order(name asc)
+        *[_type == "templeteLogos"] | order(name asc)
         `);
 
   try {
