@@ -215,7 +215,7 @@ const ColorGrid = React.memo(({
   return (
     <div className="grid grid-cols-4 gap-2">
       {colors.map((color) => {
-        const colorValue = color.value || color.colorHexCode || "#000000";
+        const colorValue = color.value || color.colorHexCode?.hex || "#000000";
         const colorId = color._id || color.value || color.colorHexCode;
         const isSelected = selectedColor === colorValue;
         const isLoading = loading[colorId || "#"];
