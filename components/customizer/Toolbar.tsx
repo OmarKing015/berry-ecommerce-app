@@ -1,10 +1,23 @@
 "use client"
 
 import React from "react"
-
 import { useRef, useState, useEffect, useCallback, useMemo } from "react"
 import { fabric } from "fabric"
-import { Type, ImagePlus, Undo, Redo, Trash2, Palette, Sparkles, Zap, Heart, Star, X } from "lucide-react"
+import {
+  Type,
+  ImagePlus,
+  Undo,
+  Redo,
+  Trash2,
+  Palette,
+  Sparkles,
+  Zap,
+  Heart,
+  Star,
+  X,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react"
 import { motion } from "framer-motion"
 import { useEditorStore } from "../../store/editorStore"
 import useBasketStore from "../../store/store"
@@ -16,20 +29,14 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useToast } from "./use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import JSZip from "jszip"
 import { SignedIn, SignedOut, SignInButton, useUser } from "@clerk/nextjs"
 import { costEngine } from "@/lib/costEngine"
 import { Loader2 } from "lucide-react"
 import { useMediaQuery } from "@/hooks/use-media-query"
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog"
+import type { ColorSwatches, TempleteLogos } from "@/sanity.types"
 import { imageUrl } from "@/lib/imageUrl"
-import { ColorSwatches, TempleteLogos } from "@/sanity.types"
-
-let JSZip: any = null
-if (typeof window !== "undefined") {
-  import("jszip").then((module) => {
-    JSZip = module.default
-  })
-}
 
 interface TEMPLATE_LOGOS_TYPE {
   _id: string
@@ -184,6 +191,11 @@ const TextInput = React.memo(
 )
 TextInput.displayName = "TextInput"
 
+// Move state declarations outside the component
+let colorSwatchesPage: number
+let colorSwatchesTotalPages: number
+let colorSwatchesLoading: boolean
+
 // Memoized Color Grid Component
 const ColorGrid = React.memo(
   ({
@@ -192,59 +204,110 @@ const ColorGrid = React.memo(
     onColorSelect,
     loading = {},
     showTooltip = true,
+    currentPage,
+    totalPages,
+    onPageChange,
+    isLoading,
   }: {
     colors: Array<{ _id?: string; value?: string; colorHexCode?: any; colorName?: string; ring?: string }>
     selectedColor: string
     onColorSelect: (color: string, id?: string) => void
     loading?: { [key: string]: boolean }
     showTooltip?: boolean
+    currentPage?: number
+    totalPages?: number
+    onPageChange?: (page: number) => void
+    isLoading?: boolean
   }) => {
     return (
-      <div className="grid grid-cols-4 gap-2">
-        {(colors || []).map((color) => {
-          const colorValue = color.value || color.colorHexCode?.hex
-          const colorId = color._id || color.value || color.colorHexCode
-          const isSelected = selectedColor === colorValue
-          const isLoading = loading[colorId || "#"]
-
-          const button = (
-            <button
-              key={colorId}
-              className={`w-full h-10 rounded-lg border-2 transition-all relative ${
-                isSelected
-                  ? color.ring
-                    ? `ring-2 ${color.ring} border-current shadow-lg`
-                    : "ring-2 ring-primary/50 border-primary shadow-lg"
-                  : "border-border hover:border-primary/50"
-              }`}
-              style={{ backgroundColor: colorValue }}
-              onClick={() => onColorSelect(colorValue, colorId)}
-              disabled={isLoading}
-            >
-              {isSelected && (
-                <div className="w-full h-full rounded-lg flex items-center justify-center">
-                  <div className={`w-2 h-2 rounded-full ${colorValue === "#FFFFFF" ? "bg-gray-800" : "bg-white"}`} />
-                </div>
-              )}
-              {isLoading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm rounded-lg">
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary/30 border-t-primary" />
-                </div>
-              )}
-            </button>
-          )
-
-          return showTooltip ? (
-            <Tooltip key={colorId}>
-              <TooltipTrigger asChild>{button}</TooltipTrigger>
-              <TooltipContent>
-                <p className="font-medium">{color.colorName}</p>
-              </TooltipContent>
-            </Tooltip>
+      <div className="space-y-4">
+        <div className="grid grid-cols-4 gap-2 min-h-[160px]">
+          {isLoading && colors.length === 0 ? (
+            <div className="col-span-4 flex flex-col items-center justify-center py-8">
+              <Loader2 className="animate-spin h-8 w-8 text-primary mb-2" />
+              <p className="text-sm text-muted-foreground">Loading colors...</p>
+            </div>
           ) : (
-            button
-          )
-        })}
+            colors.map((color) => {
+              const colorValue = color.value || color.colorHexCode?.hex
+              const colorId = color._id || color.value || color.colorHexCode
+              const isSelected = selectedColor === colorValue
+              const isLoading = loading[colorId || "#"]
+
+              const button = (
+                <button
+                  key={colorId}
+                  className={`w-full h-10 rounded-lg border-2 transition-all duration-200 relative hover:scale-105 ${
+                    isSelected
+                      ? color.ring
+                        ? `ring-2 ${color.ring} border-current shadow-lg`
+                        : "ring-2 ring-primary/50 border-primary shadow-lg"
+                      : "border-border hover:border-primary/50 hover:shadow-md"
+                  }`}
+                  style={{ backgroundColor: colorValue }}
+                  onClick={() => onColorSelect(colorValue, colorId)}
+                  disabled={isLoading}
+                >
+                  {isSelected && (
+                    <div className="w-full h-full rounded-lg flex items-center justify-center">
+                      <div
+                        className={`w-2 h-2 rounded-full ${colorValue === "#FFFFFF" ? "bg-gray-800" : "bg-white"}`}
+                      />
+                    </div>
+                  )}
+                  {isLoading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm rounded-lg">
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary/30 border-t-primary" />
+                    </div>
+                  )}
+                </button>
+              )
+
+              return showTooltip ? (
+                <Tooltip key={colorId}>
+                  <TooltipTrigger asChild>{button}</TooltipTrigger>
+                  <TooltipContent>
+                    <p className="font-medium">{color.colorName}</p>
+                  </TooltipContent>
+                </Tooltip>
+              ) : (
+                button
+              )
+            })
+          )}
+        </div>
+
+        {totalPages && totalPages > 1 && onPageChange && (
+          <div className="flex items-center justify-between bg-muted/30 rounded-lg p-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onPageChange(currentPage! - 1)}
+              disabled={currentPage === 1 || isLoading}
+              className="flex items-center gap-2 hover:bg-primary hover:text-primary-foreground transition-colors"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Previous
+            </Button>
+
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-foreground">{currentPage}</span>
+              <span className="text-sm text-muted-foreground">of</span>
+              <span className="text-sm font-medium text-foreground">{totalPages}</span>
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onPageChange(currentPage! + 1)}
+              disabled={currentPage === totalPages || isLoading}
+              className="flex items-center gap-2 hover:bg-primary hover:text-primary-foreground transition-colors"
+            >
+              Next
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </div>
     )
   },
@@ -256,28 +319,33 @@ const LogoGrid = React.memo(
     logos,
     onLogoSelect,
     loading = {},
-
     isLoading,
+    currentPage,
+    totalPages,
+    onPageChange,
   }: {
     logos: TempleteLogos[]
     onLogoSelect: (logoUrl: string, logoId: string) => void
     loading?: { [key: string]: boolean }
-
     isLoading: boolean
+    currentPage?: number
+    totalPages?: number
+    onPageChange?: (page: number) => void
   }) => {
     return (
-      <div>
+      <div className="space-y-4">
         <div className="grid grid-cols-4 gap-2 min-h-[220px]">
-          {isLoading && (logos || []).length === 0 ? (
-            <div className="col-span-4 flex items-center justify-center">
-              <Loader2 className="animate-spin h-6 w-6 text-primary" />
+          {isLoading && logos.length === 0 ? (
+            <div className="col-span-4 flex flex-col items-center justify-center py-12">
+              <Loader2 className="animate-spin h-8 w-8 text-primary mb-2" />
+              <p className="text-sm text-muted-foreground">Loading logos...</p>
             </div>
           ) : (
-            (logos || []).map((logo) => (
+            logos.map((logo) => (
               <Tooltip key={logo._id}>
                 <TooltipTrigger asChild>
                   <button
-                    className="w-full aspect-square border-2 border-border rounded-lg p-1 hover:border-primary/50 hover:shadow-lg transition-all duration-300 bg-background/50 backdrop-blur-sm overflow-hidden relative"
+                    className="w-full aspect-square border-2 border-border rounded-lg p-1 hover:border-primary/50 hover:shadow-lg hover:scale-105 transition-all duration-300 bg-background/50 backdrop-blur-sm overflow-hidden relative"
                     onClick={() =>
                       onLogoSelect(imageUrl(logo.image || "/placeholder.svg").url() || "/placeholder.svg", logo._id)
                     }
@@ -290,7 +358,7 @@ const LogoGrid = React.memo(
                     />
                     {loading[logo._id] && (
                       <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm rounded-lg">
-                        <Loader2 className="animate-spin h-3 w-3 text-primary" />
+                        <Loader2 className="animate-spin h-4 w-4 text-primary" />
                       </div>
                     )}
                   </button>
@@ -302,7 +370,38 @@ const LogoGrid = React.memo(
             ))
           )}
         </div>
-        <div className="flex items-center justify-between mt-4"></div>
+
+        {totalPages && totalPages > 1 && onPageChange && (
+          <div className="flex items-center justify-between bg-muted/30 rounded-lg p-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onPageChange(currentPage! - 1)}
+              disabled={currentPage === 1 || isLoading}
+              className="flex items-center gap-2 hover:bg-primary hover:text-primary-foreground transition-colors"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Previous
+            </Button>
+
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-foreground">{currentPage}</span>
+              <span className="text-sm text-muted-foreground">of</span>
+              <span className="text-sm font-medium text-foreground">{totalPages}</span>
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onPageChange(currentPage! + 1)}
+              disabled={currentPage === totalPages || isLoading}
+              className="flex items-center gap-2 hover:bg-primary hover:text-primary-foreground transition-colors"
+            >
+              Next
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </div>
     )
   },
@@ -325,7 +424,9 @@ export default function Toolbar() {
     addHighQualityImage,
     shirtImageUrl,
   } = useEditorStore()
+
   // Memoize expensive operations
+
   const [selectedFont, setSelectedFont] = useState("Inter")
   const [selectedFontColor, setSelectedFontColor] = useState("#000000")
   const [selectedSize, setSelectedSize] = useState<string | null>(null)
@@ -352,23 +453,51 @@ export default function Toolbar() {
   const [isLogoPanelOpen, setIsLogoPanelOpen] = useState(false)
   const isDesktop = useMediaQuery("(min-width: 1024px)")
 
+  // Initialize state variables inside the component
+  const [colorSwatchesPageState, setColorSwatchesPageState] = useState(1)
+  const [colorSwatchesTotalPagesState, setColorSwatchesTotalPagesState] = useState(1)
+  const [colorSwatchesLoadingState, setColorSwatchesLoadingState] = useState(false)
+
+  // Memoize filtered color swatches
   const filteredColorSwatches = useMemo(
-    () => (colorSwatches || []).filter((swatch) => swatch.fitStyle === selectedStyle),
+    () => colorSwatches.filter((swatch) => swatch.fitStyle === selectedStyle),
     [colorSwatches, selectedStyle],
   )
 
   // Memoize font options
   const fontOptions = useMemo(() => (isArabic ? FONTS.arabic : FONTS.english), [isArabic])
 
+  const fetchColorSwatches = useCallback(
+    async (page: number) => {
+      setColorSwatchesLoadingState(true)
+      try {
+        const response = await fetch(`/api/admin/color-swatches?page=${page}&limit=16`)
+        const data = await response.json()
+        setColorSwatches(data.swatches || [])
+        setColorSwatchesTotalPagesState(data.totalPages || 1)
+        setColorSwatchesPageState(data.currentPage || 1)
+      } catch (error) {
+        toast({
+          title: "Error fetching color swatches",
+          description: "Could not fetch color swatches. Please try again.",
+          variant: "destructive",
+        })
+      } finally {
+        setColorSwatchesLoadingState(false)
+      }
+    },
+    [toast],
+  )
+
   const fetchLogos = useCallback(
     async (page: number) => {
       setLogosLoading(true)
       try {
-        const response = await fetch(`/api/admin/logos?page=${page}&limit=10`)
+        const response = await fetch(`/api/admin/logos?page=${page}&limit=12`)
         const data = await response.json()
-        setLogos(data)
-        setTotalPages(data.totalPages)
-        setCurrentPage(data.currentPage)
+        setLogos(data.logos || [])
+        setTotalPages(data.totalPages || 1)
+        setCurrentPage(data.currentPage || 1)
       } catch (error) {
         toast({
           title: "Error fetching logos",
@@ -386,9 +515,7 @@ export default function Toolbar() {
     const fetchInitialData = async () => {
       setIsFetchingInitialData(true)
       try {
-        const swatchesRes = await fetch("/api/admin/color-swatches")
-        const swatchesData = await swatchesRes.json()
-        setColorSwatches(swatchesData)
+        await fetchColorSwatches(1)
         await fetchLogos(1)
       } catch (error) {
         toast({
@@ -401,7 +528,7 @@ export default function Toolbar() {
       }
     }
     fetchInitialData()
-  }, [fetchLogos, toast])
+  }, [fetchColorSwatches, fetchLogos, toast])
 
   // Cost calculation effect - memoized
   useEffect(() => {
@@ -470,25 +597,10 @@ export default function Toolbar() {
 
   const addTemplateLogo = useCallback(
     async (logoUrl: string, logoId: string) => {
-      if (!canvas) {
-        console.error("Canvas not initialized when trying to add logo")
-        toast({
-          title: "Canvas Error",
-          description: "Canvas is not ready. Please wait a moment and try again.",
-          variant: "destructive",
-        })
-        return
-      }
-
-      console.log("Adding template logo:", logoUrl, "to canvas:", canvas)
+      if (!canvas) return
       setTemplateLogoLoading((prev) => ({ ...prev, [logoId]: true }))
-
       try {
         const response = await fetch(logoUrl)
-        if (!response.ok) {
-          throw new Error(`Failed to fetch logo: ${response.status}`)
-        }
-
         const blob = await response.blob()
         const fileName = logoUrl.substring(logoUrl.lastIndexOf("/") + 1)
         const file = new File([blob], fileName, { type: blob.type })
@@ -497,18 +609,6 @@ export default function Toolbar() {
         fabric.Image.fromURL(
           logoUrl,
           (img: any) => {
-            if (!img) {
-              console.error("Failed to create fabric image from URL:", logoUrl)
-              toast({
-                title: "Image Error",
-                description: "Failed to create image object. Please try again.",
-                variant: "destructive",
-              })
-              setTemplateLogoLoading((prev) => ({ ...prev, [logoId]: false }))
-              return
-            }
-
-            console.log("Successfully created fabric image, adding to canvas")
             img.scaleToWidth(150)
             img.set({
               left: 175,
@@ -517,24 +617,15 @@ export default function Toolbar() {
               cost: 3,
               type: "logo",
             })
-
             canvas.add(img)
             canvas.setActiveObject(img)
             canvas.renderAll()
-
-            console.log("Logo successfully added to canvas")
             setTemplateLogoLoading((prev) => ({ ...prev, [logoId]: false }))
             if (isMobile) setIsLogoPanelOpen(false)
-
-            toast({
-              title: "Logo Added",
-              description: "Template logo has been added to your design.",
-            })
           },
           { crossOrigin: "anonymous" },
         )
       } catch (error) {
-        console.error("Error in addTemplateLogo:", error)
         toast({
           title: "Logo Load Error",
           description: "Failed to load template logo. Please try again.",
@@ -545,7 +636,6 @@ export default function Toolbar() {
     },
     [canvas, addHighQualityImage, toast, isMobile],
   )
-
 
   const deleteActiveObject = useCallback(() => {
     if (!canvas) return
@@ -622,87 +712,33 @@ export default function Toolbar() {
     [imageLoading, colorSwatches, updateShirtColor, setShirtImageUrl, toast],
   )
 
-  const downloadDesign = useCallback(async () => {
-    if (!canvas || !selectedSize || !JSZip) {
-      if (!JSZip) {
-        toast({
-          title: "Loading...",
-          description: "Please wait for the download feature to load.",
-          variant: "default",
-        })
-        return
+  const handleColorSelect = useCallback(
+    (color: string, swatchId?: string) => {
+      if (!swatchId || imageLoading[swatchId]) return
+
+      setImageLoading((prev) => ({ ...prev, [swatchId]: true }))
+      const swatch = colorSwatches.find((s) => s._id === swatchId)
+
+      if (swatch) {
+        const img = new Image()
+        img.onload = () => {
+          updateShirtColor(color)
+          setShirtImageUrl(imageUrl(swatch.image || "/placeholder.svg").url() || "/placeholder.svg")
+          setImageLoading((prev) => ({ ...prev, [swatchId]: false }))
+        }
+        img.onerror = () => {
+          toast({
+            title: "Image Load Error",
+            description: `Failed to load ${swatch.colorName} color`,
+            variant: "destructive",
+          })
+          setImageLoading((prev) => ({ ...prev, [swatchId]: false }))
+        }
+        img.src = imageUrl(swatch.image || "/placeholder.svg").url() || "/placeholder.svg"
       }
-      toast({
-        title: "Missing Information",
-        description: "Please select a size before downloading.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    setIsProcessing(true)
-    try {
-      const canvasDataUrl = canvas.toDataURL({
-        format: "png",
-        quality: 1,
-        multiplier: 2,
-      })
-
-      const zip = new JSZip()
-      zip.file("design.png", dataURLtoBlob(canvasDataUrl))
-
-      const designInfo = {
-        name: `Custom T-Shirt - ${selectedSize} - ${SHIRT_COLORS.find((c) => c.value === selectedColor)?.name || "White"} - ${shirtStyle}`,
-        size: selectedSize,
-        color: SHIRT_COLORS.find((c) => c.value === selectedColor)?.name || "White",
-        colorHex: selectedColor,
-        style: shirtStyle,
-        font: selectedFont,
-        fontColor: selectedFontColor,
-        language: isArabic ? "Arabic" : "English",
-        elements: canvas.getObjects().length,
-        createdAt: new Date().toISOString(),
-        user: user?.id || "guest",
-      }
-
-      zip.file("design_info.json", JSON.stringify(designInfo, null, 2))
-
-      const zipBlob = await zip.generateAsync({ type: "blob" })
-      const fileName = `custom-tshirt-${Date.now()}.zip`
-      const url = window.URL.createObjectURL(zipBlob)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = fileName
-      a.click()
-      window.URL.revokeObjectURL(url)
-
-      toast({
-        title: "Download Started",
-        description: "Your design has been downloaded.",
-      })
-    } catch (error) {
-      toast({
-        title: "Download Failed",
-        description: "There was an error generating the download. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsProcessing(false)
-    }
-  }, [
-    canvas,
-    selectedSize,
-    selectedColor,
-    shirtStyle,
-    selectedFont,
-    selectedFontColor,
-    isArabic,
-    shirtImageUrl,
-    totalCost,
-    addItem,
-    user,
-    toast,
-  ])
+    },
+    [imageLoading, colorSwatches, updateShirtColor, setShirtImageUrl, toast],
+  )
 
   // Rest of your component logic (dataURLtoBlob, generateElementImages, etc.) remains the same...
   // [Keep all the existing helper functions as they are]
@@ -1109,10 +1145,14 @@ export default function Toolbar() {
                   <h2 className="font-semibold text-sm text-foreground">Colors</h2>
                 </div>
                 <ColorGrid
-                  colors={filteredColorSwatches}
+                  colors={filteredColorSwatches || []}
                   selectedColor={selectedColor}
-                  onColorSelect={handleColorSwatchSelect}
+                  onColorSelect={handleColorSelect}
                   loading={imageLoading}
+                  currentPage={colorSwatchesPageState}
+                  totalPages={colorSwatchesTotalPagesState}
+                  onPageChange={fetchColorSwatches}
+                  isLoading={colorSwatchesLoadingState}
                 />
               </motion.div>
             </DialogContent>
@@ -1251,10 +1291,13 @@ export default function Toolbar() {
                         Template Logos
                       </Label>
                       <LogoGrid
-                        logos={logos}
+                        logos={logos || []}
                         onLogoSelect={addTemplateLogo}
                         loading={templateLogoLoading}
                         isLoading={logosLoading}
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={fetchLogos}
                       />
                     </div>
                   </div>
@@ -1432,10 +1475,14 @@ export default function Toolbar() {
                 <h2 className="font-semibold text-sm text-foreground">Colors</h2>
               </div>
               <ColorGrid
-                colors={filteredColorSwatches}
+                colors={filteredColorSwatches || []}
                 selectedColor={selectedColor}
-                onColorSelect={handleColorSwatchSelect}
+                onColorSelect={handleColorSelect}
                 loading={imageLoading}
+                currentPage={colorSwatchesPageState}
+                totalPages={colorSwatchesTotalPagesState}
+                onPageChange={fetchColorSwatches}
+                isLoading={colorSwatchesLoadingState}
               />
             </motion.div>
 
@@ -1589,10 +1636,13 @@ export default function Toolbar() {
                           Template Logos
                         </Label>
                         <LogoGrid
-                          logos={logos}
+                          logos={logos || []}
                           onLogoSelect={addTemplateLogo}
                           loading={templateLogoLoading}
                           isLoading={logosLoading}
+                          currentPage={currentPage}
+                          totalPages={totalPages}
+                          onPageChange={fetchLogos}
                         />
                       </div>
                     </div>
