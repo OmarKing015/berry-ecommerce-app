@@ -34,13 +34,19 @@ function BasketPage() {
 
   useEffect(() => {
     setIsClient(true);
-    // groupedItems.map((item) => {
-    //   if (item.size && (item.product?.sizes?.find(({size}) => size === item.size)  || item.product?.sizes?.find(({size}) => size === item.size)?.stock < item.quantity)) {
-    //     setIsCheckoutDisabled(true);
-    //   } else {
-    //     setIsCheckoutDisabled(false);
-    //   }
-    // });
+    let disable = false;
+    groupedItems.map((item) => {
+      const sizeInfo = item.product?.sizes?.find(
+        ({ size }) => size === item.size
+      );
+
+      // Check if the item has a size and if the selected size exists
+      // AND if the stock is less than the requested quantity
+      if (item.size && (!sizeInfo || sizeInfo?.stock && sizeInfo?.stock < item.quantity)) {
+        disable = true;
+      }
+    });
+    setIsCheckoutDisabled(disable);
   }, [groupedItems]);
 
   if (!isClient) {
