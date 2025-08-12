@@ -470,10 +470,25 @@ export default function Toolbar() {
 
   const addTemplateLogo = useCallback(
     async (logoUrl: string, logoId: string) => {
-      if (!canvas) return
+      if (!canvas) {
+        console.error("Canvas not initialized when trying to add logo")
+        toast({
+          title: "Canvas Error",
+          description: "Canvas is not ready. Please wait a moment and try again.",
+          variant: "destructive",
+        })
+        return
+      }
+
+      console.log("Adding template logo:", logoUrl, "to canvas:", canvas)
       setTemplateLogoLoading((prev) => ({ ...prev, [logoId]: true }))
+
       try {
         const response = await fetch(logoUrl)
+        if (!response.ok) {
+          throw new Error(`Failed to fetch logo: ${response.status}`)
+        }
+
         const blob = await response.blob()
         const fileName = logoUrl.substring(logoUrl.lastIndexOf("/") + 1)
         const file = new File([blob], fileName, { type: blob.type })
@@ -482,6 +497,18 @@ export default function Toolbar() {
         fabric.Image.fromURL(
           logoUrl,
           (img: any) => {
+            if (!img) {
+              console.error("Failed to create fabric image from URL:", logoUrl)
+              toast({
+                title: "Image Error",
+                description: "Failed to create image object. Please try again.",
+                variant: "destructive",
+              })
+              setTemplateLogoLoading((prev) => ({ ...prev, [logoId]: false }))
+              return
+            }
+
+            console.log("Successfully created fabric image, adding to canvas")
             img.scaleToWidth(150)
             img.set({
               left: 175,
@@ -490,15 +517,24 @@ export default function Toolbar() {
               cost: 3,
               type: "logo",
             })
+
             canvas.add(img)
             canvas.setActiveObject(img)
             canvas.renderAll()
+
+            console.log("Logo successfully added to canvas")
             setTemplateLogoLoading((prev) => ({ ...prev, [logoId]: false }))
             if (isMobile) setIsLogoPanelOpen(false)
+
+            toast({
+              title: "Logo Added",
+              description: "Template logo has been added to your design.",
+            })
           },
           { crossOrigin: "anonymous" },
         )
       } catch (error) {
+        console.error("Error in addTemplateLogo:", error)
         toast({
           title: "Logo Load Error",
           description: "Failed to load template logo. Please try again.",
@@ -509,6 +545,7 @@ export default function Toolbar() {
     },
     [canvas, addHighQualityImage, toast, isMobile],
   )
+
 
   const deleteActiveObject = useCallback(() => {
     if (!canvas) return
