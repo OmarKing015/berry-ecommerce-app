@@ -215,7 +215,7 @@ const ColorGrid = React.memo(({
   return (
     <div className="grid grid-cols-4 gap-2">
       {colors.map((color) => {
-        const colorValue = color.value || color.colorHexCode?.hex || "#000000";
+        const colorValue = color.value || color.colorHexCode?.hex ;
         const colorId = color._id || color.value || color.colorHexCode;
         const isSelected = selectedColor === colorValue;
         const isLoading = loading[colorId || "#"];
@@ -269,19 +269,13 @@ const LogoGrid = React.memo(({
   logos,
   onLogoSelect,
   loading = {},
-  onNextPage,
-  onPrevPage,
-  currentPage,
-  totalPages,
+
   isLoading
 }: {
   logos: TempleteLogos[];
   onLogoSelect: (logoUrl: string, logoId: string) => void;
   loading?: { [key: string]: boolean };
-  onNextPage: () => void;
-  onPrevPage: () => void;
-  currentPage: number;
-  totalPages: number;
+
   isLoading: boolean;
 }) => {
   return (
@@ -318,13 +312,6 @@ const LogoGrid = React.memo(({
         ))}
       </div>
       <div className="flex items-center justify-between mt-4">
-        <Button onClick={onPrevPage} disabled={currentPage <= 1 || isLoading}>
-          Prev
-        </Button>
-        <span className="text-sm">{`Page ${currentPage} of ${totalPages}`}</span>
-        <Button onClick={onNextPage} disabled={currentPage >= totalPages || isLoading}>
-          Next
-        </Button>
       </div>
     </div>
   );
@@ -1163,10 +1150,6 @@ return (
                       logos={logos}
                       onLogoSelect={addTemplateLogo}
                       loading={templateLogoLoading}
-                      onNextPage={() => fetchLogos(currentPage + 1)}
-                      onPrevPage={() => fetchLogos(currentPage - 1)}
-                      currentPage={currentPage}
-                      totalPages={totalPages}
                       isLoading={logosLoading}
                     />
                   </div>
@@ -1521,10 +1504,6 @@ return (
                       logos={logos}
                       onLogoSelect={addTemplateLogo}
                       loading={templateLogoLoading}
-                      onNextPage={() => fetchLogos(currentPage + 1)}
-                      onPrevPage={() => fetchLogos(currentPage - 1)}
-                      currentPage={currentPage}
-                      totalPages={totalPages}
                       isLoading={logosLoading}
                     />
                   </div>

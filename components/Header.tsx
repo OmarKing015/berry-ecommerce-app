@@ -20,6 +20,7 @@ import {
   SlidersHorizontal,
   WandSparklesIcon,
   TowerControlIcon,
+  PenIcon,
 } from "lucide-react";
 import useBasketStore from "@/store/store";
 import { useState } from "react";
@@ -99,38 +100,16 @@ function Header() {
             
             {/* Design Control */}{" "}
             <Protect role="admin">
-            <DropdownMenu>
-              <DropdownMenuTrigger>
+   
+              <Button variant="secondary">
                 <p className="relative flex items-center space-x-2 bg-black hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200">
                   {" "}
-                  Admin
+                  <Link href="/studio"> Admin</Link>
+                 
                 </p>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem>
-                  {" "}
-                  <Link
-                    href="/studio"
-                    className="relative flex items-center space-x-2 bg-blue-900 hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
-                  >
-                    {" "}
-                    <SlidersHorizontal className="w-4 h-4" />{" "}
-                    <span>Store Control</span>{" "}
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  {" "}
-                  <Link
-                    href="/designControl"
-                    className="relative flex items-center space-x-2 bg-blue-900 hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
-                  >
-                    {" "}
-                    <SlidersHorizontal className="w-4 h-4" />{" "}
-                    <span>Design Control</span>{" "}
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </Button>
+              
+          
             </Protect>
             {/* Orders & Auth */}{" "}
             <ClerkLoaded>
@@ -202,38 +181,15 @@ function Header() {
             
             {/* Design Control */}{" "}
             <Protect role="admin">
-            <DropdownMenu>
-              <DropdownMenuTrigger>
+            <Button variant="secondary">
                 <p className="relative flex items-center space-x-2 bg-black hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200">
                   {" "}
-                  <TowerControlIcon/>
+                  <Link href="/studio"> 
+                  <PenIcon className="w-5 h-5 "/>
+                  </Link>
+                 
                 </p>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem>
-                  {" "}
-                  <Link
-                    href="/studio"
-                    className="relative flex items-center space-x-2 bg-blue-900 hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
-                  >
-                    {" "}
-                    <SlidersHorizontal className="w-4 h-4" />{" "}
-                    <span>Store Control</span>{" "}
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  {" "}
-                  <Link
-                    href="/designControl"
-                    className="relative flex items-center space-x-2 bg-blue-900 hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
-                  >
-                    {" "}
-                    <SlidersHorizontal className="w-4 h-4" />{" "}
-                    <span>Design Control</span>{" "}
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </Button>
             </Protect>{" "}
             <ClerkLoaded>
               {" "}
@@ -297,38 +253,6 @@ function Header() {
                 {" "}
                 <SignedIn>
                 <Protect role="admin">
-            <DropdownMenu>
-              <DropdownMenuTrigger>
-                <p className="relative flex items-center space-x-2 bg-black hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200">
-                  {" "}
-                  Admin
-                </p>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem>
-                  {" "}
-                  <Link
-                    href="/studio"
-                    className="relative flex items-center space-x-2 bg-blue-900 hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
-                  >
-                    {" "}
-                    <SlidersHorizontal className="w-4 h-4" />{" "}
-                    <span>Store Control</span>{" "}
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  {" "}
-                  <Link
-                    href="/designControl"
-                    className="relative flex items-center space-x-2 bg-blue-900 hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
-                  >
-                    {" "}
-                    <SlidersHorizontal className="w-4 h-4" />{" "}
-                    <span>Design Control</span>{" "}
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
             </Protect>
                   {" "}
                   <Link
