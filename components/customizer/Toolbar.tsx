@@ -370,6 +370,7 @@ export default function Toolbar() {
   );
 
   // Memoize font options
+  
   const fontOptions = useMemo(
     () => isArabic ? FONTS.arabic : FONTS.english,
     [isArabic]
