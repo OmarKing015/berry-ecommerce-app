@@ -54,7 +54,7 @@ import {
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
-import { ColorSwatches } from "@/sanity.types";
+import { ColorSwatches, TempleteLogos } from "@/sanity.types";
 import { imageUrl } from "@/lib/imageUrl";
 
 interface TEMPLATE_LOGOS_TYPE {
@@ -275,7 +275,7 @@ const LogoGrid = React.memo(({
   totalPages,
   isLoading
 }: {
-  logos: TEMPLATE_LOGOS_TYPE[];
+  logos: TempleteLogos[];
   onLogoSelect: (logoUrl: string, logoId: string) => void;
   loading?: { [key: string]: boolean };
   onNextPage: () => void;
@@ -296,12 +296,12 @@ const LogoGrid = React.memo(({
             <TooltipTrigger asChild>
               <button
                 className="w-full aspect-square border-2 border-border rounded-lg p-1 hover:border-primary/50 hover:shadow-lg transition-all duration-300 bg-background/50 backdrop-blur-sm overflow-hidden relative"
-                onClick={() => onLogoSelect(logo.imageUrl, logo._id)}
+                onClick={() => onLogoSelect(imageUrl(logo.image ||"/placeholder.svg" ).url() || "/placeholder.svg", logo._id)}
                 disabled={loading[logo._id]}
               >
                 <img
-                  src={logo.imageUrl || "/placeholder.svg"}
-                  alt={logo.name}
+                  src={imageUrl(logo.image ||"/placeholder.svg" ).url() || "/placeholder.svg" || "/placeholder.svg"}
+                  alt={logo.logoName}
                   className="rounded w-full h-full object-cover"
                 />
                 {loading[logo._id] && (
@@ -312,7 +312,7 @@ const LogoGrid = React.memo(({
               </button>
             </TooltipTrigger>
             <TooltipContent>
-              <p className="font-medium">{logo.name}</p>
+              <p className="font-medium">{logo.logoName}</p>
             </TooltipContent>
           </Tooltip>
         ))}
@@ -357,7 +357,7 @@ export default function Toolbar() {
   const [selectedColor, setSelectedColor] = useState("#FFFFFF");
   const [isArabic, setIsArabic] = useState(false);
   const [text, setText] = useState("Your Text Here");
-  const [logos, setLogos] = useState<TEMPLATE_LOGOS_TYPE[]>([]);
+  const [logos, setLogos] = useState<TempleteLogos[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -393,7 +393,7 @@ export default function Toolbar() {
     try {
       const response = await fetch(`/api/admin/logos?page=${page}&limit=10`);
       const data = await response.json();
-      setLogos(data.logos);
+      setLogos(data);
       setTotalPages(data.totalPages);
       setCurrentPage(data.currentPage);
     } catch (error) {

@@ -1,42 +1,52 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { MongoClient, Binary } from "mongodb";
 import type { Logo } from "@/lib/models";
+import { getAllLogos } from "@/sanity/lib/customizationTools/getAllLogos";
 
 const uri = process.env.MONGODB_API_KEY || "";
 
 export async function GET(request: NextRequest) {
+    // try {
+    //     const searchParams = request.nextUrl.searchParams;
+    //     const page = parseInt(searchParams.get("page") || "1", 10);
+    //     const limit = parseInt(searchParams.get("limit") || "10", 10);
+    //     const skip = (page - 1) * limit;
+
+    //     const client = new MongoClient(uri);
+    //     await client.connect();
+    //     const db = client.db('ZSHIRT');
+    //     const logosCollection = db.collection<Logo>("logos");
+
+    //     const [logos, totalLogos] = await Promise.all([
+    //         logosCollection.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
+    //         logosCollection.countDocuments({})
+    //     ]);
+
+    //     await client.close();
+
+    //     const formattedLogos = logos?.map((logo) => ({
+    //         _id: logo._id?.toString(),
+    //         name: logo.name,
+    //         category: logo.category,
+    //         imageUrl: `/api/admin/logos/${logo._id}/image`,
+    //         createdAt: logo.createdAt.toISOString(),
+    //     }));
+
+    //     return NextResponse.json({
+    //         logos: formattedLogos,
+    //         totalLogos,
+    //         totalPages: Math.ceil(totalLogos / limit),
+    //         currentPage: page,
+    //     });
+    // } catch (error) {
+    //     console.error("Error fetching logos:", error);
+    //     return NextResponse.json({ error: "Failed to fetch logos" }, { status: 500 });
+    // }
+
     try {
-        const searchParams = request.nextUrl.searchParams;
-        const page = parseInt(searchParams.get("page") || "1", 10);
-        const limit = parseInt(searchParams.get("limit") || "10", 10);
-        const skip = (page - 1) * limit;
-
-        const client = new MongoClient(uri);
-        await client.connect();
-        const db = client.db('ZSHIRT');
-        const logosCollection = db.collection<Logo>("logos");
-
-        const [logos, totalLogos] = await Promise.all([
-            logosCollection.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
-            logosCollection.countDocuments({})
-        ]);
-
-        await client.close();
-
-        const formattedLogos = logos?.map((logo) => ({
-            _id: logo._id?.toString(),
-            name: logo.name,
-            category: logo.category,
-            imageUrl: `/api/admin/logos/${logo._id}/image`,
-            createdAt: logo.createdAt.toISOString(),
-        }));
-
-        return NextResponse.json({
-            logos: formattedLogos,
-            totalLogos,
-            totalPages: Math.ceil(totalLogos / limit),
-            currentPage: page,
-        });
+        const logos = await getAllLogos();
+        console.log("Fetched logos:", logos);
+        return NextResponse.json(logos);
     } catch (error) {
         console.error("Error fetching logos:", error);
         return NextResponse.json({ error: "Failed to fetch logos" }, { status: 500 });
