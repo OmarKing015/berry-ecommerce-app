@@ -60,7 +60,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     canvas.selectionLineWidth = 2
     canvas.selectionDashArray = [5, 5]
     canvas.selectionBorderColor = "rgb(59, 130, 246)"
- 
+
     // Initialize history with the initial canvas state
     const initialStateJson = JSON.stringify(canvas.toJSON(["cost", "type"]))
     set({ history: [initialStateJson], historyIndex: 0, canUndo: false, canRedo: false })
