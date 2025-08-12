@@ -372,7 +372,7 @@ export default function PaymentPage() {
                         <CreditCard className="h-5 w-5 text-blue-600" />
                         <div>
                           <p className="font-medium text-gray-900">
-                            Credit/Debit Card
+                            Credit/Debit Card / e-Wallet
                           </p>
                           <p className="text-sm text-gray-600">
                             Secure payment powered by Paymob
@@ -383,7 +383,7 @@ export default function PaymentPage() {
                   </div>
 
                   <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                    <RadioGroupItem value="cod" id="cod" />
+                    {/* <RadioGroupItem value="cod" id="cod" />
                     <Label htmlFor="cod" className="flex-1 cursor-pointer">
                       <div className="flex items-center space-x-3">
                         <Banknote className="h-5 w-5 text-green-600" />
@@ -396,7 +396,7 @@ export default function PaymentPage() {
                           </p>
                         </div>
                       </div>
-                    </Label>
+                    </Label> */}
                   </div>
                 </RadioGroup>
 

@@ -303,24 +303,6 @@ function BasketPage() {
               ) : (
                 <SignInButton />
               )}
-              <button
-                onClick={handleCheckout}
-                disabled={isLoading || isCheckoutDisabled}
-                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
-              >
-                {isLoading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <CreditCard className="h-4 w-4" />
-                    Proceed to Checkout
-                    <ArrowRight className="h-4 w-4" />
-                  </>
-                )}
-              </button>
               {isCheckoutDisabled && (
                 <p className="text-red-600 text-sm mt-2 text-center">
                   Some items in your basket are out of stock or have
