@@ -80,7 +80,7 @@ export async function POST(req: Request) {
 
     // 4. Find the "Custom T-shirts" category ID
     const categories = await getAllCategories()
-    const customCategory = categories.find((cat: any) => cat.slug.current === "custom-design")
+    const customCategory = categories.find((cat: any) => cat.slug.current === "custom-t-shirts")
 
     if (!customCategory) {
       return NextResponse.json({ message: "Category 'Custom T-shirts' not found." }, { status: 500 })
@@ -91,7 +91,12 @@ export async function POST(req: Request) {
       name: name,
       price: price,
       description: `Customized T-Shirt - Size ${size}`,
-      stock: 999, // Assuming custom shirts are always in stock
+      sizes:[
+        {
+          size: size,
+          stock: 10
+        }
+      ],
       slug: {
         _type: "slug",
         current: slug,
@@ -117,7 +122,6 @@ export async function POST(req: Request) {
           _key: customCategory._id,
         },
       ],
-      size: [size],
     }
 
     // 6. Create the product in Sanity

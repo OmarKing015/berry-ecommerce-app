@@ -19,7 +19,12 @@ export interface ProductData {
     },
   },
   price: number
-  stock?: number
+  sizes:[
+    {
+      size:string,
+      stock:number
+    }
+  ]
   categories?: Array<{
     _ref: string
     _type: "reference"
@@ -29,7 +34,6 @@ export interface ProductData {
     current: string
     _type: "slug"
   }
-  size: string[];
 }
 
 export async function createProduct(productData: ProductData) {
