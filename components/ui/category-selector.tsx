@@ -61,7 +61,9 @@ export const CategorySelector = ({ categories }: CategorySelectorProps) => {
             // )
             .map((category) => (
               <Link
-                href={`/categories/${category.slug?.current}`}
+                href={
+ category.slug?.current === "custom-t-shirts" ? "/customize/" : `/categories/${category.slug?.current}`
+ }
                 key={category.title}
               >
                 <div className="group block bg-white rounded-xl shadow-sm hover:shadow-xl transition-shadow duration-300 ease-in-out overflow-hidden transform hover:-translate-y-1">
