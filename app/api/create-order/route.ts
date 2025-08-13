@@ -83,17 +83,16 @@ let total = amount * 100
         postalCode: customer.postalCode,
       },
       items: items.map((item: any, idx: number) => ({
+        _key: `${item.id}-${idx}`,
         product: {
-          _id : item._id,
-          _key: `${item.id}-${idx}`,
           _ref: item.id,
           _type: "reference" as const,
         },
         quantity: item.quantity,
-        price: item.price,
+        price: item.price / 100,
         size: item.size,
       })),
-      totalAmount: amount,
+      totalAmount: amount / 100,
       paymentStatus: "pending" as const,
       paymentMethod: "paymob",
       paymobOrderId: intentionId, // now matches your interface

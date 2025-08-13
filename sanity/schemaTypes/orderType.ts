@@ -69,6 +69,11 @@ export const orderType = defineType({
               title: "Price at Purchase",
               type: "number",
             },
+            {
+              name: "size",
+              title: "Size",
+              type: "string",
+            },
           ],
         },
       ],

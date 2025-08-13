@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
           _type: "reference" as const,
         },
         quantity: item.quantity,
-        price: item.price,
+        price: item.price / 100,
         size: item.size,
       })),
       totalAmount: amount / 100, // Convert back from cents

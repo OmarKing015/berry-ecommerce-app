@@ -37,11 +37,12 @@ import { useAppContext } from "@/context/context";
 import useBasketStore from "@/store/store";
 
 interface CartItem {
-  id: string;
+  _id: string;
   name: string;
   price: number;
   quantity: number;
   image: string;
+  size: string;
 }
 
 interface PaymentFormData {
@@ -158,11 +159,13 @@ export default function PaymentPage() {
             amount: Math.round(total * 100), // Convert to cents
             currency: "EGP",
             items: cartItems.map(item => ({
- name: item.name,
+              id: item._id,
+              name: item.name,
               price: Math.round(item.price * 100), // Convert item price to cents
- description: item.name, // Or a more detailed description if available
- quantity: item.quantity
- })),
+              description: item.name, // Or a more detailed description if available
+              quantity: item.quantity,
+              size: item.size,
+            })),
             customer: formData,
             paymentMethod: "cod",
             assetId: assetId,
@@ -190,11 +193,13 @@ export default function PaymentPage() {
             amount: Math.round(total * 100), 
             currency: "EGP",
             items: cartItems.map(item => ({
- name: item.name,
+              id: item._id,
+              name: item.name,
               price: Math.round(item.price * 100), // Convert item price to cents
- description: item.name, // Or a more detailed description if available
- quantity: item.quantity
- })),
+              description: item.name, // Or a more detailed description if available
+              quantity: item.quantity,
+              size: item.size,
+            })),
             customer: formData,
             assetId: assetId,
           }),
@@ -431,7 +436,7 @@ export default function PaymentPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 {cartItems.map((item) => (
-                  <div key={item.id} className="flex items-center space-x-4">
+                  <div key={item._id} className="flex items-center space-x-4">
                     <img
                       src={item.image || "/placeholder.svg"}
                       alt={item.name}
