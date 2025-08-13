@@ -41,13 +41,24 @@ export const CategorySelector = ({ categories }: CategorySelectorProps) => {
         
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {" "}
           {categories
-            .filter(
-              (category) =>
-                !category.title?.includes("Custom") &&
+            .sort((a, b) => {
+              const aIsCustom = a.title?.includes("Custom");
+              const bIsCustom = b.title?.includes("Custom");
+              if (aIsCustom && !bIsCustom) return -1; // Custom comes first
+              if (!aIsCustom && bIsCustom) return 1; // Non-custom comes after
+              return (
+                a.title?.toLowerCase() || ""
+              ).localeCompare(b.title?.toLowerCase() || ""); // Sort alphabetically otherwise
+            })
+            .filter((category) =>
                 category.title?.toLowerCase().includes(searchTerm.toLowerCase())
             )
+            // .filter(
+            //   (category) =>
+            //     !category.title?.includes("Custom") &&
+            //     category.title?.toLowerCase().includes(searchTerm.toLowerCase())
+            // )
             .map((category) => (
               <Link
                 href={`/categories/${category.slug?.current}`}
