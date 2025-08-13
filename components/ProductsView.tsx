@@ -48,7 +48,7 @@ const ProductsView = ({ products, categories }: ProductsViewProps) => {
           </div>
 
           {/* Products Grid */}
-          <div className="bg-white rounded-lg shadow-sm border p-6">
+          {/* <div className="bg-white rounded-lg shadow-sm border p-6">
             {products.length > 0 ? (
               <>
                 <div className="flex items-center justify-between mb-6">
@@ -65,7 +65,7 @@ const ProductsView = ({ products, categories }: ProductsViewProps) => {
                 <p className="text-gray-600">Try adjusting your filters or check back later.</p>
               </div>
             )}
-          </div>
+          </div> */}
         </div>
       </div>
     </div>
