@@ -34,7 +34,7 @@ import { SignedIn, SignedOut, SignInButton, useUser } from "@clerk/nextjs"
 import { costEngine } from "@/lib/costEngine"
 import { Loader2 } from "lucide-react"
 import { useMediaQuery } from "@/hooks/use-media-query"
-import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog"
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "../ui/dialog"
 import type { ColorSwatches, TempleteLogos } from "@/sanity.types"
 import { imageUrl } from "@/lib/imageUrl"
 
@@ -1088,8 +1088,10 @@ export default function Toolbar() {
     <TooltipProvider>
       {isMobile ? (
         // MOBILE VERSION - Floating bottom bar + popups
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-background/90 backdrop-blur border border-border/50 rounded-full px-4 py-2 flex gap-3 shadow-xl">
+        <div className="fixed bottom-4 left-1/2 w-full items-center mx-auto -translate-x-1/2 z-50 bg-background/90 backdrop-blur border border-border/50 rounded-full px-4 py-2 flex gap-3 shadow-xl">
+          <div className="mx-auto flex">
           <Dialog>
+           
             <DialogTrigger asChild>
               <Button size="icon" variant="ghost">
                 <Zap className="h-5 w-5" />
@@ -1097,7 +1099,7 @@ export default function Toolbar() {
             </DialogTrigger>
             <DialogContent className="max-w-md w-full rounded-xl p-4">
               {/* Style Selection UI */}
-              <h2 className="text-lg font-semibold mb-4">Select Style</h2>
+               <DialogTitle>Select Style</DialogTitle>
               {/* Style Selection */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -1165,7 +1167,7 @@ export default function Toolbar() {
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md w-full rounded-xl p-4">
-              <h2 className="text-lg font-semibold mb-4">Select/Upload Logo</h2>
+              <DialogTitle className="text-lg font-semibold mb-4">Select/Upload Logo</DialogTitle>
               <Tabs defaultValue="text" className="w-full">
                 <TabsList className="grid grid-cols-2 bg-muted/50 p-1 rounded-xl h-10">
                   <TabsTrigger
@@ -1313,7 +1315,7 @@ export default function Toolbar() {
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md w-full rounded-xl p-4">
-              <h2 className="text-lg font-semibold mb-4">Customize Design</h2>
+              <DialogTitle className="text-lg font-semibold mb-4">Customize Design</DialogTitle>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -1405,6 +1407,7 @@ export default function Toolbar() {
           >
             <Trash2 className="mx-auto h-3 w-3" />
           </Button>
+          </div>
         </div>
       ) : (
         <motion.aside
