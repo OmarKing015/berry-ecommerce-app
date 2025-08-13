@@ -43,8 +43,8 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://mazagk.vercel.app',
-    siteName: 'Mazagk',
+    url: 'https://mazagk.vercel.app', // Use canonical domain
+ siteName: 'Mazagk', // Keep site name consistent
     title: 'Mazagk - Wear Your Mood | Premium Custom Apparel',
     description: 'Discover premium custom apparel at Mazagk. Wear your mood with our unique collection of customizable clothing.',
     images: [
@@ -60,15 +60,15 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Mazagk - Wear Your Mood',
     description: 'Discover premium custom apparel at Mazagk. Wear your mood with our unique collection of customizable clothing.',
-    images: ['https://mazagk.com/twitter-image.jpg'],
+    images: ['https://mazagk.vercel.app/og-image.jpg'], // Use same image as Open Graph for consistency and clarity
   },
   verification: {
     google: 'your-google-verification-code',
   },
   alternates: {
-    canonical: 'https://mazagk.com',
+    canonical: 'https://mazagk.vercel.app',
   },
-}
+};
 
 export default function RootLayout({
   children,
@@ -101,11 +101,11 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "WebSite",
               "name": "Mazagk",
-              "url": "https://mazagk.com",
+              "url": "https://mazagk.vercel.app",
               "description": "Premium custom apparel - Wear your mood",
               "potentialAction": {
                 "@type": "SearchAction",
-                "target": "https://mazagk.com/search?q={search_term_string}",
+                "target": "https://mazagk.vercel.app/search?q={search_term_string}",
                 "query-input": "required name=search_term_string"
               }
             })

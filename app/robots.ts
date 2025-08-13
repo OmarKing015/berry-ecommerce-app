@@ -15,6 +15,6 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    sitemap: 'https://mazagk.com/sitemap.xml',
+    sitemap: 'https://mazagk.vercel.app/sitemap.xml',
   }
 }

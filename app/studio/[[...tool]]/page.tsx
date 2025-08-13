@@ -15,5 +15,15 @@ export const dynamic = 'force-static'
 export { metadata, viewport } from 'next-sanity/studio'
 
 export default function StudioPage() {
-  return <NextStudio config={config} />
+  return (
+    <>
+      <a
+        href="/"
+        className="block bg-blue-500 px-4 py-2 text-white"
+      >
+        Back to Website
+      </a>
+      <NextStudio config={config} />
+    </>
+  )
 }
