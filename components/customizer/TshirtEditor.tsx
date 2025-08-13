@@ -12,12 +12,12 @@ import CanvasWrapper from "./CanvasWraper";
 import Toolbar from "./Toolbar";
 import CostSummary from "./CostSummay";
 import { Card } from "../ui/card";
-import slim from "@/public/public/slimMock.png";
-import oversize from "@/public/public/oversizeMock.png"
+import slim from "@/public/public/initalBg.png";
+
 
 const TSHIRT_IMAGES = {
   slim: slim,
-  oversized: oversize,
+  oversized: slim,
 };
 
 
