@@ -433,7 +433,7 @@ export default function Toolbar() {
   const [isLoading, setIsLoading] = useState(false)
   const [selectedColor, setSelectedColor] = useState("#FFFFFF")
   const [isArabic, setIsArabic] = useState(false)
-  const [text, setText] = useState("Your Text Here")
+  const [text, setText] = useState("Text")
   const [logos, setLogos] = useState<TempleteLogos[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
   const uploadInputRef = useRef<HTMLInputElement>(null)

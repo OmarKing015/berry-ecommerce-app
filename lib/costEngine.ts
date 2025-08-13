@@ -1,6 +1,6 @@
 import { fabric } from 'fabric';
 
-const BASE_COST = 650.00; // 650 EGP base price for a t-shirt
+const BASE_COST = 570.00; // 650 EGP base price for a t-shirt
 const COST_PER_WORD = 25; // 25 EGP per word after one free word
 const COST_PER_LOGO = 25; // 25 EGP per logo after one free logo
 
