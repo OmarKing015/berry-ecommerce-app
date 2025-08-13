@@ -1,15 +1,28 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { createOrder } from "@/sanity/lib/orders/createOrder";
+import { createOrder, OrderData } from "@/sanity/lib/orders/createOrder";
 import { auth } from "@clerk/nextjs/server";
+import { Order } from "@/sanity.types";
+import useBasketStore from "@/store/store";
 
 const PAYMOB_SECRET_KEY = process.env.PAYMOB_SECRET_KEY;
 const PAYMOB_PUBLIC_KEY = process.env.PAYMOB_PUBLIC_KEY;
-const PAYMOB_INTEGRATION_ID = process.env.PAYMOB_INTEGRATION_ID;
+interface Item {
+  product : {
+    _ref: string,
+    _type: "reference",
+  };
+  _key?: string; // Make optional as it might be generated
+  quantity: number;
+  price: number;
+  size: string; // Added size to the items
+  _id: string;
+}
 
 export async function POST(request: NextRequest) {
+
   try {
     const body = await request.json();
-    const { amount , currency, items, customer, assetId } = body;
+    const { amount , currency,groupedItems, items, customer, assetId } = body;
 let total = amount * 100
     const { userId } = await auth();
 
@@ -30,9 +43,9 @@ let total = amount * 100
       body: JSON.stringify({
         amount : amount ,  // in EGP
         currency:"EGP",
-        payment_methods: [12 , "card", 2298577 , 4609540], // adjust to your enabled methods
+        payment_methods: [12 , "card", 5229892 ], // adjust to your enabled methods
         items: items.map((item: any) => ({
-          name: item.name,
+          name: item.name || "Product",
           amount: item.price,
           description: item.name,
           quantity: item.quantity,
@@ -70,7 +83,7 @@ let total = amount * 100
     const intentionId = intentionData.id?.toString() || ""; // use this for paymobOrderId
 
     // Step 2 — Create order in Sanity
-    const sanityOrderData = {
+    const sanityOrderData: OrderData = {
       orderId: `ORDER-${Date.now()}`,
       clerkUserId: userId || undefined,
       customerEmail: customer.email,
@@ -82,13 +95,12 @@ let total = amount * 100
         country: customer.country,
         postalCode: customer.postalCode,
       },
-      items: items.map((item: any, idx: number) => ({
+      items: items.map((item: any) => ({
         product: {
-          _id : item._id,
-          _key: `${item.id}-${idx}`,
-          _ref: item.id,
+          _ref: item.product._key,
           _type: "reference" as const,
         },
+        _key: `variant-${item.product._key}`,
         quantity: item.quantity,
         price: item.price,
         size: item.size,
@@ -101,7 +113,8 @@ let total = amount * 100
       orderStatus: "pending" as const,
       createdAt: new Date().toISOString(),
     };
-
+console.log(items)
+console.log("Grouped"+groupedItems)
     const sanityResult = await createOrder(sanityOrderData);
 
     return NextResponse.json({

@@ -42,6 +42,7 @@ interface CartItem {
   price: number;
   quantity: number;
   image: string;
+  size: string;
 }
 
 interface PaymentFormData {
@@ -92,6 +93,7 @@ export default function PaymentPage() {
     updatedAt: new Date().toISOString(),
   });
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const groupedItems = useBasketStore((state) => state.getGroupedItems());
 
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -132,14 +134,19 @@ export default function PaymentPage() {
         postalCode: formData.postalCode,
       },
       items: cartItems,
-      totalAmount: total ,
+      totalAmount: total,
       paymentMethod: "paymob" as "paymob" | "cod",
       updatedAt: new Date().toISOString(),
     }));
+    console.log(cartItems)
+    console.log(groupedItems)
   }, [formData, cartItems, total, paymentMethod]);
 
   const handleInputChange = (field: keyof PaymentFormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({
+       ...prev, [field]: value })
+    );
+   
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -147,6 +154,8 @@ export default function PaymentPage() {
     setIsLoading(true);
 
     try {
+      console.log("Cart Items: "+cartItems)
+      console.log("GroupedItems :"+groupedItems)
       if (paymentMethod === "cod") {
         // Handle Cash on Delivery
         const response = await fetch("/api/create-cod-order", {
@@ -157,12 +166,12 @@ export default function PaymentPage() {
           body: JSON.stringify({
             amount: Math.round(total * 100), // Convert to cents
             currency: "EGP",
-            items: cartItems.map(item => ({
- name: item.name,
+            items: cartItems.map((item) => ({
+              name: item.name,
               price: Math.round(item.price * 100), // Convert item price to cents
- description: item.name, // Or a more detailed description if available
- quantity: item.quantity
- })),
+              description: item.name, // Or a more detailed description if available
+              quantity: item.quantity,
+            })),
             customer: formData,
             paymentMethod: "cod",
             assetId: assetId,
@@ -187,25 +196,34 @@ export default function PaymentPage() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            amount: Math.round(total * 100), 
+            amount: Math.round(total * 100),
             currency: "EGP",
-            items: cartItems.map(item => ({
- name: item.name,
-              price: Math.round(item.price * 100), // Convert item price to cents
- description: item.name, // Or a more detailed description if available
- quantity: item.quantity
- })),
+            items: cartItems.map((item) => ({
+            name:item.name,
+              product: {
+              
+              _key:item.id,
+              _ref:item.id,
+              _type:"reference" as const
+            },
+            quantity : item.quantity,
+            price: Math.round(item.price * 100),
+            size:item.size
+              // size: item.product?.size,
+            })),
             customer: formData,
             assetId: assetId,
+            groupedItems:groupedItems,
           }),
         });
-      console.log("Total amount : "+total + "items :" + cartItems);
+        console.log("Total amount : " + total + "items :" + cartItems);
         const data = await response.json();
-      
+        console.log(cartItems)
+
         if (data.success && data.checkoutUrl) {
           // Redirect to Unified Checkout
           window.location.href = data.checkoutUrl;
-        }  else {
+        } else {
           throw new Error(data.error || "Payment initialization failed");
         }
       }
@@ -464,7 +482,7 @@ export default function PaymentPage() {
                     <span>Tax (14%)</span>
                     <span>{tax.toFixed(2)} EGP</span>
                   </div> */}
-               
+
                   <Separator />
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
