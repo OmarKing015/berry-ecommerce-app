@@ -40,13 +40,7 @@ export const productType = defineType({
       type: "number",
       validation: (Rule) => Rule.required().min(0),
     }),
-    // defineField({
-    //   name: "size",
-    //   title: "Size",
-    //   type: "array",
-    //   validation: (Rule) => Rule.required().min(0),
-    //   of: [{ type: "string" }],
-    // }),
+
     defineField({
       name: "sizes",
       title: "Size",

@@ -33,7 +33,7 @@ export type ColorSwatches = {
     crop?: SanityImageCrop;
     _type: "image";
   };
-  fitStyle?: "slimFit" | "oversizedFit" | "boxyFit";
+  fitStyle?: "slimFit" | "oversizedFit" | "boxFit";
 };
 
 export type TempleteLogos = {
@@ -357,7 +357,7 @@ export type All_COLORSWATCHES_QUERYResult = Array<{
     crop?: SanityImageCrop;
     _type: "image";
   };
-  fitStyle?: "boxyFit" | "oversizedFit" | "slimFit";
+  fitStyle?: "boxFit" | "oversizedFit" | "slimFit";
 }>;
 
 // Source: ./sanity/lib/customizationTools/getAllLogos.ts

@@ -133,7 +133,7 @@
             },
             {
               "type": "string",
-              "value": "boxyFit"
+              "value": "boxFit"
             }
           ]
         },

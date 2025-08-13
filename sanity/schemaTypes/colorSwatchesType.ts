@@ -28,7 +28,7 @@ export const colorSwatches = defineType({
         list: [
           { title: 'Slim Fit', value: 'slimFit' },
           { title: 'Oversized Fit', value: 'oversizedFit' },
-          { title: 'Boxy Fit', value: 'boxyFit' },
+          { title: 'box Fit', value: 'boxFit' },
         ],
       },
     }),
