@@ -534,38 +534,8 @@ export type All_PRODUCTS_QUERYResult = Array<{
 
 // Source: ./sanity/lib/products/getProductsByCategory.ts
 // Variable: PRODUCTS_BY_CATEGORY_QUERY
-// Query: *[_type == "product" && references(*[_type == "category" && slug.current == $categorySlug]._id)] | order(name asc) {        _id,        name,        slug,        images,        price,        sizes,        categories    }
-export type PRODUCTS_BY_CATEGORY_QUERYResult = Array<{
-  _id: string;
-  name: string | null;
-  slug: Slug | null;
-  images: Array<{
-    asset?: {
-      _ref: string;
-      _type: "reference";
-      _weak?: boolean;
-      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
-    };
-    media?: unknown;
-    hotspot?: SanityImageHotspot;
-    crop?: SanityImageCrop;
-    _type: "image";
-    _key: string;
-  }> | null;
-  price: number | null;
-  sizes: Array<{
-    size?: string;
-    stock?: number;
-    _key: string;
-  }> | null;
-  categories: Array<{
-    _ref: string;
-    _type: "reference";
-    _weak?: boolean;
-    _key: string;
-    [internalGroqTypeReferenceTo]?: "category";
-  }> | null;
-}>;
+// Query: *[_type == "product" && references(*[_type == "category" && slug.current == $categorySlug]._id)] | order(name asc) {    }
+export type PRODUCTS_BY_CATEGORY_QUERYResult = Array<{}>;
 
 // Source: ./sanity/lib/sales/getActiveSaleByCouponCode.ts
 // Variable: ACTIVE_SALE_BY_COUPON_QUERY
@@ -595,7 +565,7 @@ declare module "@sanity/client" {
     "\n    *[_type == \"order\" && orderId == $orderId][0]\n  ": GET_ORDER_BY_ORDER_ID_QUERYResult;
     "\n        *[_type == \"category\"] | order(name asc) \n        ": ALL_CATEGORIES_QUERYResult;
     "\n        *[_type == \"product\" && name != \"custom t-shirt\"] | order(name asc) {\n            _id,\n            name,\n            slug,\n            images,\n            price,\n            sizes,\n            categories\n        }\n        ": All_PRODUCTS_QUERYResult;
-    "\n    *[_type == \"product\" && references(*[_type == \"category\" && slug.current == $categorySlug]._id)] | order(name asc) {\n        _id,\n        name,\n        slug,\n        images,\n        price,\n        sizes,\n        categories\n    }\n    ": PRODUCTS_BY_CATEGORY_QUERYResult;
+    "\n    *[_type == \"product\" && references(*[_type == \"category\" && slug.current == $categorySlug]._id)] | order(name asc) {\n    }\n    ": PRODUCTS_BY_CATEGORY_QUERYResult;
     "\n        *[_type == \"sale\" && couponCode == $couponCode && isActive == true] | order(validFrom desc)[0]\n        ": ACTIVE_SALE_BY_COUPON_QUERYResult;
   }
 }
