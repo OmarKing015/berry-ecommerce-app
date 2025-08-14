@@ -536,6 +536,10 @@ export type All_PRODUCTS_QUERYResult = Array<{
 // Variable: PRODUCTS_BY_CATEGORY_QUERY
 // Query: *[_type == "product" && references(*[_type == "category" && slug.current == $categorySlug]._id)] | order(name asc) {        _id,        name,        slug,        images,        price,        sizes,        categories    }
 export type PRODUCTS_BY_CATEGORY_QUERYResult = Array<{
+  _type:"product",
+  _craetedAt: string,
+  _updatedAt: string,
+  _rev: string,
   _id: string;
   name: string | null;
   slug: Slug | null;
