@@ -25,14 +25,13 @@ export default async function Home() {
     return a.slug?.current?.localeCompare(b.slug?.current ?? "") ?? 0;
   });
   const categories = await getAllCategories();
-  const updated = categories.sort( (a: { name: string; }, b: { name: any; }) => a.name.localeCompare(b.name))
 
 
   return (
     <div>
       <CustomizationBanner/>
       <div className="flex flex-col item-center justify-top min-h-screen bg-gray-100 p-4">
-        <ProductsView products={updatedProducts} categories={updated} />
+        <ProductsView products={updatedProducts} categories={categories} />
       </div>
     </div>
   );
