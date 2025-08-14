@@ -475,8 +475,8 @@ export default function PaymentPage() {
                     <span>{subtotal.toFixed(2)} EGP</span>
                   </div>
                   <div className="flex justify-between">
-                    {/* <span>Shipping</span> */}
-                    {/* <span>{shipping.toFixed(2)} EGP</span> */}
+                    <span>Shipping</span>
+                    <span>  90 EGP - Paid upon delivery</span>
                   </div>
                   {/* <div className="flex justify-between">
                     <span>Tax (14%)</span>
@@ -487,6 +487,7 @@ export default function PaymentPage() {
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
                     <span>{total.toFixed(2)} EGP</span>
+                  
                   </div>
                 </div>
               </CardContent>

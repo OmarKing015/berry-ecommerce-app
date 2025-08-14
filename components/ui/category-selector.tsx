@@ -27,18 +27,18 @@ export const CategorySelector = ({ categories }: CategorySelectorProps) => {
   return (
     <div className="w-full font-sans">
       <div className="container mx-auto px-4 py-12">
-          {" "}
-          <h3 className="text-lg">Categories</h3>
-          <div className="lg:col-span-4 mb-3">
-            <input
-              type="text"
-              placeholder="Search categories..."
-              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>{" "}
-        
+        {" "}
+        <h3 className="text-lg">Categories</h3>
+        <div className="lg:col-span-4 mb-3">
+          <input
+            type="text"
+            placeholder="Search categories..."
+            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>{" "}
+
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {categories
@@ -52,7 +52,7 @@ export const CategorySelector = ({ categories }: CategorySelectorProps) => {
               ).localeCompare(b.title?.toLowerCase() || ""); // Sort alphabetically otherwise
             })
             .filter((category) =>
-                category.title?.toLowerCase().includes(searchTerm.toLowerCase())
+              category.title?.toLowerCase().includes(searchTerm.toLowerCase())
             )
             // .filter(
             //   (category) =>
@@ -62,8 +62,8 @@ export const CategorySelector = ({ categories }: CategorySelectorProps) => {
             .map((category) => (
               <Link
                 href={
- category.slug?.current === "custom-t-shirts" ? "/customize/" : `/categories/${category.slug?.current}`
- }
+                  category.slug?.current === "custom-t-shirts" ? "/customize/" : `/categories/${category.slug?.current}`
+                }
                 key={category.title}
               >
                 <div className="group block bg-white rounded-xl shadow-sm hover:shadow-xl transition-shadow duration-300 ease-in-out overflow-hidden transform hover:-translate-y-1">
@@ -72,7 +72,7 @@ export const CategorySelector = ({ categories }: CategorySelectorProps) => {
                       <Image
                         src={imageUrl(category.image)?.url()}
                         alt={`Image for ${category.title}`}
-                       
+
                         className="object-contain transition-transform duration-300 group-hover:scale-105"
                         fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -93,12 +93,14 @@ export const CategorySelector = ({ categories }: CategorySelectorProps) => {
       </div>
 
       {isBannerVisible && (
-        <div className="fixed bottom-4 right-4 bg-gray-900 text-white p-4 rounded-lg shadow-lg flex items-center space-x-4 max-w-sm z-50">
+         <Link href="/customize" className="text-sm"> <div className="fixed bottom-4 right-4 bg-gray-900 animate-pulse text-white p-4 rounded-lg shadow-lg flex items-center space-x-4 max-w-sm z-50">
           <div className="flex-grow">
-            <p className="font-bold">Don&apos;t miss out!</p>
-            <p className="text-sm">
-              Check our new arrivals and special offers.
-            </p>
+            <p className="font-bold">Don&apos;t miss it out!</p>
+          
+              Customize 2 T-shirts and get them for 500 EGP each.
+            
+            <p className="font-bold">CLICK ON ME TO CUSTOMIZE NOW !!!</p>
+
           </div>
           <button
             onClick={() => setIsBannerVisible(false)}
@@ -107,7 +109,7 @@ export const CategorySelector = ({ categories }: CategorySelectorProps) => {
           >
             <X className="h-5 w-5" />
           </button>
-        </div>
+        </div></Link>
       )}
     </div>
   );
