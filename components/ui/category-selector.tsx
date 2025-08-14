@@ -93,12 +93,14 @@ export const CategorySelector = ({ categories }: CategorySelectorProps) => {
       </div>
 
       {isBannerVisible && (
-        <div className="fixed bottom-4 right-4 bg-gray-900 text-white p-4 rounded-lg shadow-lg flex items-center space-x-4 max-w-sm z-50">
+         <Link href="/customize" className="text-sm"> <div className="fixed bottom-4 right-4 bg-gray-900 animate-pulse text-white p-4 rounded-lg shadow-lg flex items-center space-x-4 max-w-sm z-50">
           <div className="flex-grow">
-            <p className="font-bold">Don&apos;t miss out!</p>
-            <p className="text-sm">
-              Check our new arrivals and special offers.
-            </p>
+            <p className="font-bold">Don&apos;t miss it out!</p>
+          
+              Customize 2 T-shirts and get them for 500 EGP each.
+            
+            <p className="font-bold">CLICK ON ME TO CUSTOMIZE NOW !!!</p>
+
           </div>
           <button
             onClick={() => setIsBannerVisible(false)}
@@ -107,7 +109,7 @@ export const CategorySelector = ({ categories }: CategorySelectorProps) => {
           >
             <X className="h-5 w-5" />
           </button>
-        </div>
+        </div></Link>
       )}
     </div>
   );
