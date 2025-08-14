@@ -25,9 +25,10 @@ export const productType = defineType({
     }),
 
     defineField({
-      name: "image",
-      title: "Image",
-      type: "image",
+      name: "images",
+      title: "Images",
+      type: "array",
+      of: [{ type: "image" }],
     }),
     defineField({
       name: "file",
@@ -70,7 +71,7 @@ export const productType = defineType({
   preview: {
     select: {
       title: "name",
-      media: "image",
+      media: "images.0",
       subtitle: "price",
     },
     prepare(_select) {

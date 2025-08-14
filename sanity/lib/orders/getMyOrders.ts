@@ -21,7 +21,7 @@ export async function getMyOrders(userId: string) {
           product-> {
             _id,
             name,
-            image
+            images
           }
         }
       }`);

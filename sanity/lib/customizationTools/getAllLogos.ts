@@ -6,13 +6,13 @@ export const getAllLogos = async (page: number = 1, limit: number = 12) => {
   
   const LOGOS_QUERY = defineQuery(`
     {
-      "logos": *[_type == "templeteLogos"] | order(name asc) [${offset}...${offset + limit}],
+      "logos": *[_type == "templeteLogos"] | order(name asc) [$offset...$limit],
       "total": count(*[_type == "templeteLogos"])
     }
   `);
 
   try {
-    const result = await sanityFetch({ query: LOGOS_QUERY });
+    const result = await sanityFetch({ query: LOGOS_QUERY, params: { offset, limit } });
     const data = result.data || { logos: [], total: 0 };
     
     return {

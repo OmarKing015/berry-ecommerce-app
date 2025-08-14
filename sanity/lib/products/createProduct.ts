@@ -4,13 +4,14 @@ import { backendClient } from "../backendClient"
 export interface ProductData {
   name: string
   description?: string
-  image?: {
+  images?: Array<{
     asset?: {
       _ref: string
       _type: "reference"
     }
     _type: "image"
-  }
+    _key: string
+  }>
   file?: {
     _type: 'file',
     asset: {
@@ -95,7 +96,7 @@ export async function getAllProducts() {
         _id,
         name,
         description,
-        image,
+        images,
         price,
         stock,
         slug,
@@ -122,7 +123,7 @@ export async function getProductsByCategory(categoryId: string) {
         _id,
         name,
         description,
-        image,
+        images,
         price,
         stock,
         slug,

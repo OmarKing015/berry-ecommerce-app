@@ -21,6 +21,7 @@ interface ProductDetailClientProps {
 export default function ProductDetailClient({
   product,
 }: ProductDetailClientProps) {
+  const [selectedImage, setSelectedImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string>("");
   const { extraCost, setExtraCost } = useAppContext();
   const isOutOfStock =
@@ -36,16 +37,19 @@ export default function ProductDetailClient({
       <div className="container mx-auto px-4 max-w-6xl">
         <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6 lg:p-8">
-            {/* Product Image */}
+            {/* Product Image Gallery */}
             <div className="space-y-4">
               <div
                 className={`${
                   isOutOfStock ? "opacity-50" : ""
                 } relative aspect-square overflow-hidden rounded-lg shadow-lg bg-gray-100`}
               >
-                {product.image && (
+                {product.images && (
                   <Image
-                    src={imageUrl(product.image).url() || "/placeholder.svg"}
+                    src={
+                      imageUrl(product.images[selectedImage]).url() ||
+                      "/placeholder.svg"
+                    }
                     alt={product.name ?? "Product Image"}
                     layout="fill"
                     objectFit="cover"
@@ -57,6 +61,26 @@ export default function ProductDetailClient({
                     Out of Stock
                   </Badge>
                 )}
+              </div>
+              <div className="grid grid-cols-5 gap-2">
+                {product.images?.map((image, index) => (
+                  <div
+                    key={index}
+                    className={`relative aspect-square rounded-md overflow-hidden cursor-pointer ${
+                      selectedImage === index
+                        ? "ring-2 ring-blue-500"
+                        : "hover:ring-2 hover:ring-gray-300"
+                    }`}
+                    onClick={() => setSelectedImage(index)}
+                  >
+                    <Image
+                      src={imageUrl(image).url() || "/placeholder.svg"}
+                      alt={`${product.name} thumbnail ${index + 1}`}
+                      layout="fill"
+                      objectFit="cover"
+                    />
+                  </div>
+                ))}
               </div>
             </div>
 

@@ -6,13 +6,13 @@ export const getAllColorSwatches = async (page: number = 1, limit: number = 16) 
   
   const COLORSWATCHES_QUERY = defineQuery(`
     {
-      "swatches": *[_type == "colorSwatches"] | order(_createdAt desc) [${offset}...${offset + limit}],
+      "swatches": *[_type == "colorSwatches"] | order(_createdAt desc) [$offset...$limit],
       "total": count(*[_type == "colorSwatches"])
     }
   `);
 
   try {
-    const result = await sanityFetch({ query: COLORSWATCHES_QUERY });
+    const result = await sanityFetch({ query: COLORSWATCHES_QUERY, params: { offset, limit } });
     const data = result.data || { swatches: [], total: 0 };
     
     return {

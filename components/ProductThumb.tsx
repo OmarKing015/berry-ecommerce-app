@@ -14,10 +14,10 @@ function ProductThumb({ product }: { product: Product }) {
       }`}
     >
       <div className="relative aspect-square w-full overflow-hidden bg-gray-50">
-        {product.image && (
+        {product.images && (
           <Image
             className="object-contain transition-transform duration-300 group-hover:scale-105"
-            src={imageUrl(product?.image).url() || "/placeholder.svg"}
+            src={imageUrl(product?.images[0]).url() || "/placeholder.svg"}
             alt={product.name || "Product image"}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
