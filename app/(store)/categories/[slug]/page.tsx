@@ -7,7 +7,6 @@ import Link from "next/link"
 async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const products = await getProductsByCategory(slug)
-  const categories = await getAllCategories()
 
   // Format category name for display
   const categoryName = slug

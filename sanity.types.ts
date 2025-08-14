@@ -83,7 +83,6 @@ export type Order = {
     };
     quantity?: number;
     price?: number;
-    size?: string;
     _key: string;
   }>;
   totalAmount?: number;
@@ -130,7 +129,7 @@ export type Product = {
   name?: string;
   slug?: Slug;
   description?: string;
-  images?: Array<{
+  images?:[ {
     asset?: {
       _ref: string;
       _type: "reference";
@@ -141,8 +140,7 @@ export type Product = {
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
     _type: "image";
-    _key: string;
-  }>;
+  }];
   file?: {
     asset?: {
       _ref: string;
@@ -337,64 +335,39 @@ export type SanityAssetSourceData = {
 export type AllSanitySchemaTypes = ColorSwatches | TempleteLogos | Order | Category | Product | Sale | Color | RgbaColor | HsvaColor | HslaColor | SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityImageHotspot | SanityImageCrop | SanityFileAsset | SanityImageAsset | SanityImageMetadata | Geopoint | Slug | SanityAssetSourceData;
 export declare const internalGroqTypeReferenceTo: unique symbol;
 // Source: ./sanity/lib/customizationTools/getAllColorSwatches.ts
-// Variable: COLORSWATCHES_QUERY
-// Query: {      "swatches": *[_type == "colorSwatches"] | order(_createdAt desc) [$offset...$limit],      "total": count(*[_type == "colorSwatches"])    }
-export type COLORSWATCHES_QUERYResult = {
-  swatches: Array<{
-    _id: string;
-    _type: "colorSwatches";
-    _createdAt: string;
-    _updatedAt: string;
-    _rev: string;
-    colorName?: string;
-    colorHexCode?: Color;
-    image?: {
-      asset?: {
-        _ref: string;
-        _type: "reference";
-        _weak?: boolean;
-        [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
-      };
-      media?: unknown;
-      hotspot?: SanityImageHotspot;
-      crop?: SanityImageCrop;
-      _type: "image";
+// Variable: All_COLORSWATCHES_QUERY
+// Query: *[_type == "colorSwatches"] | order(name asc)
+export type All_COLORSWATCHES_QUERYResult = Array<{
+  _id: string;
+  _type: "colorSwatches";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  colorName?: string;
+  colorHexCode?: Color;
+  image?: {
+    asset?: {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
     };
-    fitStyle?: "boxFit" | "oversizedFit" | "slimFit";
-  }>;
-  total: number;
-};
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    _type: "image";
+  };
+  fitStyle?: "boxFit" | "oversizedFit" | "slimFit";
+}>;
 
 // Source: ./sanity/lib/customizationTools/getAllLogos.ts
-// Variable: LOGOS_QUERY
-// Query: {      "logos": *[_type == "templeteLogos"] | order(name asc) [$offset...$limit],      "total": count(*[_type == "templeteLogos"])    }
-export type LOGOS_QUERYResult = {
-  logos: Array<{
-    _id: string;
-    _type: "templeteLogos";
-    _createdAt: string;
-    _updatedAt: string;
-    _rev: string;
-    logoName?: string;
-    image?: {
-      asset?: {
-        _ref: string;
-        _type: "reference";
-        _weak?: boolean;
-        [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
-      };
-      media?: unknown;
-      hotspot?: SanityImageHotspot;
-      crop?: SanityImageCrop;
-      _type: "image";
-    };
-  }>;
-  total: number;
-};
+// Variable: All_LOGOS_QUERY
+// Query: *[_type == "logo"] | order(name asc)
+export type All_LOGOS_QUERYResult = Array<never>;
 
 // Source: ./sanity/lib/orders/getMyOrders.ts
 // Variable: MY_ORERS_QUERY
-// Query: *[_type == "order" && clerkUserId == $userId] | order(createdAt desc) {        _id,        orderId,        customerName,        totalAmount,        paymentStatus,        paymentMethod,        orderStatus,        createdAt,        items[] {          quantity,          price,          product-> {            _id,            name,            images          }        }      }
+// Query: *[_type == "order" && clerkUserId == $userId] | order(createdAt desc) {        _id,        orderId,        customerName,        totalAmount,        paymentStatus,        paymentMethod,        orderStatus,        createdAt,        items[] {          quantity,          price,          product-> {            _id,            name,            image          }        }      }
 export type MY_ORERS_QUERYResult = Array<{
   _id: string;
   orderId: string | null;
@@ -410,7 +383,7 @@ export type MY_ORERS_QUERYResult = Array<{
     product: {
       _id: string;
       name: string | null;
-      images: Array<{
+      image: {
         asset?: {
           _ref: string;
           _type: "reference";
@@ -421,8 +394,7 @@ export type MY_ORERS_QUERYResult = Array<{
         hotspot?: SanityImageHotspot;
         crop?: SanityImageCrop;
         _type: "image";
-        _key: string;
-      }> | null;
+      } | null;
     } | null;
   }> | null;
 }>;
@@ -456,7 +428,6 @@ export type GET_ORDER_BY_ORDER_ID_QUERYResult = {
     };
     quantity?: number;
     price?: number;
-    size?: string;
     _key: string;
   }>;
   totalAmount?: number;
@@ -499,16 +470,17 @@ export type ALL_CATEGORIES_QUERYResult = Array<{
 
 // Source: ./sanity/lib/products/getAllProducts.ts
 // Variable: All_PRODUCTS_QUERY
-// Query: *[_type == "product" && name != "custom t-shirt"] | order(name asc) {            _id,            name,            slug,            images,            price,            sizes,            categories        }
+// Query: *[_type == "product" && name != "custom t-shirt"] | order(name asc)
 export type All_PRODUCTS_QUERYResult = Array<{
-  _type:"product",
-  _craetedAt: string,
-  _updatedAt: string,
-  _rev: string,
   _id: string;
-  name: string | null;
-  slug: Slug | null;
-  images: Array<{
+  _type: "product";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  name?: string;
+  slug?: Slug;
+  description?: string;
+  image?: {
     asset?: {
       _ref: string;
       _type: "reference";
@@ -519,36 +491,45 @@ export type All_PRODUCTS_QUERYResult = Array<{
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
     _type: "image";
-    _key: string;
-  }> | null;
-  price: number | null;
-  sizes: Array<{
+  };
+  file?: {
+    asset?: {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "sanity.fileAsset";
+    };
+    media?: unknown;
+    _type: "file";
+  };
+  price?: number;
+  sizes?: Array<{
     size?: string;
     stock?: number;
     _key: string;
-  }> | null;
-  categories: Array<{
+  }>;
+  categories?: Array<{
     _ref: string;
     _type: "reference";
     _weak?: boolean;
     _key: string;
     [internalGroqTypeReferenceTo]?: "category";
-  }> | null;
+  }>;
 }>;
 
 // Source: ./sanity/lib/products/getProductsByCategory.ts
 // Variable: PRODUCTS_BY_CATEGORY_QUERY
-// Query: *[_type == "product" && references(*[_type == "category" && slug.current == $categorySlug]._id)] | order(name asc) {        _id,        name,        slug,        images,        price,        sizes,        categories    }
+// Query: *[_type == "product" && references(*[_type == "category" && slug.current == $categorySlug]._id)] | order(name asc)
 export type PRODUCTS_BY_CATEGORY_QUERYResult = Array<{
-
-  _type:"product",
-  _createdAt: string,
-  _updatedAt: string,
-  _rev: string,
   _id: string;
-  name: string | null;
-  slug: Slug | null;
-  images: Array<{
+  _type: "product";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  name?: string;
+  slug?: Slug;
+  description?: string;
+  image?: {
     asset?: {
       _ref: string;
       _type: "reference";
@@ -559,21 +540,30 @@ export type PRODUCTS_BY_CATEGORY_QUERYResult = Array<{
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
     _type: "image";
-    _key: string;
-  }> | null;
-  price: number | null;
-  sizes: Array<{
+  };
+  file?: {
+    asset?: {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "sanity.fileAsset";
+    };
+    media?: unknown;
+    _type: "file";
+  };
+  price?: number;
+  sizes?: Array<{
     size?: string;
     stock?: number;
     _key: string;
-  }> | null;
-  categories: Array<{
+  }>;
+  categories?: Array<{
     _ref: string;
     _type: "reference";
     _weak?: boolean;
     _key: string;
     [internalGroqTypeReferenceTo]?: "category";
-  }> | null;
+  }>;
 }>;
 
 // Source: ./sanity/lib/sales/getActiveSaleByCouponCode.ts
@@ -598,13 +588,13 @@ export type ACTIVE_SALE_BY_COUPON_QUERYResult = {
 import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
-    "\n    {\n      \"swatches\": *[_type == \"colorSwatches\"] | order(_createdAt desc) [$offset...$limit],\n      \"total\": count(*[_type == \"colorSwatches\"])\n    }\n  ": COLORSWATCHES_QUERYResult;
-    "\n    {\n      \"logos\": *[_type == \"templeteLogos\"] | order(name asc) [$offset...$limit],\n      \"total\": count(*[_type == \"templeteLogos\"])\n    }\n  ": LOGOS_QUERYResult;
-    "*[_type == \"order\" && clerkUserId == $userId] | order(createdAt desc) {\n        _id,\n        orderId,\n        customerName,\n        totalAmount,\n        paymentStatus,\n        paymentMethod,\n        orderStatus,\n        createdAt,\n        items[] {\n          quantity,\n          price,\n          product-> {\n            _id,\n            name,\n            images\n          }\n        }\n      }": MY_ORERS_QUERYResult;
+    "\n        *[_type == \"colorSwatches\"] | order(name asc)\n        ": All_COLORSWATCHES_QUERYResult;
+    "\n        *[_type == \"logo\"] | order(name asc)\n        ": All_LOGOS_QUERYResult;
+    "*[_type == \"order\" && clerkUserId == $userId] | order(createdAt desc) {\n        _id,\n        orderId,\n        customerName,\n        totalAmount,\n        paymentStatus,\n        paymentMethod,\n        orderStatus,\n        createdAt,\n        items[] {\n          quantity,\n          price,\n          product-> {\n            _id,\n            name,\n            image\n          }\n        }\n      }": MY_ORERS_QUERYResult;
     "\n    *[_type == \"order\" && orderId == $orderId][0]\n  ": GET_ORDER_BY_ORDER_ID_QUERYResult;
     "\n        *[_type == \"category\"] | order(name asc) \n        ": ALL_CATEGORIES_QUERYResult;
-    "\n        *[_type == \"product\" && name != \"custom t-shirt\"] | order(name asc) {\n            _id,\n            name,\n            slug,\n            images,\n            price,\n            sizes,\n            categories\n        }\n        ": All_PRODUCTS_QUERYResult;
-    "\n    *[_type == \"product\" && references(*[_type == \"category\" && slug.current == $categorySlug]._id)] | order(name asc) {\n    }\n    ": PRODUCTS_BY_CATEGORY_QUERYResult;
+    "\n        *[_type == \"product\" && name != \"custom t-shirt\"] | order(name asc)\n        ": All_PRODUCTS_QUERYResult;
+    "\n    *[_type == \"product\" && references(*[_type == \"category\" && slug.current == $categorySlug]._id)] | order(name asc)\n\n    ": PRODUCTS_BY_CATEGORY_QUERYResult;
     "\n        *[_type == \"sale\" && couponCode == $couponCode && isActive == true] | order(validFrom desc)[0]\n        ": ACTIVE_SALE_BY_COUPON_QUERYResult;
   }
 }

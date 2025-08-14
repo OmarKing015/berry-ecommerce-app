@@ -1,5 +1,6 @@
 import { defineQuery } from "next-sanity";
 import { sanityFetch } from "../live";
+import { PRODUCTS_BY_CATEGORY_QUERYResult } from "@/sanity.types";
 
 export const getProductsByCategory = async (categorySlug: string) => {
   const PRODUCTS_BY_CATEGORY_QUERY = defineQuery(`
@@ -13,7 +14,7 @@ export const getProductsByCategory = async (categorySlug: string) => {
       params: { categorySlug },
     });
 
-    return products.data || [];
+    return products.data as PRODUCTS_BY_CATEGORY_QUERYResult || [];
   } catch (error) {
     console.error("Error fetching products by category:", error);
     return [];
