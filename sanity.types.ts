@@ -599,7 +599,7 @@ declare module "@sanity/client" {
     "\n    *[_type == \"order\" && orderId == $orderId][0]\n  ": GET_ORDER_BY_ORDER_ID_QUERYResult;
     "\n        *[_type == \"category\"] | order(name asc) \n        ": ALL_CATEGORIES_QUERYResult;
     "\n        *[_type == \"product\" && name != \"custom t-shirt\"] | order(name asc) {\n            _id,\n            name,\n            slug,\n            images,\n            price,\n            sizes,\n            categories\n        }\n        ": All_PRODUCTS_QUERYResult;
-    "\n    *[_type == \"product\" && references(*[_type == \"category\" && slug.current == $categorySlug]._id)] | order(name asc) {\n        _id,\n        name,\n        slug,\n        images,\n        price,\n        sizes,\n        categories\n    }\n    ": PRODUCTS_BY_CATEGORY_QUERYResult;
+    "\n    *[_type == \"product\" && references(*[_type == \"category\" && slug.current == $categorySlug]._id)] | order(name asc) {\n    }\n    ": PRODUCTS_BY_CATEGORY_QUERYResult;
     "\n        *[_type == \"sale\" && couponCode == $couponCode && isActive == true] | order(validFrom desc)[0]\n        ": ACTIVE_SALE_BY_COUPON_QUERYResult;
   }
 }
