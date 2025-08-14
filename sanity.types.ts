@@ -542,7 +542,7 @@ export type All_PRODUCTS_QUERYResult = Array<{
 export type PRODUCTS_BY_CATEGORY_QUERYResult = Array<{
 
   _type:"product",
-  _craetedAt: string,
+  _createdAt: string,
   _updatedAt: string,
   _rev: string,
   _id: string;
