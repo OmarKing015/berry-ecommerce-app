@@ -9,6 +9,7 @@ import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { ShoppingCart, Package, CreditCard, ArrowRight, Trash2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 interface StockData {
   [productId: string]: {
@@ -102,7 +103,7 @@ function BasketPage() {
         name: item.product.name || "Product",
         price: getBulkPrice(item), // Use bulk price logic
         quantity: item.quantity,
-        images: item.product.image ? imageUrl(item.product.image).url() : "/placeholder.svg?height=80&width=80",
+        images: item.product.images ? imageUrl(item.product.images[0]).url() : "/placeholder.svg?height=80&width=80",
         size: item.size,
       }))
 
@@ -147,9 +148,9 @@ function BasketPage() {
                       className="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 cursor-pointer"
                       onClick={() => router.push(`/product/${item.product.slug?.current}`)}
                     >
-                      {item.product.image ? (
+                      {item.product.images ? (
                         <Image
-                          src={imageUrl(item.product.image).url() || "/placeholder.svg" || "/placeholder.svg"}
+                          src={imageUrl(item.product.images[0]).url() || "/placeholder.svg" || "/placeholder.svg"}
                           alt={item.product.name ?? "Product Image"}
                           className="w-full h-full object-cover rounded-lg"
                           width={96}
@@ -284,8 +285,13 @@ function BasketPage() {
                   )}
                 </button>
               ) : (
-                <SignInButton />
-              )}
+                <>
+                
+                <h3 className="w-full mx-auto text-center text-sm font-medium text-gray-900 mb-6">To proceed to checkout</h3>
+                <Button variant="destructive" className="mx-auto animate-pulse w-full">
+                <SignInButton  mode="modal" />
+                </Button>
+              </>)}
               {isCheckoutDisabled && (
                 <p className="text-red-600 text-sm mt-2 text-center">
                   Some items in your basket are out of stock or have insufficient quantity. Please adjust your basket to

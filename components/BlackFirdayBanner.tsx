@@ -60,7 +60,7 @@ async function CustomizationBanner() {
                     </div>
                   </div>
 
-                  <Link href="/customize" className="group">
+                  <Link href="/customize" className="animate-pulse group">
                     <button className="inline-flex items-center bg-white text-purple-600 hover:text-purple-700 font-bold py-4 px-8 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-300">
                       <Palette className="h-5 w-5 mr-2 group-hover:rotate-12 transition-transform duration-300" />
                       <span>Start Designing</span>
@@ -148,7 +148,7 @@ async function CustomizationBanner() {
                       </div>
                     </div>
 
-                    <Link href="/customize" className="group">
+                    <Link href="/customize" className="animate-pulse group">
                       <button className="inline-flex items-center bg-white text-purple-600 hover:text-purple-700 font-bold py-5 px-10 rounded-lg shadow-xl transform hover:scale-105 transition-all duration-300 text-lg">
                         <Palette className="h-6 w-6 mr-3 group-hover:rotate-12 transition-transform duration-300" />
                         <span>Start Designing</span>

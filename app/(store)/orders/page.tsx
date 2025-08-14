@@ -374,11 +374,11 @@ async function OrdersPage() {
                                       className="flex items-center space-x-3"
                                     >
                                       <div className="w-8 h-8 bg-gray-100 rounded flex-shrink-0">
-                                        {item.product?.image ? (
+                                        {item.product?.images ? (
                                           <Image
                                             src={
                                               imageUrl(
-                                                item.product.image
+                                                item.product.images[0]
                                               ).url() || "/placeholder.svg"
                                             }
                                             alt={item.product.name || "Product"}

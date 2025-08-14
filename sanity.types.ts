@@ -83,6 +83,7 @@ export type Order = {
     };
     quantity?: number;
     price?: number;
+    size?: string;
     _key: string;
   }>;
   totalAmount?: number;
@@ -129,7 +130,7 @@ export type Product = {
   name?: string;
   slug?: Slug;
   description?: string;
-  image?: {
+  images?: Array<{
     asset?: {
       _ref: string;
       _type: "reference";
@@ -140,7 +141,8 @@ export type Product = {
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
     _type: "image";
-  };
+    _key: string;
+  }>;
   file?: {
     asset?: {
       _ref: string;
@@ -334,37 +336,6 @@ export type SanityAssetSourceData = {
 
 export type AllSanitySchemaTypes = ColorSwatches | TempleteLogos | Order | Category | Product | Sale | Color | RgbaColor | HsvaColor | HslaColor | SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityImageHotspot | SanityImageCrop | SanityFileAsset | SanityImageAsset | SanityImageMetadata | Geopoint | Slug | SanityAssetSourceData;
 export declare const internalGroqTypeReferenceTo: unique symbol;
-// Source: ./sanity/lib/customizationTools/getAllColorSwatches.ts
-// Variable: All_COLORSWATCHES_QUERY
-// Query: *[_type == "colorSwatches"] | order(name asc)
-export type All_COLORSWATCHES_QUERYResult = Array<{
-  _id: string;
-  _type: "colorSwatches";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  colorName?: string;
-  colorHexCode?: Color;
-  image?: {
-    asset?: {
-      _ref: string;
-      _type: "reference";
-      _weak?: boolean;
-      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
-    };
-    media?: unknown;
-    hotspot?: SanityImageHotspot;
-    crop?: SanityImageCrop;
-    _type: "image";
-  };
-  fitStyle?: "boxFit" | "oversizedFit" | "slimFit";
-}>;
-
-// Source: ./sanity/lib/customizationTools/getAllLogos.ts
-// Variable: All_LOGOS_QUERY
-// Query: *[_type == "logo"] | order(name asc)
-export type All_LOGOS_QUERYResult = Array<never>;
-
 // Source: ./sanity/lib/orders/getMyOrders.ts
 // Variable: MY_ORERS_QUERY
 // Query: *[_type == "order" && clerkUserId == $userId] | order(createdAt desc) {        _id,        orderId,        customerName,        totalAmount,        paymentStatus,        paymentMethod,        orderStatus,        createdAt,        items[] {          quantity,          price,          product-> {            _id,            name,            image          }        }      }
@@ -383,18 +354,7 @@ export type MY_ORERS_QUERYResult = Array<{
     product: {
       _id: string;
       name: string | null;
-      image: {
-        asset?: {
-          _ref: string;
-          _type: "reference";
-          _weak?: boolean;
-          [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
-        };
-        media?: unknown;
-        hotspot?: SanityImageHotspot;
-        crop?: SanityImageCrop;
-        _type: "image";
-      } | null;
+      image: null;
     } | null;
   }> | null;
 }>;
@@ -428,6 +388,7 @@ export type GET_ORDER_BY_ORDER_ID_QUERYResult = {
     };
     quantity?: number;
     price?: number;
+    size?: string;
     _key: string;
   }>;
   totalAmount?: number;
@@ -480,7 +441,7 @@ export type All_PRODUCTS_QUERYResult = Array<{
   name?: string;
   slug?: Slug;
   description?: string;
-  image?: {
+  images?: Array<{
     asset?: {
       _ref: string;
       _type: "reference";
@@ -491,7 +452,8 @@ export type All_PRODUCTS_QUERYResult = Array<{
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
     _type: "image";
-  };
+    _key: string;
+  }>;
   file?: {
     asset?: {
       _ref: string;
@@ -529,7 +491,7 @@ export type PRODUCTS_BY_CATEGORY_QUERYResult = Array<{
   name?: string;
   slug?: Slug;
   description?: string;
-  image?: {
+  images?: Array<{
     asset?: {
       _ref: string;
       _type: "reference";
@@ -540,7 +502,8 @@ export type PRODUCTS_BY_CATEGORY_QUERYResult = Array<{
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
     _type: "image";
-  };
+    _key: string;
+  }>;
   file?: {
     asset?: {
       _ref: string;
@@ -588,8 +551,6 @@ export type ACTIVE_SALE_BY_COUPON_QUERYResult = {
 import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
-    "\n        *[_type == \"colorSwatches\"] | order(name asc)\n        ": All_COLORSWATCHES_QUERYResult;
-    "\n        *[_type == \"logo\"] | order(name asc)\n        ": All_LOGOS_QUERYResult;
     "*[_type == \"order\" && clerkUserId == $userId] | order(createdAt desc) {\n        _id,\n        orderId,\n        customerName,\n        totalAmount,\n        paymentStatus,\n        paymentMethod,\n        orderStatus,\n        createdAt,\n        items[] {\n          quantity,\n          price,\n          product-> {\n            _id,\n            name,\n            image\n          }\n        }\n      }": MY_ORERS_QUERYResult;
     "\n    *[_type == \"order\" && orderId == $orderId][0]\n  ": GET_ORDER_BY_ORDER_ID_QUERYResult;
     "\n        *[_type == \"category\"] | order(name asc) \n        ": ALL_CATEGORIES_QUERYResult;

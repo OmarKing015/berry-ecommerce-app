@@ -91,7 +91,7 @@ function Header() {
             {/* Customize */}{" "}
             <Link
               href="/customize"
-              className="relative flex items-center space-x-2 bg-red-500 hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+              className="animate-pulse relative flex items-center space-x-2 bg-red-500 hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
             >
               {" "}
               <WandSparklesIcon/>

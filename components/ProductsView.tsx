@@ -16,8 +16,8 @@ const ProductsView = ({ products, categories }: ProductsViewProps) => {
     if (product.categories) {
       for (const categoryRef of product.categories) {
         if (categoryRef._ref && !categoryImageMap.has(categoryRef._ref)) {
-          if (product.image) {
-            const url = imageUrl(product.image).url()
+          if (product.images) {
+            const url = imageUrl(product.images[0]).url()
             categoryImageMap.set(categoryRef._ref, url)
           }
         }

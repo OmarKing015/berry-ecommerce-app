@@ -4,13 +4,13 @@ import { backendClient } from "../backendClient"
 export interface ProductData {
   name: string
   description?: string
-  image?: {
+  images?: [{
     asset?: {
       _ref: string
       _type: "reference"
     }
     _type: "image"
-  }
+  }]
   file?: {
     _type: 'file',
     asset: {

@@ -101,13 +101,13 @@ export async function POST(req: Request) {
         _type: "slug",
         current: slug,
       },
-      image: {
+      images: [{
         _type: "image",
         asset: {
           _type: "reference",
           _ref: imageAsset._id,
         },
-      },
+      }],
       file: {
         _type: "file",
         asset: {

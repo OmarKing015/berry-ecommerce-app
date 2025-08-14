@@ -24,10 +24,21 @@ export const productType = defineType({
       type: "text",
     }),
 
+    // defineField({
+    //   name: "image",
+    //   title: "Image",
+    //   type: "image",
+    // }),
     defineField({
-      name: "image",
-      title: "Image",
-      type: "image",
+      name: "images",
+      title: "Images",
+      type: "array",
+      of: [
+        {
+          name: "image",
+          type: "image",
+        },
+      ],
     }),
     defineField({
       name: "file",
