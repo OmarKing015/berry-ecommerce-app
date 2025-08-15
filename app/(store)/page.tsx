@@ -3,6 +3,7 @@ import CustomizationBanner from "@/components/BlackFirdayBanner";
 import ProductsView from "@/components/ProductsView";
 import { Button } from "@/components/ui/button";
 import { Category, Product } from "@/sanity.types";
+import { getAllCategories } from "@/sanity/lib/products/getAllCategories";
 import { getAllProducts } from "@/sanity/lib/products/getAllProducts";
 import { SetStateAction, useEffect, useState } from "react";
 
@@ -31,8 +32,8 @@ export default function Home() {
   useEffect(() => {
     const getData = async () => {
       try {
-        const res = await fetch("/api/categories")
-        const results = await res.json()
+        const results = await getAllCategories();
+        console.log("Fetched categories:", categories);
         const products: SetStateAction<Product[]> = []
         setCategories(results)
         setProducts(products)

@@ -1,11 +1,11 @@
-import { Sale } from "@/sanity.types"
+import { ACTIVE_SALE_BY_COUPON_QUERYResult, Sale } from "@/sanity.types"
 import { getActiveSaleByCouponCode } from "@/sanity/lib/sales/getActiveSaleByCouponCode"
 import { Palette, Type, ImageIcon, ArrowRight, Sparkles, Clock, Shirt } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 
 function CustomizationBanner() {
-  const [sale, setSale] = useState<Sale>()
+  const [sale, setSale] = useState<ACTIVE_SALE_BY_COUPON_QUERYResult>()
   useEffect( () => {
     const getSale = async () => {
     try {
