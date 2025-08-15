@@ -5,13 +5,13 @@ import { Package } from "lucide-react"
 import { imageUrl } from "@/lib/imageUrl"
 
 interface ProductsViewProps {
-  products: Product[]
+  products?: Product[]
   categories: Category[]
 }
 
 const ProductsView = ({ products, categories }: ProductsViewProps) => {
   const categoryImageMap = new Map<string, string>()
-
+if(products){
   for (const product of products) {
     if (product.categories) {
       for (const categoryRef of product.categories) {
@@ -23,7 +23,7 @@ const ProductsView = ({ products, categories }: ProductsViewProps) => {
         }
       }
     }
-  }
+  }}
 
   const transformedCategories = categories.filter((c): c is NonNullable<typeof c> => c !== null)
 

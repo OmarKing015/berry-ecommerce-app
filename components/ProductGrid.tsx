@@ -7,7 +7,9 @@ import ProductThumb from "./ProductThumb"
 function ProductGrid({ products }: { products: Product[] }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
-      {products.map((product) => {
+      {products
+ .filter((product) => !product.slug?.current?.includes("custom-tshirt-"))
+ .map((product) => {
         return (
           <AnimatePresence key={product._id}>
             <motion.div
@@ -19,10 +21,15 @@ function ProductGrid({ products }: { products: Product[] }) {
               className="flex justify-center items-center"
             >
               <ProductThumb key={product._id} product={product} />
+              
             </motion.div>
           </AnimatePresence>
-        )
+ );
       })}
+      {products.length < 1 && (
+ <p className="text-center text-lg text-gray-500">No products found.</p>
+
+      )}
     </div>
   )
 }

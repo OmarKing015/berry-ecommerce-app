@@ -1,9 +1,23 @@
+import { Sale } from "@/sanity.types"
 import { getActiveSaleByCouponCode } from "@/sanity/lib/sales/getActiveSaleByCouponCode"
 import { Palette, Type, ImageIcon, ArrowRight, Sparkles, Clock, Shirt } from "lucide-react"
 import Link from "next/link"
+import { useEffect, useState } from "react"
 
-async function CustomizationBanner() {
-  const sale = await getActiveSaleByCouponCode("FRIDAYCC22")
+function CustomizationBanner() {
+  const [sale, setSale] = useState<Sale>()
+  useEffect( () => {
+    const getSale = async () => {
+    try {
+      const sale = await getActiveSaleByCouponCode("FRIDAYCC22")
+      setSale(sale)
+    } catch (error) {
+      console.error("Error fetching active sale:", error)
+    }
+  }
+  getSale()
+
+  }, [])
 
   return (
     <div className="mx-4 mt-4 mb-6">
