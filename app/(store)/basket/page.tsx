@@ -29,10 +29,10 @@ function BasketPage() {
 
   const getBulkPrice = (item: any) => {
     const customTshirtCount = groupedItems
-      .filter((cartItem) => cartItem.product.name?.toLowerCase().includes("custom t-shirt"))
+      .filter((cartItem) => cartItem.product.slug?.current?.toLowerCase().includes("t-shirt"))
       .reduce((total, cartItem) => total + cartItem.quantity, 0)
 
-    if (item.product.name?.toLowerCase().includes("custom t-shirt") && customTshirtCount >= 2) {
+    if (item.product.slug?.current?.toLowerCase().includes("t-shirt") && customTshirtCount >= 2) {
       return 500 // Bulk price for custom t-shirts when 2 or more
     }
     return item.product.price ?? 0 // Regular price
