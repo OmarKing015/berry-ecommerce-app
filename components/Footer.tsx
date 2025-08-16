@@ -13,7 +13,12 @@ const Footer = () => {
             <h3 className="font-bold text-lg mb-4">Quick Links</h3>
             <ul>
               <li>
-                <Link href="/about-us" className="text-gray-400 hover:text               Link href="/shipping-policy" className="text-gray-400 hover:text-white">
+                <Link href="/about-us" className="text-gray-400 hover:text-white">
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link href="/shipping-policy" className="text-gray-400 hover:text-white">
                   Shipping Policy
                 </Link>
               </li>
@@ -23,7 +28,9 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
- </Link>
+                <Link href="/terms-and-conditions" className="text-gray-400 hover:text-white">
+                  Terms & Conditions
+                </Link>
               </li>
               <li>
                 <Link href="/privacy-policy" className="text-gray-400 hover:text-white">
@@ -38,7 +45,8 @@ const Footer = () => {
             <p className="text-gray-400">Phone Number: +201204167144</p>
             <p className="text-gray-400">Address: Victoria Alexandria Egypt</p>
           </div>
-          <div>
+        </div>
+<div>
             <h3 className="font-bold text-lg mb-4">Developer</h3>
             <a
               href="https://wh.ms/201223606997"
@@ -49,7 +57,6 @@ const Footer = () => {
               Eng/Omar Osama
             </a>
           </div>
-        </div>
         <div className="text-center text-gray-500 mt-8 pt-8 border-t border-gray-700">
           <p>&copy; {new Date().getFullYear()} Mazagk. All rights reserved.</p>
         </div>
