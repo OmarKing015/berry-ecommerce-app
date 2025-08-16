@@ -49,7 +49,7 @@ const Footer = () => {
 <div>
             <h3 className="font-bold text-lg mb-4">Developer</h3>
             <a
-              href="https://wh.ms/201223606997"
+              href="https://api.whatsapp.com/send?phone=201223606997&text="
               target="_blank"
               rel="noopener noreferrer"
               className="text-gray-400 hover:text-white underline"
