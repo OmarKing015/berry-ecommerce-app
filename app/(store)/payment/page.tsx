@@ -1,4 +1,4 @@
-use client";
+"use client";
 
 import type React from "react";
 
@@ -146,7 +146,7 @@ export default function PaymentPage() {
     setFormData((prev) => ({
        ...prev, [field]: value })
     );
-
+   
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -201,7 +201,7 @@ export default function PaymentPage() {
             items: cartItems.map((item) => ({
             name:item.name,
               product: {
-
+              
               _key:item.id,
               _ref:item.id,
               _type:"reference" as const
@@ -514,8 +514,6 @@ export default function PaymentPage() {
               </CardFooter>
             </Card>
 
-
-
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center justify-center space-x-4 text-sm text-gray-600">
@@ -542,43 +540,7 @@ export default function PaymentPage() {
             </Card>
           </div>
         </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
       </div>
     </div>
   );
+}
