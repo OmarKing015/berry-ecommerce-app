@@ -1,8 +1,8 @@
 import { fabric } from 'fabric';
 
-const BASE_COST = 570.00; // 570 EGP base price for a t-shirt
-const COST_PER_WORD = 25; // 25 EGP per word after one free word
-const COST_PER_LOGO = 25; // 25 EGP per logo after one free logo
+const BASE_COST = 550.00; // 570 EGP base price for a t-shirt
+const COST_PER_WORD = 0; // 25 EGP per word after one free word
+const COST_PER_LOGO = 0; // 25 EGP per logo after one free logo
 
 interface CustomObject extends fabric.Object {
     cost?: number;
