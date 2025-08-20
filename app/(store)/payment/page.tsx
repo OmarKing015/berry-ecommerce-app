@@ -1,4 +1,4 @@
-"use client";
+use client";
 
 import type React from "react";
 
@@ -146,7 +146,7 @@ export default function PaymentPage() {
     setFormData((prev) => ({
        ...prev, [field]: value })
     );
-   
+
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -201,7 +201,7 @@ export default function PaymentPage() {
             items: cartItems.map((item) => ({
             name:item.name,
               product: {
-              
+
               _key:item.id,
               _ref:item.id,
               _type:"reference" as const
@@ -236,121 +236,349 @@ export default function PaymentPage() {
   };
 
   return (
-    
-           <div className="max-w-6xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8 text-center">Checkout</h1>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="container mx-auto px-4 max-w-6xl">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
+          <p className="text-gray-600 mt-2">Complete your purchase securely</p>
+        </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Billing / Shipping Details */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Billing Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="name">Full Name</Label>
-              <Input id="name" placeholder="John Doe" />
-            </div>
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="you@example.com" />
-            </div>
-            <div>
-              <Label htmlFor="address">Address</Label>
-              <Input id="address" placeholder="123 Street, City" />
-            </div>
-            <div>
-              <Label htmlFor="phone">Phone Number</Label>
-              <Input id="phone" type="tel" placeholder="+20 123 456 7890" />
-            </div>
-
-            {/* Payment Method */}
-            <div>
-              <Label>Payment Method</Label>
-              <div className="flex gap-4 mt-2">
-                <Button
-                  type="button"
-                  variant={paymentMethod === "cod" ? "default" : "outline"}
-                  onClick={() => setPaymentMethod("cod")}
-                  className="flex-1"
-                >
-                  <Banknote className="mr-2 h-4 w-4" />
-                  Cash on Delivery
-                </Button>
-                <Button
-                  type="button"
-                  variant={paymentMethod === "card" ? "default" : "outline"}
-                  onClick={() => setPaymentMethod("card")}
-                  className="flex-1"
-                >
-                  <CreditCard className="mr-2 h-4 w-4" />
-                  Card Payment
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Order Summary */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ShoppingCart className="h-5 w-5" />
-              Order Summary
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {cartItems.map((item) => (
-              <div
-                key={item.id}
-                className="flex justify-between items-center py-2 border-b last:border-0"
-              >
-                <div>
-                  <h3 className="font-medium">{item.name}</h3>
-                  <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+        <div className="grid lg:grid-cols-2 gap-8">
+          {/* Payment Form */}
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Customer Information
+                </CardTitle>
+                <CardDescription>
+                  Please provide your details for order processing
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">First Name</Label>
+                    <Input
+                      id="firstName"
+                      value={formData.firstName}
+                      onChange={(e) =>
+                        handleInputChange("firstName", e.target.value)
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Last Name</Label>
+                    <Input
+                      id="lastName"
+                      value={formData.lastName}
+                      onChange={(e) =>
+                        handleInputChange("lastName", e.target.value)
+                      }
+                      required
+                    />
+                  </div>
                 </div>
-                <p className="font-medium">{item.price.toFixed(2)} EGP</p>
-              </div>
-            ))}
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange("email", e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => handleInputChange("phone", e.target.value)}
+                    required
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
-            <Separator />
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5" />
+                  Shipping Address
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="address">Street Address</Label>
+                  <Input
+                    id="address"
+                    value={formData.address}
+                    onChange={(e) =>
+                      handleInputChange("address", e.target.value)
+                    }
+                    required
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="city">City</Label>
+                    <Input
+                      id="city"
+                      value={formData.city}
+                      onChange={(e) =>
+                        handleInputChange("city", e.target.value)
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="postalCode">Postal Code</Label>
+                    <Input
+                      id="postalCode"
+                      value={formData.postalCode}
+                      onChange={(e) =>
+                        handleInputChange("postalCode", e.target.value)
+                      }
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="country">Country</Label>
+                  <Select
+                    value={formData.country}
+                    onValueChange={(value) =>
+                      handleInputChange("country", value)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="EG">Egypt</SelectItem>
+                      <SelectItem value="SA">Saudi Arabia</SelectItem>
+                      <SelectItem value="AE">UAE</SelectItem>
+                      <SelectItem value="JO">Jordan</SelectItem>
+                      <SelectItem value="LB">Lebanon</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
 
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span>Subtotal</span>
-                <span>{subtotal.toFixed(2)} EGP</span>
-              </div>
-              <Separator />
-              <div className="flex justify-between font-bold text-lg">
-                <span>Total</span>
-                <span>{total.toFixed(2)} EGP</span>
-              </div>
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button
-              onClick={handleSubmit}
-              className="w-full"
-              size="lg"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                "Processing..."
-              ) : paymentMethod === "cod" ? (
-                <>
-                  <Banknote className="mr-2 h-4 w-4" />
-                  Place COD Order
-                </>
-              ) : (
-                <>
-                  <CreditCard className="mr-2 h-4 w-4" />
-                  Proceed to Payment
-                </>
-              )}
-            </Button>
-          </CardFooter>
-        </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Payment Method</CardTitle>
+                <CardDescription>
+                  Choose your preferred payment method
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <RadioGroup
+                  value={paymentMethod}
+                  onValueChange={setPaymentMethod}
+                  className="space-y-4"
+                >
+                  <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                    <RadioGroupItem value="card" id="card" />
+                    <Label htmlFor="card" className="flex-1 cursor-pointer">
+                      <div className="flex items-center space-x-3">
+                        <CreditCard className="h-5 w-5 text-blue-600" />
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            Credit/Debit Card / e-Wallet
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            Secure payment powered by Paymob
+                          </p>
+                        </div>
+                      </div>
+                    </Label>
+                  </div>
+
+                  <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                    {/* <RadioGroupItem value="cod" id="cod" />
+                    <Label htmlFor="cod" className="flex-1 cursor-pointer">
+                      <div className="flex items-center space-x-3">
+                        <Banknote className="h-5 w-5 text-green-600" />
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            Cash on Delivery
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            Pay when your order arrives
+                          </p>
+                        </div>
+                      </div>
+                    </Label> */}
+                  </div>
+                </RadioGroup>
+
+                {paymentMethod === "cod" && (
+                  <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Truck className="h-4 w-4 text-amber-600" />
+                      <p className="font-medium text-amber-800">
+                        Cash on Delivery Information
+                      </p>
+                    </div>
+                    <ul className="text-sm text-amber-700 space-y-1">
+                      <li>• Additional COD processing fee: 10 EGP</li>
+                      <li>• Higher shipping fee applies</li>
+                      <li>• Payment due upon delivery</li>
+                      <li>• Please have exact change ready</li>
+                    </ul>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Order Summary */}
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ShoppingCart className="h-5 w-5" />
+                  Order Summary
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {cartItems.map((item) => (
+                  <div key={item.id} className="flex items-center space-x-4">
+                    <img
+                      src={item.image || "/placeholder.svg"}
+                      alt={item.name}
+                      className="w-16 h-16 object-cover rounded-lg"
+                    />
+                    <div className="flex-1">
+                      <h3 className="font-medium">{item.name}</h3>
+                      <p className="text-sm text-gray-600">
+                        Qty: {item.quantity}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium">{item.price.toFixed(2)} EGP</p>
+                    </div>
+                  </div>
+                ))}
+
+                <Separator />
+
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>Subtotal</span>
+                    <span>{subtotal.toFixed(2)} EGP</span>
+                  </div>
+                  <div className="flex justify-between">
+                    {/* <span>Shipping</span> */}
+                    {/* <span>{shipping.toFixed(2)} EGP</span> */}
+                  </div>
+                  {/* <div className="flex justify-between">
+                    <span>Tax (14%)</span>
+                    <span>{tax.toFixed(2)} EGP</span>
+                  </div> */}
+
+                  <Separator />
+                  <div className="flex justify-between font-bold text-lg">
+                    <span>Total</span>
+                    <span>{total.toFixed(2)} EGP</span>
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button
+                  onClick={handleSubmit}
+                  className="w-full"
+                  size="lg"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    "Processing..."
+                  ) : paymentMethod === "cod" ? (
+                    <>
+                      <Banknote className="mr-2 h-4 w-4" />
+                      Place COD Order
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      Proceed to Payment
+                    </>
+                  )}
+                </Button>
+              </CardFooter>
+            </Card>
+
+
+
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-center space-x-4 text-sm text-gray-600">
+                  <Badge
+                    variant="secondary"
+                    className="flex items-center gap-1"
+                  >
+                    {paymentMethod === "cod" ? (
+                      <>
+                        <Banknote className="h-3 w-3" />
+                        Cash on Delivery
+                      </>
+                    ) : (
+                      <>
+                        <CreditCard className="h-3 w-3" />
+                        Secure Payment
+                      </>
+                    )}
+                  </Badge>
+                  <Badge variant="secondary">SSL Encrypted</Badge>
+                  <Badge variant="secondary">Safe & Secure</Badge>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
       </div>
     </div>
   );
-}
